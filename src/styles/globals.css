@@ -59,6 +59,7 @@ a {
 
 .highlight {
   color: var(--PRIMARY);
+  font-weight: var(--font-medium);
 }
 
 .spinner {

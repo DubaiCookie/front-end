@@ -1,7 +1,9 @@
 import styles from '@/components/common/Header.module.css';
+import logo from '@/assets/logo/logo-header.png';
 import clsx from 'clsx';
 import { useAuthStore } from "@/stores/auth.store";
-import { FaRegUserCircle } from "react-icons/fa";
+import { IoNotifications } from "react-icons/io5";
+import { FiLogIn } from "react-icons/fi";
 
 export default function Header() {
     // const token = useAuthStore((s) => s.accessToken); // 로그인 구현 후 수정
@@ -11,16 +13,21 @@ export default function Header() {
     return (
         <header className={clsx(styles.root)}>
             <div className={clsx('container', 'flex-row')}>
-                <div className={clsx(styles.logo)}>로고</div>
-                {token ? (
-                    <div className={clsx(styles.userInfo, 'flex-row')}>
-                        <div className={clsx(styles.userText, 'flex-row')}>
-                            <div className={clsx(styles.userName, 'highlight')}>이름</div>
-                            <div>님 반갑습니다!</div>
-                        </div>
-                        <FaRegUserCircle className={clsx(styles.icon)} />
-                    </div>)
-                    : (<div>로그인</div>)}
+                <img src={logo} alt="WayThing logo" className={clsx(styles.logo)}/>
+                <div className={clsx('highlight', 'flex-row')}>
+                    {token ? (
+                        <>
+                            <p className={clsx(styles.userText, 'flex-row')}>
+                                <span className={clsx(styles.userName, 'highlight')}>이름</span>
+                                <span>님</span>
+                            </p>
+                            <IoNotifications className={clsx(styles.icon)} />
+                        </>)
+                        : (<>
+                            <p>로그인</p>
+                            <FiLogIn className={clsx(styles.icon)}/>
+                        </>)}
+                </div>
             </div>
         </header>
     );
