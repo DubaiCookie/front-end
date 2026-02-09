@@ -1,0 +1,97 @@
+@import './colors.css';
+@import './typography.css';
+
+html,
+body {
+  margin: 0px;
+  padding: 0px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 100svh;
+
+  /* 기본 폰트 스타일 적용 */
+  font-family: var(--font-sans);
+  font-weight: var(--font-regular);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+
+  /* 기본 배경 및 텍스트 색상 설정 */
+  background-color: var(--BACKGROUND);
+  color: var(--TEXT_PRIMARY);
+}
+
+* {
+  margin: 0px;
+  padding: 0px;
+  box-sizing: border-box;
+}
+
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.highlight {
+  color: var(--PRIMARY);
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid var(--SECONDARY);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: 32px auto;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.page-container {
+  display: flex;
+  flex-direction: column;
+  padding: 15px 20px;
+  width: 100%;
+  height: 100%;
+  flex-grow: 1;
+}
+
+.page-title {
+  color: var(--TEXT_PRIMARY);
+  font-family: 'HDBOLD';
+  font-size: 35px;
+}

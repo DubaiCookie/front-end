@@ -1,0 +1,27 @@
+.root {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    height: 80px;
+    z-index: 100;
+    background-color: var(--WHITE);
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: var(--font-bold);
+    color: var(--PRIMARY);
+}
+
+.userName {
+    font-size: var(--font-size-lg);
+    font-weight: var(font-);
+}
+
+.icon {
+    width: 30px;
+    height: 30px;
+    color: var(--PRIMARY)
+}
