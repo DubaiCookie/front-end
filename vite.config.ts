@@ -9,7 +9,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       devOptions: {
-        enabled: true,
+        enabled: false,
+        suppressWarnings: true,
       },
       manifest: {
         name: 'WayThing',
