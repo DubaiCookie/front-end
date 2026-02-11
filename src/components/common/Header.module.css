@@ -4,7 +4,7 @@
     width: 100%;
     height: 56px;
     z-index: 50;
-    background-color: #FFC400;
+    background-color: var(--PRIMARY-PINK);
     display: flex;
     align-items: center;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
@@ -19,7 +19,7 @@
 }
 
 .logo {
-    height: 35px;
+    height: 40px;
     width: auto;
 }
 

@@ -1,0 +1,15 @@
+.block {
+    width: 100%;
+    margin: auto;
+}
+
+.title {
+    margin-bottom: 20px;
+}
+
+.smallText {
+    font-size: var(--font-size-sm);
+    color: var(--TEXT-SECONDARY);
+    cursor: pointer;
+    margin-top: 10px;
+}
