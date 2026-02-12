@@ -8,7 +8,7 @@ import { FiLogIn } from "react-icons/fi";
 
 export default function Header() {
     // const token = useAuthStore((s) => s.accessToken); // 로그인 구현 후 수정
-    const token = 0;
+    const token = 1;
     const logout = useAuthStore((s) => s.logout);
 
     return (
@@ -18,15 +18,15 @@ export default function Header() {
             <div className={clsx('highlight', 'flex-row')}>
                 {token ? (
                     <>
-                        <p className={clsx(styles.userText, 'flex-row')}>
-                            <span className={clsx(styles.userName, 'highlight')}>이름</span>
+                        <p className={clsx(styles.headerText, 'flex-row', 'glass')}>
+                            <span className={clsx(styles.userName)}>이름</span>
                             <span>님</span>
                         </p>
                         <IoNotifications className={clsx(styles.icon)} />
                     </>)
                     : (<>
-                        <Link to="/login" className={clsx('flex-row')}>
-                            <p>로그인</p>
+                        <Link to="/login" className={clsx('flex-row', styles.headerText)}>
+                            <p className={clsx(styles.smallText)}>로그인</p>
                             <FiLogIn className={clsx(styles.icon)} />
                         </Link>
                     </>)}

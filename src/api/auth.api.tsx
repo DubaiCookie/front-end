@@ -7,25 +7,24 @@ export type LoginResponse = {
 };
 
 export async function login(payload: LoginUser) {
-  // TODO: endpoint 는 필요 시 수정
-  const { data } = await http.post<LoginResponse>("/auth/login", payload);
+
+  const { data } = await http.post<LoginResponse>("/login", payload);
   return data;
 }
 
 type SignupRequest = {
-  userid: string;
-  username: string;
-  userpassword: string;
+  userId: string;
+  userName: string;
+  userPassword: string;
 };
 
 export async function signup(payload: SignupUser) {
   const signupRequest: SignupRequest = {
-    userid: payload.userId,
-    username: payload.userName,
-    userpassword: payload.password,
+    userId: payload.userId,
+    userName: payload.userName,
+    userPassword: payload.password,
   };
 
-  // TODO: endpoint 는 필요 시 수정
-  const { data } = await http.post("/auth/signup", signupRequest);
+  const { data } = await http.post("/signup", signupRequest);
   return data;
 }

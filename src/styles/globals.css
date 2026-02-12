@@ -3,7 +3,7 @@
 
 :root {
   --header-height: 56px;
-  --navigation-height: 56px;
+  --navigation-height: 60px;
 }
 
 html,
@@ -22,8 +22,8 @@ body {
   line-height: 1.5;
 
   /* 기본 배경 및 텍스트 색상 설정 */
-  background-color: var(--SECONDARY-LIME);
-  color: var(--TEXT_PRIMARY);
+  background-color: var(--BACKGROUND);
+  color: var(--TEXT-PRIMARY);
 }
 
 #root {
@@ -82,6 +82,16 @@ main>.container {
   justify-content: space-between;
 }
 
+.glass {
+  background: rgba(255, 255, 255, 0.20);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
+  border-radius: 16px;
+  padding: 4px 10px;
+}
+
 .highlight {
   color: var(--PRIMARY-PINK);
   font-weight: var(--font-medium);
@@ -90,6 +100,7 @@ main>.container {
 .page-title {
   font-size: var(--font-size-title);
   font-weight: var(--font-bold);
+  /* color: var(--PRIMARY-LIME); */
   padding: 15px 0;
 }
 
