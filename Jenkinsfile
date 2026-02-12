@@ -57,24 +57,16 @@ pipeline {
 
                     sh '''
                     ssh -p "$DEPLOY_PORT" -i "$SSH_KEY" -o StrictHostKeyChecking=no \
-                    "$DEPLOY_USERNAME@$DEPLOY_IP" << EOF
-
-                    docker pull jinyoung1226/front-server
-
-                    docker stop front-server || true
-                    docker rm front-server || true
-
-                    docker run -d \
-                      --name front-server \
-                      -p 3000:3000 \
-                      jinyoung1226/front-server
-
-                    docker image prune -f
-
-                    EOF
+                    "$DEPLOY_USERNAME@$DEPLOY_IP" "
+                        docker pull jinyoung1226/front-server &&
+                        docker stop front-server || true &&
+                        docker rm front-server || true &&
+                        docker run -d --name front-server -p 3001:3001 jinyoung1226/front-server &&
+                        docker image prune -f
+                    "
                     '''
                 }
             }
-        }
+}
     }
 }
