@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import styles from '@/components/common/Header.module.css';
 import { Link } from 'react-router-dom';
-import logo from '@/assets/logo/tmp1.png';
+import logo from '@/assets/logo/logo-basic.png';
 import { useAuthStore } from "@/stores/auth.store";
 import { IoNotifications } from "react-icons/io5";
 import { FiLogIn } from "react-icons/fi";
@@ -13,8 +13,10 @@ export default function Header() {
 
     return (
         <header className={clsx(styles.root, 'container', 'flex-row')}>
-            {/* <img src={logo} alt="WayThing logo" className={clsx(styles.logo)} /> */}
-            <Link to="/attraction">로고</Link>
+            <Link to="/attraction">
+                {/* <img src={logo} alt="WayThing logo" className={clsx(styles.logo)} /> */}
+                로고
+            </Link>
             <div className={clsx('highlight', 'flex-row')}>
                 {token ? (
                     <>

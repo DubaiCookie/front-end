@@ -3,7 +3,6 @@ import styles from "./user.module.css"
 import InputForm from "@/components/common/inputs/InputForm";
 import type { FieldSpec, LoginUser } from "@/types/user";
 import { login } from "@/api/auth.api";
-import { useAuthStore } from "@/stores/auth.store";
 import { Link } from "react-router-dom";
 
 
@@ -29,20 +28,8 @@ const loginFields: FieldSpec<'userId' | 'password'>[] = [
 ];
 
 export default function LoginPage() {
-    const setAccessToken = useAuthStore((state) => state.setAccessToken);
-
     const handleLogin = async (values: LoginUser) => {
-        const response = await login(values);
-        const accessToken =
-            typeof response.accessToken === "string"
-                ? response.accessToken
-                : typeof response.token === "string"
-                    ? response.token
-                    : null;
-
-        if (accessToken) {
-            setAccessToken(accessToken);
-        }
+        await login(values);
     };
 
     return (

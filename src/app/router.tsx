@@ -1,18 +1,17 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import DefaultLayout from '@/layouts/DefaultLayout';
-import TicketWindowLayout from '@/layouts/TicketWindowLayout';
 
 import SignupPage from '@/pages/user/SignupPage';
 import LoginPage from '@/pages/user/LoginPage';
 import MyPage from '@/pages/user/MyPage';
-import AttractionPage from '@/pages/attraction/AttractionPage';
+import AttractionListPage from '@/pages/attraction/AttractionListPage';
 import AttractionDetailPage from '@/pages/attraction/AttractionDetailPage';
-import TicketPage from '@/pages/TicketPage';
+import TicketListPage from '@/pages/ticket/TicketListPage';
+import TicketOrderPage from '@/pages/ticket/TicketOrderPage';
 
 export const router = createBrowserRouter([
   {
-    // ===== 일반 사이트 영역 =====
     path: '/',
     element: <DefaultLayout />,
     children: [
@@ -33,7 +32,7 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <AttractionPage />,
+            element: <AttractionListPage />,
           },
           {
             path: ':attractionId',
@@ -43,22 +42,15 @@ export const router = createBrowserRouter([
       },
       {
         path: 'ticket',
-        element: <TicketPage />,
+        element: <TicketListPage />,
       },
       {
-        path: 'mypage/:userId',
+        path: 'ticket/order',
+        element: <TicketOrderPage />,
+      },
+      {
+        path: 'mypage',
         element: <MyPage />,
-      },
-    ],
-  },
-  {
-    // ===== 티켓 예매 팝업 전용 영역 =====
-    path: '/ticket-window/:scheduleId',
-    element: <TicketWindowLayout />,
-    children: [
-      {
-        index: true,
-        element: <TicketPage />,
       },
     ],
   },

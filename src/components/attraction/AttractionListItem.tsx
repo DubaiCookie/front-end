@@ -2,33 +2,44 @@ import clsx from "clsx";
 import styles from "./AttractionListItem.module.css";
 import { IoIosTime } from "react-icons/io";
 import { FaCircleDot } from "react-icons/fa6";
+import type { Attraction } from "@/types/attraction";
+import { Link } from "react-router-dom";
 
-// 대기시간 30분 미만일 때 초록색, 30분 이상 60분 미만일 때 주황색, 60분 이상일 때 빨간색
+type AttractionListItemProps = {
+    attraction: Attraction;
+};
 
-export default function AttractionListItem() {
+export default function AttractionListItem({ attraction }: AttractionListItemProps) {
+    const waitingLevelClass =
+        attraction.waitingTime < 30
+            ? styles.waitingLow
+            : attraction.waitingTime < 60
+                ? styles.waitingMid
+                : styles.waitingHigh;
+
     return (
-        <div className={clsx(styles.root, 'flex-row')}>
+        <Link to={`/attraction/${attraction.attractionId}`} className={clsx(styles.root, 'flex-row')}>
             <div className={clsx(styles.info)}>
-                <p className={clsx(styles.name)}>이름</p>
-                <p className={clsx(styles.description)}>간단 설명</p>
-                <p className={clsx(styles.mediumText, 'flex-row')}>
+                <p className={clsx(styles.name)}>{attraction.name}</p>
+                <p className={clsx(styles.description)}>{attraction.description}</p>
+                <p className={clsx(styles.mediumText, styles.operatingTime)}>
                     <IoIosTime className={clsx(styles.timeIcon)} />
-                    <span>09:00 ~ 18:00</span>
+                    <span>{attraction.operatingTime}</span>
                 </p>
-                <div className={clsx(styles.waitingTimeWrap, styles.mediumText, 'flex-row')}>
-                    <span className={clsx(styles.dotIconWrap)}>
+                <div className={clsx(styles.waitingTimeWrap, waitingLevelClass, styles.mediumText, 'flex-row')}>
+                    <span className={clsx(styles.dotIconWrap, waitingLevelClass)}>
                         <FaCircleDot className={clsx(styles.dotIcon)} />
                     </span>
-                    <span className={clsx(styles.waitingTime)}>15분</span>
+                    <span className={clsx(styles.waitingTime)}>{attraction.waitingTime}분</span>
                 </div>
             </div>
             <div className={clsx(styles.imageWrap)}>
                 <img
-                    src="https://www.everland.com/contents/ia/facilities/c44334ad4e7944ada542d692577dd7b5.jpg"
-                    alt="어트랙션 이름"
+                    src={attraction.imageUrl}
+                    alt={attraction.name}
                     className={clsx(styles.image)}
                 />
             </div>
-        </div>
+        </Link>
     );
 }

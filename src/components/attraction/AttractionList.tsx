@@ -1,10 +1,16 @@
-import clsx from "clsx";
 import AttractionListItem from "./AttractionListItem";
+import type { Attraction } from "@/types/attraction";
 
-export default function AttractionList() {
+type AttractionListProps = {
+    attractions: Attraction[];
+};
+
+export default function AttractionList({ attractions }: AttractionListProps) {
     return (
         <div>
-            <AttractionListItem />
+            {attractions.map((attraction) => (
+                <AttractionListItem key={attraction.attractionId} attraction={attraction} />
+            ))}
         </div>
     );
 }

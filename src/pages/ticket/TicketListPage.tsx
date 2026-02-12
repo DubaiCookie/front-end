@@ -1,7 +1,8 @@
 import clsx from "clsx";
-import styles from "./TicketPage.module.css";
+import styles from "./TicketListPage.module.css";
 import type { UserTicket } from "@/types/ticket";
 import TicketList from "@/components/ticket/TicketList";
+import icon from "@/assets/icons/attraction.png";
 
 const tickets: UserTicket[] = [
   {
@@ -20,10 +21,11 @@ const tickets: UserTicket[] = [
   },
 ];
 
-export default function TicketPage() {
+export default function TicketListPage() {
   return (
     <div className={clsx("container", styles.page)}>
-      <div className={clsx("page-title", styles.pageTitle)}>My Ticket</div>
+      <div className={clsx("page-title", styles.pageTitle)}>
+        My Ticket</div>
       <TicketList tickets={tickets} />
     </div>
   );
