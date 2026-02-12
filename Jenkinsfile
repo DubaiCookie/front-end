@@ -33,7 +33,15 @@ pipeline {
 
         stage('03. Build Image') {
             steps {
-                sh 'docker build -t $IMAGE_NAME .'
+                withCredentials([
+                    string(credentialsId: 'vite-api-base-url', variable: 'VITE_API_BASE_URL')
+                ]) {
+                    sh '''
+                        docker build \
+                            --build-arg VITE_API_BASE_URL="$VITE_API_BASE_URL" \
+                            -t $IMAGE_NAME .
+                    '''
+                }
             }
         }
 
