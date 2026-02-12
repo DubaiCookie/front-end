@@ -10,7 +10,7 @@ pipeline {
 
         stage('01. Git 소스코드 체크아웃') {
             steps {
-                echo 'Git에서 코드 가져오기'
+                echo 'Git에서 코드 가져오기d'
                 checkout scm
             }
         }
