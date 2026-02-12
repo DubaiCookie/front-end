@@ -15,6 +15,7 @@ export default function MyPage() {
         } catch (error) {
             console.error(error);
         } finally {
+            logoutStore();
             setIsSubmitting(false);
         }
     };
