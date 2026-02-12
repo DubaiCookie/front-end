@@ -42,6 +42,10 @@ export const router = createBrowserRouter([
         ],
       },
       {
+        path: 'ticket',
+        element: <TicketPage />,
+      },
+      {
         path: 'mypage/:userId',
         element: <MyPage />,
       },
