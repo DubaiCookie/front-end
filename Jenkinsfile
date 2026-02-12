@@ -3,19 +3,17 @@ pipeline {
 
     environment {
         IMAGE_NAME = 'jinyoung1226/front-server'
-        DEPLOY_DIR = '/home/jinyoung/skala-mini/front-server'
     }
 
     stages {
 
-        stage('01. Git 소스코드 체크아웃') {
+        stage('01. Git Checkout') {
             steps {
-                echo 'Git에서 코드 가져오기d'
                 checkout scm
             }
         }
 
-        stage('02. Docker Hub 로그인') {
+        stage('02. Docker Hub Login') {
             steps {
                 withCredentials([
                     usernamePassword(
@@ -24,49 +22,28 @@ pipeline {
                         passwordVariable: 'DOCKER_PASSWORD'
                     )
                 ]) {
-                    echo 'Docker Hub 로그인'
                     sh '''
                         echo "$DOCKER_PASSWORD" | docker login \
-                          -u "$DOCKER_USER" \
-                          --password-stdin
+                        -u "$DOCKER_USER" \
+                        --password-stdin
                     '''
                 }
             }
         }
 
-        stage('03. Docker 이미지 빌드') {
+        stage('03. Build Image') {
             steps {
-                echo 'Docker 이미지 빌드 (npm 빌드 포함)'
-                sh '''
-                    docker build -t "$IMAGE_NAME" .
-                '''
+                sh 'docker build -t $IMAGE_NAME .'
             }
         }
 
-        stage('04. Docker 이미지 Push') {
+        stage('04. Push Image') {
             steps {
-                echo 'Docker Hub에 이미지 Push'
-                sh '''
-                    docker push "$IMAGE_NAME"
-                '''
+                sh 'docker push $IMAGE_NAME'
             }
         }
 
-        stage('05. Jenkins 서버 내 기존 이미지 정리') {
-            steps {
-                echo 'Jenkins 서버 내 기존 이미지 정리'
-                sh '''
-                    if [ "$(docker images -q "$IMAGE_NAME")" ]; then
-                        docker rmi -f "$IMAGE_NAME"
-                        echo "기존 이미지 삭제 완료"
-                    else
-                        echo "삭제할 이미지 없음"
-                    fi
-                '''
-            }
-        }
-
-        stage('06. 배포 서버 컨테이너 중지 (SSH)') {
+        stage('05. Deploy to Server') {
             steps {
                 withCredentials([
                     sshUserPrivateKey(
@@ -77,74 +54,24 @@ pipeline {
                     string(credentialsId: 'deploy-server-ip', variable: 'DEPLOY_IP'),
                     string(credentialsId: 'deploy-server-port', variable: 'DEPLOY_PORT')
                 ]) {
-                    echo '원격 서버 docker-compose down'
-                    sh '''
-                    ssh -p "$DEPLOY_PORT" -i "$SSH_KEY" -o StrictHostKeyChecking=no \
-                    "$DEPLOY_USERNAME@$DEPLOY_IP" \
-                    "cd "$DEPLOY_DIR" && docker-compose down || true"
-                    '''
-                }
-            }
-        }
 
-        stage('07. 배포 서버 미사용 이미지 정리') {
-            steps {
-                withCredentials([
-                    sshUserPrivateKey(
-                        credentialsId: 'deploy-server-ssh',
-                        keyFileVariable: 'SSH_KEY',
-                        usernameVariable: 'DEPLOY_USERNAME'
-                    ),
-                    string(credentialsId: 'deploy-server-ip', variable: 'DEPLOY_IP'),
-                    string(credentialsId: 'deploy-server-port', variable: 'DEPLOY_PORT')
-                ]) {
-                    echo '배포 서버 이미지 prune'
                     sh '''
                     ssh -p "$DEPLOY_PORT" -i "$SSH_KEY" -o StrictHostKeyChecking=no \
-                    "$DEPLOY_USERNAME@$DEPLOY_IP" \
-                    "docker image prune -f"
-                    '''
-                }
-            }
-        }
+                    "$DEPLOY_USERNAME@$DEPLOY_IP" << EOF
 
-        stage('08. 배포 서버에서 최신 이미지 Pull') {
-            steps {
-                withCredentials([
-                    sshUserPrivateKey(
-                        credentialsId: 'deploy-server-ssh',
-                        keyFileVariable: 'SSH_KEY',
-                        usernameVariable: 'DEPLOY_USERNAME'
-                    ),
-                    string(credentialsId: 'deploy-server-ip', variable: 'DEPLOY_IP'),
-                    string(credentialsId: 'deploy-server-port', variable: 'DEPLOY_PORT')
-                ]) {
-                    echo '배포 서버 docker-compose pull'
-                    sh '''
-                    ssh -p "$DEPLOY_PORT" -i "$SSH_KEY" -o StrictHostKeyChecking=no \
-                    "$DEPLOY_USERNAME@$DEPLOY_IP" \
-                    "cd \"$DEPLOY_DIR\" && docker-compose pull"
-                    '''
-                }
-            }
-        }
+                    docker pull jinyoung1226/front-server
 
-        stage('09. 배포 서버 컨테이너 기동') {
-            steps {
-                withCredentials([
-                    sshUserPrivateKey(
-                        credentialsId: 'deploy-server-ssh',
-                        keyFileVariable: 'SSH_KEY',
-                        usernameVariable: 'DEPLOY_USERNAME'
-                    ),
-                    string(credentialsId: 'deploy-server-ip', variable: 'DEPLOY_IP'),
-                    string(credentialsId: 'deploy-server-port', variable: 'DEPLOY_PORT')
-                ]) {
-                    echo '배포 서버 docker-compose up'
-                    sh '''
-                    ssh -p "$DEPLOY_PORT" -i "$SSH_KEY" -o StrictHostKeyChecking=no \
-                    "$DEPLOY_USERNAME@$DEPLOY_IP" \
-                    "cd \"$DEPLOY_DIR\" && docker-compose up -d"
+                    docker stop front-server || true
+                    docker rm front-server || true
+
+                    docker run -d \
+                      --name front-server \
+                      -p 3000:3000 \
+                      jinyoung1226/front-server
+
+                    docker image prune -f
+
+                    EOF
                     '''
                 }
             }

@@ -8,4 +8,9 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-CMD ["sh", "-c", "echo Build complete"]
+# dist 폴더 정적 서버 실행
+RUN npm install -g serve
+
+EXPOSE 3000
+
+CMD ["serve", "-s", "dist", "-l", "3001"]
