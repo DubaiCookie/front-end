@@ -8,6 +8,7 @@
     --RED: #ff6868;
     --ORANGE: #ffa835;
     --DARKYELLOW: #ffd972;
+    --PURPLE: #573c71;
     --YELLOW: #fffec4;
     --LIGHTYELLOW: #fcfbec;
     --DARKGREEN: #108463;
@@ -23,6 +24,7 @@
     /* 텍스트 색상 */
     --TEXT-PRIMARY: #2D2D2D;
     --TEXT-SECONDARY: #767676;
+    --TEXT-THIRDARY: #FF8E69;
 
     /* border 색상 */
     --BORDER: #bdbdbd;

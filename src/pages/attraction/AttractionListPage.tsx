@@ -4,7 +4,7 @@ import AttractionList from "@/components/attraction/AttractionList";
 import { getAttractionList } from "@/api/attraction.api";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import type { Attraction } from "@/types/attraction";
-import icon from "@/assets/icons/attraction.png";
+import { MdAttractions } from "react-icons/md";
 
 export default function AttractionListPage() {
   const [attractions, setAttractions] = useState<Attraction[]>([]);
@@ -16,7 +16,7 @@ export default function AttractionListPage() {
       try {
         setIsLoading(true);
         const data = await getAttractionList();
-        
+
         const transformedData = data.map((attraction: { rideId: number; name: string; shortDescription: string; operatingTime: string; ridingTime: number; photo: string; }) => ({
           attractionId: attraction.rideId,
           name: attraction.name,
@@ -42,9 +42,12 @@ export default function AttractionListPage() {
     <div className={clsx('container')}>
       <LoadingSpinner isLoading={isLoading} />
       <div className={clsx('page-title')}>
-                <img src={icon} alt="Ticket Icon" className={clsx('title-icon')} />
-        <span>어트랙션</span>
+        <div className={clsx('glass', 'title-icon-container')}>
+        <MdAttractions className={clsx('title-icon')} />
+
         </div>
+        <span>attractions</span>
+      </div>
       <AttractionList attractions={attractions} />
     </div>
   );

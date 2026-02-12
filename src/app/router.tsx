@@ -29,16 +29,11 @@ export const router = createBrowserRouter([
       },
       {
         path: 'attraction',
-        children: [
-          {
-            index: true,
-            element: <AttractionListPage />,
-          },
-          {
-            path: ':attractionId',
-            element: <AttractionDetailPage />,
-          }
-        ],
+        element: <AttractionListPage />,
+      },
+      {
+        path: 'attraction/:attractionId',
+        element: <AttractionDetailPage />,
       },
       {
         path: 'ticket',
