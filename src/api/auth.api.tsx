@@ -1,30 +1,27 @@
 import { http } from "@/api/http";
-import type { LoginUser, SignupUser } from "@/types/user";
+import type { LoginUser, RequestUser } from "@/types/user";
 
 export type LoginResponse = {
-  accessToken?: string;
-  token?: string;
+  userId: number;
+  username: string;
 };
 
-export async function login(payload: LoginUser) {
-
-  const { data } = await http.post<LoginResponse>("/login", payload);
-  return data;
-}
-
-type SignupRequest = {
-  userId: string;
-  userName: string;
-  userPassword: string;
-};
-
-export async function signup(payload: SignupUser) {
-  const signupRequest: SignupRequest = {
-    userId: payload.userId,
-    userName: payload.userName,
-    userPassword: payload.password,
+export async function signup(payload: RequestUser) {
+  const signupRequest: RequestUser = {
+    username: payload.username,
+    password: payload.password,
   };
 
   const { data } = await http.post("/signup", signupRequest);
+  return data;
+}
+
+export async function login(payload: LoginUser) {
+  const loginRequest: RequestUser = {
+    username: payload.userId,
+    password: payload.password,
+  };
+
+  const { data } = await http.post<LoginResponse>("/login", loginRequest);
   return data;
 }

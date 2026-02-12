@@ -1,4 +1,4 @@
-export type FieldType = 'userId' | 'userName' | 'password';
+export type FieldType = 'userId' | 'password';
 
 export type FieldSpec<TName extends string = string> = {
     name: TName;
@@ -18,6 +18,10 @@ export interface LoginUser {
 }
 
 export interface SignupUser extends LoginUser {
-    userName: string;
     passwordConfirm: string;
+}
+
+export interface RequestUser {
+    username: string;
+    password: string;
 }
