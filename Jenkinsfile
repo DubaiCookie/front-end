@@ -61,7 +61,7 @@ pipeline {
                         docker pull jinyoung1226/front-server &&
                         docker stop front-server || true &&
                         docker rm front-server || true &&
-                        docker run -d --name front-server -p 3001:3001 jinyoung1226/front-server &&
+                        docker run -d --name front-server --network skala-mini -p 3001:3001 jinyoung1226/front-server &&
                         docker image prune -f
                     "
                     '''
