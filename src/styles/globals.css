@@ -34,6 +34,33 @@ body {
 body {
   display: flex;
   justify-content: center;
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::before {
+  background:
+    radial-gradient(circle at 14% 18%, rgba(255, 165, 192, 0.3) 0 96px, transparent 155px),
+    radial-gradient(circle at 72% 12%, rgba(255, 205, 142, 0.32) 0 90px, transparent 150px),
+    radial-gradient(circle at 36% 56%, rgba(255, 178, 206, 0.28) 0 102px, transparent 164px),
+    radial-gradient(circle at 82% 64%, rgba(255, 152, 136, 0.26) 0 92px, transparent 152px),
+    radial-gradient(circle at 18% 82%, rgba(255, 190, 214, 0.24) 0 82px, transparent 136px);
+}
+
+body::after {
+  background:
+    radial-gradient(circle at 58% 34%, rgba(255, 255, 255, 0.4) 0 34px, transparent 62px),
+    radial-gradient(circle at 44% 74%, rgba(255, 255, 255, 0.28) 0 24px, transparent 48px),
+    radial-gradient(circle at 26% 46%, rgba(255, 255, 255, 0.22) 0 18px, transparent 40px);
 }
 
 #root {
@@ -42,6 +69,8 @@ body {
   min-height: 100svh;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
 }
 
 main {
