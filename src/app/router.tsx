@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import DefaultLayout from '@/layouts/DefaultLayout';
+import RequireAuth from '@/components/common/RequireAuth';
 
 import SignupPage from '@/pages/user/SignupPage';
 import LoginPage from '@/pages/user/LoginPage';
@@ -34,23 +35,39 @@ export const router = createBrowserRouter([
       },
       {
         path: 'attraction/:attractionId',
-        element: <AttractionDetailPage />,
+        element: <AttractionDetailPage />
       },
       {
         path: 'ticket',
-        element: <TicketListPage />,
+        element: (
+          <RequireAuth>
+            <TicketListPage />
+          </RequireAuth>
+        ),
       },
       {
         path: 'ticket/order',
-        element: <TicketOrderPage />,
+        element: (
+          <RequireAuth>
+            <TicketOrderPage />
+          </RequireAuth>
+        ),
       },
       {
         path: 'waiting',
-        element: <WaitingListPage />,
+        element: (
+          <RequireAuth>
+            <WaitingListPage />
+          </RequireAuth>
+        ),
       },
       {
         path: 'mypage',
-        element: <MyPage />,
+        element: (
+          <RequireAuth>
+            <MyPage />
+          </RequireAuth>
+        ),
       },
     ],
   },

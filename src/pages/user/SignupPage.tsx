@@ -1,9 +1,11 @@
 import clsx from "clsx";
 import styles from "./user.module.css";
+import { useState } from "react";
 import InputForm from "@/components/common/inputs/InputForm";
 import { signup } from "@/api/auth.api";
 import type { FieldSpec, SignupUser } from "@/types/user";
 import { Link, useNavigate } from "react-router-dom";
+import Modal from "@/components/common/Modal";
 
 const signupFields: FieldSpec<"userId" | "password" | "passwordConfirm">[] = [
   {
@@ -70,6 +72,7 @@ const signupFields: FieldSpec<"userId" | "password" | "passwordConfirm">[] = [
 
 export default function SignupPage() {
   const navigate = useNavigate();
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
   const handleSignup = async (values: SignupUser) => {
     const signupPayload = {
@@ -77,16 +80,28 @@ export default function SignupPage() {
       password: values.password,
     };
     await signup(signupPayload);
-    navigate("/login");
+    setIsSuccessModalOpen(true);
   };
 
   return (
-    <div className={clsx("container", "flex-column")}>
-      <div className={clsx(styles.block, "flex-column")}>
-        <div className={clsx(styles.title, "page-title")}>sign up</div>
-        <InputForm fields={signupFields} onSubmit={handleSignup} submitLabel="회원가입" />
-        <Link to="/login" className={clsx(styles.smallText)}>이미 회원이신가요?</Link>
+    <>
+      <Modal
+        isOpen={isSuccessModalOpen}
+        title="회원가입 완료"
+        content="회원가입이 성공적으로 완료되었습니다."
+        buttonTitle="확인"
+        onButtonClick={() => {
+          setIsSuccessModalOpen(false);
+          navigate("/login");
+        }}
+      />
+      <div className={clsx("container", "flex-column")}>
+        <div className={clsx(styles.block, "flex-column")}>
+          <div className={clsx(styles.title, "page-title")}>sign up</div>
+          <InputForm fields={signupFields} onSubmit={handleSignup} submitLabel="회원가입" />
+          <Link to="/login" className={clsx(styles.smallText)}>이미 회원이신가요?</Link>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -4,10 +4,12 @@ import { logout as logoutApi } from "@/api/auth.api";
 import { useAuthStore } from "@/stores/auth.store";
 import Button from "@/components/common/Button";
 import { FaUserCircle } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 export default function MyPage() {
     const logoutStore = useAuthStore((state) => state.logout);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const navigate = useNavigate();
 
     const handleLogout = async () => {
         try {
@@ -18,6 +20,10 @@ export default function MyPage() {
         } finally {
             logoutStore();
             setIsSubmitting(false);
+            navigate("/attraction", {
+                replace: true,
+                state: { showLogoutModal: true },
+            });
         }
     };
 

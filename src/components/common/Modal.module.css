@@ -22,12 +22,14 @@
   font-weight: var(--font-bold);
   margin-bottom: 10px;
   color: var(--TEXT-PRIMARY);
+  text-align: center;
 }
 
 .content {
   color: var(--TEXT-SECONDARY);
   line-height: 1.45;
   margin-bottom: 16px;
+  text-align: center;
 }
 
 .button {
