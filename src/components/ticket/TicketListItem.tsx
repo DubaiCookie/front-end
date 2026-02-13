@@ -52,10 +52,6 @@ export default function TicketListItem(props: { ticket: UserTicket }) {
             </header>
 
             <div className={styles.row}>
-                <span className={styles.label}>Ticket ID</span>
-                <strong className={clsx(styles.value, styles.ticketId)}>#{ticket.userTicketId}</strong>
-            </div>
-            <div className={styles.row}>
                 <span className={styles.label}>구매 날짜</span>
                 <span className={styles.value}>{formatDateTime(ticket.paymentDate)}</span>
             </div>

@@ -131,10 +131,13 @@ main>.container {
 .title-icon-container {
   border-radius: 999px;
   padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .title-icon {
-  height: 35px;
+  height: 26px;
   width: auto;
   vertical-align: middle;
 }

@@ -3,6 +3,7 @@ import type { UserTicket } from "@/types/ticket";
 import TicketList from "@/components/ticket/TicketList";
 import Button from "@/components/common/Button";
 import { Link } from "react-router-dom";
+import { IoTicket } from "react-icons/io5";
 
 const tickets: UserTicket[] = [
   {
@@ -24,8 +25,12 @@ const tickets: UserTicket[] = [
 export default function TicketListPage() {
   return (
     <div className={clsx("container")}>
-      <div className={clsx("page-title")}>
-        My Ticket</div>
+      <div className={clsx('page-title')}>
+        <div className={clsx('glass', 'title-icon-container')}>
+          <IoTicket className={clsx('title-icon')} />
+        </div>
+        <span>my ticket</span>
+      </div>
       <TicketList tickets={tickets} />
       <Link to="/ticket/order" className={clsx("button-bottom")}>
         <Button title="티켓 구매하기" />
