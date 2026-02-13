@@ -148,7 +148,7 @@ main>.container {
   font-weight: 400;
   font-style: normal;
   color: var(--TEXT-THIRDARY);
-  padding: 4px 10px 8px;
+  padding: 6px 10px;
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -157,6 +157,11 @@ main>.container {
   border-radius: 16px;
   margin-top: 8px;
   margin-bottom: 18px;
+}
+
+.page-title > span {
+  display: block;
+  line-height: 1;
 }
 
 .page-title .title-icon-container {
