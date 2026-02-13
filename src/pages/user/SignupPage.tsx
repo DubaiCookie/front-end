@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import styles from "./user.module.css";
 import { useState } from "react";
+import axios from "axios";
 import InputForm from "@/components/common/inputs/InputForm";
 import { signup } from "@/api/auth.api";
 import type { FieldSpec, SignupUser } from "@/types/user";
@@ -73,18 +74,37 @@ const signupFields: FieldSpec<"userId" | "password" | "passwordConfirm">[] = [
 export default function SignupPage() {
   const navigate = useNavigate();
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isDuplicateIdModalOpen, setIsDuplicateIdModalOpen] = useState(false);
 
   const handleSignup = async (values: SignupUser) => {
     const signupPayload = {
       username: values.userId,
       password: values.password,
     };
-    await signup(signupPayload);
-    setIsSuccessModalOpen(true);
+
+    try {
+      await signup(signupPayload);
+      setIsSuccessModalOpen(true);
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 400) {
+        setIsDuplicateIdModalOpen(true);
+        return;
+      }
+      throw error;
+    }
   };
 
   return (
     <>
+      <Modal
+        isOpen={isDuplicateIdModalOpen}
+        title="회원가입 실패"
+        content="중복된 ID 입니다."
+        buttonTitle="확인"
+        onButtonClick={() => {
+          setIsDuplicateIdModalOpen(false);
+        }}
+      />
       <Modal
         isOpen={isSuccessModalOpen}
         title="회원가입 완료"
