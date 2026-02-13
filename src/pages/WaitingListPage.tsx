@@ -1,17 +1,48 @@
-import clsx from "clsx"
+import clsx from "clsx";
+import { useEffect, useState } from "react";
 import { IoHourglass } from "react-icons/io5";
-// import LoadingSpinner from "@/components/common/LoadingSpinner"
+import LoadingSpinner from "@/components/common/LoadingSpinner";
+import WaitingList from "@/components/waiting/WaitingList";
+import { useAuthStore } from "@/stores/auth.store";
+import { getQueueStatus } from "@/api/queue.api";
+import type { QueueStatusItem } from "@/types/queue";
 
 export default function WaitingListPage() {
-    return (
-        <div className={clsx('container')}>
-            {/* <LoadingSpinner isLoading={isLoading} /> */}
-            <div className={clsx('page-title')}>
-                <div className={clsx('glass', 'title-icon-container')}>
-                    <IoHourglass className={clsx('title-icon')} />
-                </div>
-                <span>waiting status</span>
-            </div>
+  const userId = useAuthStore((state) => state.userId);
+  const [items, setItems] = useState<QueueStatusItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!userId) {
+      setItems([]);
+      return;
+    }
+
+    const fetchQueueStatus = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getQueueStatus(userId);
+        setItems(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void fetchQueueStatus();
+  }, [userId]);
+
+  return (
+    <div className={clsx("container")}>
+      <LoadingSpinner isLoading={isLoading} />
+      <div className={clsx("page-title")}>
+        <div className={clsx("glass", "title-icon-container")}>
+          <IoHourglass className={clsx("title-icon")} />
         </div>
-    )
+        <span>waiting status</span>
+      </div>
+      <WaitingList items={items} />
+    </div>
+  );
 }

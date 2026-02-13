@@ -22,9 +22,9 @@ export default defineConfig({
         theme_color: '#FF6B8A',
         background_color: '#ffffff',
         icons: [
-          { src: '/logo-basic.png', sizes: '192x192', type: 'image/png' },
-          { src: '/logo-basic.png', sizes: '512x512', type: 'image/png' },
-          { src: '/logo-basic.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+          { src: '/logo-icon.svg', sizes: '192x192', type: 'image/svg+xml' },
+          { src: '/logo-icon.svg', sizes: '512x512', type: 'image/svg+xml' },
+          { src: '/logo-icon.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' },
         ],
       },
     }),
@@ -38,7 +38,7 @@ export default defineConfig({
     port: 3001,
     proxy: {
       '/api': {
-        target: 'http://202.30.16.217:18080',
+        target: 'https://baeminjun.store',
         changeOrigin: true,
       },
     },

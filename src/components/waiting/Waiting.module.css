@@ -1,0 +1,64 @@
+.list {
+  display: grid;
+  gap: 12px;
+}
+
+.item {
+  border-radius: 14px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.rideName {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-semibold);
+  color: var(--TEXT-PRIMARY);
+}
+
+.ticketTypeBadge {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-semibold);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.ticketTypePremium {
+  background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+  color: #df7828;
+}
+
+.ticketTypeBasic {
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  color: #7c9ed1;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px dashed rgba(118, 118, 118, 0.2);
+}
+
+.infoLabel {
+  color: var(--TEXT-SECONDARY);
+  font-size: var(--font-size-sm);
+}
+
+.infoValue {
+  color: var(--TEXT-PRIMARY);
+  font-weight: var(--font-semibold);
+}

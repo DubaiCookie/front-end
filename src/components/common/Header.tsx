@@ -11,8 +11,9 @@ export default function Header() {
 
     return (
         <header className={clsx(styles.root, 'container', 'flex-row')}>
-            <Link to="/attraction">
-                로고
+            <Link to="/attraction" className={styles.logoLink} aria-label="WayThing 홈으로 이동">
+                <img src="/logo-mark.svg" alt="" className={styles.logoIcon} />
+                <span className={styles.logoText}>WayThing</span>
             </Link>
             <div className={clsx('highlight', 'flex-row')}>
                 {isLoggedIn ? (

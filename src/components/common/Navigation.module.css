@@ -16,5 +16,13 @@
 .icon {
     width: 28px;
     height: auto;
+    color: var(--SECONDARY-PINK);
+}
+
+.active .icon {
     color: var(--PRIMARY-PINK);
+}
+
+.navLink {
+    transition: color 0.15s ease;
 }

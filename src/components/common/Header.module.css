@@ -36,14 +36,32 @@
     margin-right: 4px;
 }
 
-.logo {
-    height: 35px;
-    width: auto;
-}
-
 .icon {
     width: 20px;
     height: 20px;
     margin-left: 10px;
     color: var(--WHITE)
+}
+
+.logoLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.logoIcon {
+    width: 28px;
+    height: 28px;
+    display: block;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.14));
+}
+
+.logoText {
+    color: var(--WHITE);
+    font-family: "Fredoka", var(--font-sans);
+    font-size: 21px;
+    font-weight: 600;
+    letter-spacing: 0.1px;
+    line-height: 1;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
 }
