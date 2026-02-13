@@ -1,67 +1,67 @@
 .root {
-    position: fixed;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(100vw, var(--app-max-width));
-    height: 56px;
-    z-index: 50;
-    background-color: var(--PRIMARY-PINK);
-    display: flex;
-    align-items: center;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-    overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(100vw, var(--app-max-width));
+  height: 56px;
+  z-index: 50;
+  background-color: var(--PRIMARY-PINK);
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
 }
 
 .root::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 2px;
-    background: linear-gradient(90deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.78) 50%, rgba(255, 255, 255, 0.18) 100%);
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.78) 50%, rgba(255, 255, 255, 0.18) 100%);
 }
 
 .headerText {
-    color: var(--WHITE);
-    font-weight: var(--font-medium);
+  color: var(--WHITE);
+  font-weight: var(--font-medium);
 }
 
 .smallText {
-    font-size: var(--font-size-sm);
+  font-size: var(--font-size-sm);
 }
 
 .userName {
-    margin-right: 4px;
+  margin-right: 4px;
 }
 
 .icon {
-    width: 20px;
-    height: 20px;
-    margin-left: 10px;
-    color: var(--WHITE)
+  height: 25px;
+  width: auto;
+  margin-left: 10px;
+  color: var(--WHITE)
 }
 
 .logoLink {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
 }
 
 .logoIcon {
-    width: 28px;
-    height: 28px;
-    display: block;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.14));
+  height: 40px;
+  width: auto;
+  display: block;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.14));
 }
 
 .logoText {
-    color: var(--WHITE);
-    font-family: "Fredoka", var(--font-sans);
-    font-size: 21px;
-    font-weight: 600;
-    letter-spacing: 0.1px;
-    line-height: 1;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  color: var(--WHITE);
+  font-family: "Fredoka", var(--font-sans);
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
 }
