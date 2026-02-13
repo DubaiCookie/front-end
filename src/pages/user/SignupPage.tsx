@@ -117,7 +117,7 @@ export default function SignupPage() {
       />
       <div className={clsx("container", "flex-column")}>
         <div className={clsx(styles.block, "flex-column")}>
-          <div className={clsx(styles.title, "page-title")}>sign up</div>
+          <div className={clsx(styles.title, "page-title")}>Sign up</div>
           <InputForm fields={signupFields} onSubmit={handleSignup} submitLabel="회원가입" />
           <Link to="/login" className={clsx(styles.smallText)}>이미 회원이신가요?</Link>
         </div>

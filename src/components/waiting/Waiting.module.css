@@ -36,7 +36,7 @@
 
 .ticketTypePremium {
   background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
-  color: #df7828;
+  color: var(--WHITE);
 }
 
 .ticketTypeBasic {

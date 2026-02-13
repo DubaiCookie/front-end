@@ -28,6 +28,10 @@
   font-weight: var(--font-medium);
 }
 
+.userBadge {
+  padding: 1px 18px !important;
+}
+
 .smallText {
   font-size: var(--font-size-sm);
 }

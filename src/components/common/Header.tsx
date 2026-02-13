@@ -18,7 +18,7 @@ export default function Header() {
             <div className={clsx('highlight', 'flex-row')}>
                 {isLoggedIn ? (
                     <>
-                        <p className={clsx(styles.headerText, 'flex-row', 'glass')}>
+                        <p className={clsx(styles.headerText, styles.userBadge, 'flex-row', 'glass')}>
                             <span className={clsx(styles.userName)}>{username}</span>
                             <span>님</span>
                         </p>

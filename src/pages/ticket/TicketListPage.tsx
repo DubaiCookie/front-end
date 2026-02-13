@@ -4,7 +4,6 @@ import type { UserTicket } from "@/types/ticket";
 import TicketList from "@/components/ticket/TicketList";
 import Button from "@/components/common/Button";
 import { Link } from "react-router-dom";
-import { IoTicket } from "react-icons/io5";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { getMyTicketList } from "@/api/ticket.api";
 import styles from "./TicketListPage.module.css";
@@ -33,10 +32,7 @@ export default function TicketListPage() {
     <div className={clsx("container")}>
       <LoadingSpinner isLoading={isLoading} />
       <div className={clsx('page-title')}>
-        <div className={clsx('glass', 'title-icon-container')}>
-          <IoTicket className={clsx('title-icon')} />
-        </div>
-        <span>my ticket</span>
+        My Ticket
       </div>
       <TicketList tickets={tickets} />
       <div className={styles.bottomSpacer} />
