@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { IoTicket } from "react-icons/io5";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { getMyTicketList } from "@/api/ticket.api";
+import styles from "./TicketListPage.module.css";
 
 export default function TicketListPage() {
   const [tickets, setTickets] = useState<UserTicket[]>([]);
@@ -38,6 +39,7 @@ export default function TicketListPage() {
         <span>my ticket</span>
       </div>
       <TicketList tickets={tickets} />
+      <div className={styles.bottomSpacer} />
       <Link to="/ticket/order" className={clsx("button-bottom")}>
         <Button title="티켓 구매하기" />
       </Link>

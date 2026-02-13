@@ -1,10 +1,15 @@
 import clsx from "clsx";
-import styles from "./TicketOrderPage.module.css";
+import { MdOutlinePayment } from "react-icons/md";
 
 export default function TicketOrderPage() {
   return (
-    <div className={clsx("container", styles.page)}>
-      <div className={clsx("page-title", styles.pageTitle)}>Ticket Order</div>
+    <div className={clsx('container')}>
+      <div className={clsx('page-title')}>
+              <div className={clsx('glass', 'title-icon-container')}>
+                <MdOutlinePayment className={clsx('title-icon')} />
+              </div>
+              <span>ticket order</span>
+            </div>
     </div>
   );
 }
