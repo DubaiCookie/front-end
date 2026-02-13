@@ -4,6 +4,11 @@
 :root {
   --header-height: 56px;
   --navigation-height: 70px;
+  --app-max-width: 430px;
+  --bottom-nav-offset: calc(var(--navigation-height) + env(safe-area-inset-bottom));
+  --content-bottom-safe-area: calc(var(--bottom-nav-offset) + 16px);
+  --bottom-cta-offset: calc(var(--navigation-height) + 16px + env(safe-area-inset-bottom));
+  --bottom-cta-safe-area: calc(var(--bottom-cta-offset) + 74px);
 }
 
 html,
@@ -26,8 +31,14 @@ body {
   color: var(--TEXT-PRIMARY);
 }
 
+body {
+  display: flex;
+  justify-content: center;
+}
+
 #root {
-  width: 100%;
+  width: min(100%, var(--app-max-width));
+  max-width: var(--app-max-width);
   min-height: 100svh;
   display: flex;
   flex-direction: column;
@@ -37,8 +48,9 @@ main {
   width: 100%;
   display: flex;
   flex: 1;
-  min-height: calc(100svh - var(--header-height));
-  padding-bottom: var(--navigation-height);
+  min-height: 100svh;
+  padding-top: var(--header-height);
+  padding-bottom: var(--content-bottom-safe-area);
 }
 
 * {
@@ -59,13 +71,13 @@ a {
 
 .container {
   width: 100%;
-  max-width: 1200px;
+  max-width: var(--app-max-width);
   margin: 0 auto;
   padding: 0 16px;
 }
 
 main>.container {
-  min-height: calc(100svh - var(--header-height) - var(--navigation-height));
+  min-height: calc(100svh - var(--header-height) - var(--content-bottom-safe-area));
 }
 
 .flex-row {
@@ -144,11 +156,11 @@ main>.container {
 
 .button-bottom {
   position: fixed;
-  bottom: calc(var(--navigation-height) + 16px);
+  bottom: var(--bottom-cta-offset);
   left: 50%;
   transform: translateX(-50%);
   z-index: 60;
-  width: calc(100% - 32px);
+  width: calc(min(100vw, var(--app-max-width)) - 32px);
 }
 
 .spinner {

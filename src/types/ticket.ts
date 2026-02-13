@@ -1,8 +1,8 @@
-type TicketKind = "GENERAL" | "PREMIUM";
-type ActiveStatus = "ACTIVE" | "DEACTIVE";
+export type TicketKind = "GENERAL" | "PREMIUM";
+export type ActiveStatus = "ACTIVE" | "DEACTIVE";
 
 export interface UserTicket {
-  userTicketId: number;
+  ticketOrderId: number;
   availableAt: string;
   activeStatus: ActiveStatus;
   ticketType: TicketKind;

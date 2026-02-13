@@ -17,8 +17,8 @@ export default function AttractionWaitingCard({
   return (
     <div className={clsx(styles.waitingCard, variantClass)}>
       <p className={styles.waitingType}>{typeLabel}</p>
-      <p className={styles.waitingTime}>{minutes}분</p>
-      <p className={styles.waitingCount}>대기 {waitingCount}팀</p>
+      <p className={styles.waitingTime}>{minutes} 분</p>
+      <p className={styles.waitingCount}>대기 {waitingCount} 명</p>
     </div>
   );
 }

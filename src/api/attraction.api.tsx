@@ -1,5 +1,5 @@
 import { http } from "@/api/http";
-import type { AttractionDetail, Waiting } from "@/types/attraction";
+import type { AttractionDetail, AttractionDetailResponseDto, AttractionListResponseDto } from "@/types/attraction";
 
 export async function getAttractionList() {
   const { data } = await http.get<AttractionListResponseDto[]>("/rides");
@@ -36,26 +36,4 @@ export async function getAttractionDetail(attractionId: number | string) {
   return transformedData;
 }
 
-type AttractionListResponseDto = {
-  rideId: number;
-  name: string;
-  shortDescription: string;
-  operatingTime: string;
-  waitTimes: Waiting[];
-  photo: string;
-};
 
-type AttractionDetailResponseDto = {
-  rideId: number;
-  name: string;
-  ridingTime: number;
-  isActive: boolean;
-  capacityTotal: number;
-  capacityPremium: number;
-  capacityGeneral: number;
-  shortDescription: string;
-  longDescription: string;
-  photo: string;
-  operatingTime: string;
-  waitTimes: Waiting[];
-};

@@ -1,5 +1,9 @@
+.listPage {
+  padding-bottom: var(--content-bottom-safe-area);
+}
+
 .detailPage {
-  padding: 0 0 110px;
+  padding: 0 0 var(--bottom-cta-safe-area);
 }
 
 .hero {
@@ -32,5 +36,40 @@
 }
 
 .bottomSpacer {
-  height: 80px;
+  height: var(--bottom-cta-safe-area);
+}
+
+.listBottomSpacer {
+  height: var(--content-bottom-safe-area);
+}
+
+.queueModalContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ticketTypeBadge {
+  width: fit-content;
+  margin: 2px auto 0;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-semibold);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.ticketTypePremium {
+  background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+  color: var(--WHITE);
+}
+
+.ticketTypeBasic {
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  color: #7c9ed1;
+}
+
+.emphasisPrimary {
+  font-weight: var(--font-semibold);
+  color: var(--PRIMARY-PINK);
 }

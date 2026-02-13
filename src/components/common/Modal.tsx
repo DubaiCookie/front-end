@@ -2,7 +2,7 @@ import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import clsx from "clsx";
 import styles from "./Modal.module.css";
 
-type ModalProps = ComponentPropsWithoutRef<"div"> & {
+type ModalProps = Omit<ComponentPropsWithoutRef<"div">, "content"> & {
   isOpen: boolean;
   title: string;
   content: ReactNode;

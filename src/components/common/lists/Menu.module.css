@@ -1,0 +1,44 @@
+.menuList {
+  width: 100%;
+  margin-top: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.menuItemWrap {
+  width: 100%;
+}
+
+.menuItem {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  padding: 16px 14px;
+  text-align: left;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-semibold);
+  color: var(--TEXT-PRIMARY);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.menuItem:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.menuItem:active:not(:disabled) {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.menuDivider {
+  height: 1px;
+  margin: 0 14px;
+  background: var(--BORDER-LIGHT);
+}
+
+.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

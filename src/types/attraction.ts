@@ -4,6 +4,30 @@ export type Waiting = {
     waitingCount: number;
 }
 
+export type AttractionListResponseDto = {
+  rideId: number;
+  name: string;
+  shortDescription: string;
+  operatingTime: string;
+  waitTimes: Waiting[];
+  photo: string;
+};
+
+export type AttractionDetailResponseDto = {
+  rideId: number;
+  name: string;
+  ridingTime: number;
+  isActive: boolean;
+  capacityTotal: number;
+  capacityPremium: number;
+  capacityGeneral: number;
+  shortDescription: string;
+  longDescription: string;
+  photo: string;
+  operatingTime: string;
+  waitTimes: Waiting[];
+};
+
 export interface AttractionSummary {
     attractionId: number;
     name: string;

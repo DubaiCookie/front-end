@@ -14,7 +14,6 @@ export default function TicketListItem(props: { ticket: UserTicket }) {
 
     return (
         <article
-            key={ticket.userTicketId}
             className={clsx(
                 styles.ticket,
                 isPremium ? styles.premium : styles.basic,

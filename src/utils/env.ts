@@ -6,4 +6,5 @@ if (!baseUrl) {
 
 export const env = {
   API_BASE_URL: baseUrl,
+  // WS_URL: explicitWsUrl ?? toWebSocketUrl(baseUrl),
 };

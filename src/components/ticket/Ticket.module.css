@@ -7,7 +7,7 @@
   position: relative;
   overflow: hidden;
   border-radius: 20px;
-  padding: 28px;
+  padding: 20px 28px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }

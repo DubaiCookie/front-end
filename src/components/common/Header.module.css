@@ -1,7 +1,9 @@
 .root {
-    position: sticky;
+    position: fixed;
     top: 0;
-    width: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(100vw, var(--app-max-width));
     height: 56px;
     z-index: 50;
     background-color: var(--PRIMARY-PINK);

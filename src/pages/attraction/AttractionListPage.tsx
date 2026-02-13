@@ -7,6 +7,7 @@ import type { AttractionSummary } from "@/types/attraction";
 import { MdAttractions } from "react-icons/md";
 import Modal from "@/components/common/Modal";
 import { useLocation, useNavigate } from "react-router-dom";
+import styles from "./Attraction.module.css";
 
 export default function AttractionListPage() {
   const [attractions, setAttractions] = useState<AttractionSummary[]>([]);
@@ -40,7 +41,7 @@ export default function AttractionListPage() {
   }, []);
 
   return (
-    <div className={clsx('container')}>
+    <div className={clsx('container', styles.listPage)}>
       <Modal
         isOpen={isLogoutModalOpen}
         title="로그아웃 완료"
@@ -58,6 +59,7 @@ export default function AttractionListPage() {
         <span>attractions</span>
       </div>
       <AttractionList attractions={attractions} />
+      <div className={styles.listBottomSpacer} />
     </div>
   );
 }

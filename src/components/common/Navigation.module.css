@@ -1,7 +1,9 @@
 .root {
     position: fixed;
     bottom: 0;
-    width: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(100vw, var(--app-max-width));
     height: var(--navigation-height);
     z-index: 50;
     display: flex;

@@ -2,9 +2,10 @@ import clsx from "clsx";
 import { useState } from "react";
 import { logout as logoutApi } from "@/api/auth.api";
 import { useAuthStore } from "@/stores/auth.store";
-import Button from "@/components/common/Button";
 import { FaUserCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import MenuList from "@/components/common/lists/MenuList";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 export default function MyPage() {
     const logoutStore = useAuthStore((state) => state.logout);
@@ -20,12 +21,26 @@ export default function MyPage() {
         } finally {
             logoutStore();
             setIsSubmitting(false);
-            navigate("/attraction", {
-                replace: true,
-                state: { showLogoutModal: true },
-            });
+            navigate("/attraction", { replace: true });
         }
     };
+
+    const handleWithdraw = () => {
+        console.info("회원탈퇴 클릭");
+    };
+
+    const menuItems = [
+        {
+            label: "로그아웃",
+            onClick: handleLogout,
+            disabled: isSubmitting,
+        },
+        {
+            label: "회원탈퇴",
+            onClick: handleWithdraw,
+            disabled: isSubmitting,
+        },
+    ];
 
     return (
         <div className={clsx("container")}>
@@ -33,13 +48,10 @@ export default function MyPage() {
                 <div className={clsx('glass', 'title-icon-container')}>
                     <FaUserCircle className={clsx('title-icon')} />
                 </div>
-                <span>my ticket</span>
+                <span>my page</span>
             </div>
-            <Button
-                title={isSubmitting ? "로그아웃 중..." : "로그아웃"}
-                onClick={handleLogout}
-                disabled={isSubmitting}
-            />
+            <MenuList items={menuItems} />
+            <LoadingSpinner isLoading={isSubmitting} message="로그아웃 처리 중입니다..." />
         </div>
     );
 }

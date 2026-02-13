@@ -1,7 +1,8 @@
 import { http } from "@/api/http";
+import type { UserTicket } from "@/types/ticket";
 
 export async function getMyTicketList() {
-  const { data } = await http.get("/tickets/my");
+  const { data } = await http.get<UserTicket[]>("/tickets/my");
   return data;
 }
 
