@@ -1,8 +1,8 @@
 import AttractionListItem from "./AttractionListItem";
-import type { Attraction } from "@/types/attraction";
+import type { AttractionSummary } from "@/types/attraction";
 
 type AttractionListProps = {
-    attractions: Attraction[];
+    attractions: AttractionSummary[];
 };
 
 export default function AttractionList({ attractions }: AttractionListProps) {

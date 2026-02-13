@@ -1,5 +1,4 @@
 import clsx from "clsx";
-import { useEffect, useState } from "react";
 import type { UserTicket } from "@/types/ticket";
 import TicketList from "@/components/ticket/TicketList";
 import Button from "@/components/common/Button";

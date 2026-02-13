@@ -9,6 +9,7 @@ import AttractionListPage from '@/pages/attraction/AttractionListPage';
 import AttractionDetailPage from '@/pages/attraction/AttractionDetailPage';
 import TicketListPage from '@/pages/ticket/TicketListPage';
 import TicketOrderPage from '@/pages/ticket/TicketOrderPage';
+import WaitingListPage from '@/pages/WaitingListPage';
 
 export const router = createBrowserRouter([
   {
@@ -42,6 +43,10 @@ export const router = createBrowserRouter([
       {
         path: 'ticket/order',
         element: <TicketOrderPage />,
+      },
+      {
+        path: 'waiting',
+        element: <WaitingListPage />,
       },
       {
         path: 'mypage',

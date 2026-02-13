@@ -14,7 +14,7 @@ export default function Navigation() {
       <Link to="/ticket" className={clsx('flex-row')}>
         <IoTicket className={clsx(styles.icon)} />
       </Link>
-      <Link to="/waiting-list" className={clsx('flex-row')}>
+      <Link to="/waiting" className={clsx('flex-row')}>
         <IoHourglass className={clsx(styles.icon)} />
       </Link>
       <Link to="/mypage" className={clsx('flex-row')}>

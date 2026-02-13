@@ -3,31 +3,20 @@ import { useEffect, useState } from "react";
 import AttractionList from "@/components/attraction/AttractionList";
 import { getAttractionList } from "@/api/attraction.api";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
-import type { Attraction } from "@/types/attraction";
+import type { AttractionSummary } from "@/types/attraction";
 import { MdAttractions } from "react-icons/md";
 
 export default function AttractionListPage() {
-  const [attractions, setAttractions] = useState<Attraction[]>([]);
+  const [attractions, setAttractions] = useState<AttractionSummary[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // TODO: error handling 필요, waitingTime api 연동 후 데이터 추가 필요
+  // TODO: error handling 필요
   useEffect(() => {
     const fetchAttractions = async () => {
       try {
         setIsLoading(true);
         const data = await getAttractionList();
-
-        const transformedData = data.map((attraction: { rideId: number; name: string; shortDescription: string; operatingTime: string; ridingTime: number; photo: string; }) => ({
-          attractionId: attraction.rideId,
-          name: attraction.name,
-          description: attraction.shortDescription,
-          operatingTime: attraction.operatingTime,
-          waitingTime: 40, // 임시 대기시간 데이터
-          ridingTime: attraction.ridingTime,
-          imageUrl: attraction.photo
-        }))
-
-        setAttractions(transformedData);
+        setAttractions(data);
       } catch (error) {
         console.error(error);
       } finally {
@@ -43,8 +32,7 @@ export default function AttractionListPage() {
       <LoadingSpinner isLoading={isLoading} />
       <div className={clsx('page-title')}>
         <div className={clsx('glass', 'title-icon-container')}>
-        <MdAttractions className={clsx('title-icon')} />
-
+          <MdAttractions className={clsx('title-icon')} />
         </div>
         <span>attractions</span>
       </div>

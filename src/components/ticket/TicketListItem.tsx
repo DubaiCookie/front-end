@@ -36,7 +36,7 @@ export default function TicketListItem(props: { ticket: UserTicket }) {
                 <p className={clsx(styles.ticketType)}>
                     <span className={clsx(styles.brandName)}>SKALAND</span>
                     <span className={clsx(styles.typeName, isPremium ? styles.typePremium : styles.typeGeneral)}>
-                        {isPremium ? "Premium" : "General"}
+                        {isPremium ? "Premium" : "Basic"}
                     </span>
                 </p>
                 {headerStatusLabel && (

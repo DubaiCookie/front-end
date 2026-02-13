@@ -2,18 +2,18 @@ import clsx from "clsx";
 import styles from "./AttractionListItem.module.css";
 import { IoIosTime } from "react-icons/io";
 import { FaCircleDot } from "react-icons/fa6";
-import type { Attraction } from "@/types/attraction";
+import type { AttractionSummary } from "@/types/attraction";
 import { Link } from "react-router-dom";
 
 type AttractionListItemProps = {
-    attraction: Attraction;
+    attraction: AttractionSummary;
 };
 
 export default function AttractionListItem({ attraction }: AttractionListItemProps) {
     const waitingLevelClass =
-        attraction.waitingTime < 30
+        attraction.generalWaitingTime < 30
             ? styles.waitingLow
-            : attraction.waitingTime < 60
+            : attraction.generalWaitingTime < 60
                 ? styles.waitingMid
                 : styles.waitingHigh;
 
@@ -30,7 +30,7 @@ export default function AttractionListItem({ attraction }: AttractionListItemPro
                     <span className={clsx(styles.dotIconWrap, waitingLevelClass)}>
                         <FaCircleDot className={clsx(styles.dotIcon)} />
                     </span>
-                    <span className={clsx(styles.waitingTime)}>{attraction.waitingTime}분</span>
+                    <span className={clsx(styles.waitingTime)}>{attraction.generalWaitingTime} 분</span>
                 </div>
             </div>
             <div className={clsx(styles.imageWrap)}>
