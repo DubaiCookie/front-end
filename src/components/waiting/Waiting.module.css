@@ -4,11 +4,21 @@
 }
 
 .item {
+  position: relative;
   border-radius: 14px;
-  padding: 14px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  padding: 14px 14px 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.82) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 10px 24px rgba(255, 107, 138, 0.1);
+  overflow: hidden;
+}
+
+.item::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0) 40%);
+  pointer-events: none;
 }
 
 .header {
@@ -19,10 +29,37 @@
   margin-bottom: 10px;
 }
 
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .rideName {
   font-size: var(--font-size-lg);
   font-weight: var(--font-semibold);
-  color: var(--TEXT-PRIMARY);
+  color: var(--PRIMARY-PINK);
+  line-height: 1;
+}
+
+.liveBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 107, 138, 0.14);
+  border: 1px solid rgba(255, 107, 138, 0.22);
+}
+
+.liveDot {
+  width: 10px;
+  height: 10px;
+  margin-right: 4px;
+  border-radius: 50%;
+  background: var(--PRIMARY-PINK);
+  box-shadow: 0 0 0 0 rgba(255, 107, 138, 0.55);
+  animation: livePulse 1.6s ease-out infinite;
 }
 
 .ticketTypeBadge {
@@ -44,21 +81,64 @@
   color: #7c9ed1;
 }
 
-.infoRow {
+.summaryRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 8px 0;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 0 12px;
   border-top: 1px dashed rgba(118, 118, 118, 0.2);
 }
 
-.infoLabel {
+.summaryLabel {
   color: var(--TEXT-SECONDARY);
   font-size: var(--font-size-sm);
 }
 
-.infoValue {
-  color: var(--TEXT-PRIMARY);
+.summaryValue {
+  color: var(--PRIMARY-PINK);
   font-weight: var(--font-semibold);
+}
+
+.summaryDot {
+  color: var(--SECONDARY-PINK);
+  font-weight: var(--font-bold);
+}
+
+.actionRow {
+  display: flex;
+  gap: 8px;
+}
+
+.cancelButton,
+.snoozeButton {
+  flex: 1;
+  border-radius: 10px;
+  height: 36px;
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+}
+
+.cancelButton {
+  border: 1px solid rgba(255, 107, 138, 0.55);
+  color: var(--PRIMARY-PINK);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.snoozeButton {
+  border: 1px solid rgba(255, 151, 96, 0.45);
+  color: var(--PRIMARY-ORANGE);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+@keyframes livePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 138, 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(255, 107, 138, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 138, 0);
+  }
 }

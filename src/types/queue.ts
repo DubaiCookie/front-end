@@ -6,6 +6,11 @@ export interface RequestEnqueue {
   ticketType: TicketKind;
 }
 
+export interface RequestQueueCancel {
+  userId: number;
+  rideId: number;
+}
+
 export interface EnqueueResponse {
   position: number;
   estimatedWaitMinutes: number;
