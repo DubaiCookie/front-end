@@ -3,13 +3,19 @@ import styles from "./Ticket.module.css"
 import type { UserTicket } from "@/types/ticket";
 import TicketListItem from "./TicketListItem";
 
-export default function TicketList(props: { tickets: UserTicket[] }) {
+type TicketListProps = {
+    tickets: UserTicket[];
+    onQrClick: (ticket: UserTicket) => void;
+};
+
+export default function TicketList({ tickets, onQrClick }: TicketListProps) {
     return (
     <div className={clsx(styles.ticketList)}>
-        {props.tickets.map((ticket, index) => (
+        {tickets.map((ticket, index) => (
             <TicketListItem
                 key={ticket.ticketOrderId ? `ticket-${ticket.ticketOrderId}` : `ticket-fallback-${ticket.availableAt}-${index}`}
                 ticket={ticket}
+                onQrClick={onQrClick}
             />
         ))}
     </div>)

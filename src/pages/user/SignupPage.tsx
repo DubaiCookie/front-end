@@ -6,7 +6,7 @@ import InputForm from "@/components/common/inputs/InputForm";
 import { signup } from "@/api/auth.api";
 import type { FieldSpec, SignupUser } from "@/types/user";
 import { Link, useNavigate } from "react-router-dom";
-import Modal from "@/components/common/Modal";
+import Modal from "@/components/common/modals/Modal";
 
 const signupFields: FieldSpec<"userId" | "password" | "passwordConfirm">[] = [
   {

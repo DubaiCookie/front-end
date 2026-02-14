@@ -5,6 +5,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { useNavigate } from "react-router-dom";
 import MenuList from "@/components/common/lists/MenuList";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { FaUserCircle } from "react-icons/fa";
 
 export default function MyPage() {
   const logoutStore = useAuthStore((state) => state.logout);
@@ -44,7 +45,10 @@ export default function MyPage() {
   return (
     <div className={clsx("container")}>
       <div className={clsx('page-title')}>
-        My Page
+        <div className={clsx('glass', 'title-icon-container')}>
+          <FaUserCircle className={clsx('title-icon')} />
+        </div>
+        <span>My Page</span>
       </div>
       <MenuList items={menuItems} />
       <LoadingSpinner isLoading={isSubmitting} message="로그아웃 처리 중입니다..." />

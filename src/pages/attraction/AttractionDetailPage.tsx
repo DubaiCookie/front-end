@@ -6,7 +6,7 @@ import type { AttractionDetail } from "@/types/attraction";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import Button from "@/components/common/Button";
 import AttractionContentCard from "@/components/attraction/AttractionContentCard";
-import Modal from "@/components/common/Modal";
+import Modal from "@/components/common/modals/Modal";
 import { useAuthStore } from "@/stores/auth.store";
 import { enqueue } from "@/api/queue.api";
 import type { EnqueueResponse } from "@/types/queue";

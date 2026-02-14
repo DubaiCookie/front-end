@@ -13,7 +13,7 @@ export default function TicketOrderPage() {
         <div className={clsx('glass', 'title-icon-container')}>
           <MdOutlinePayment className={clsx('title-icon')} />
         </div>
-        <span>ticket order</span>
+        <span>Ticket Order</span>
       </div>
       <Calendar
         unavailableDates={unavailableDates}

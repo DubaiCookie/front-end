@@ -10,11 +10,27 @@
 }
 
 .modal {
+  position: relative;
   width: min(92vw, 380px);
   background: #fff;
   border-radius: 16px;
   padding: 20px 18px 16px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+}
+
+.closeButton {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--TEXT-SECONDARY);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
 }
 
 .title {

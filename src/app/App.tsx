@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { RouterProvider } from 'react-router-dom';
 import { router } from '@/app/router';
-import Modal from '@/components/common/Modal';
+import Modal from '@/components/common/modals/Modal';
 import { useAuthStore } from '@/stores/auth.store';
 import { markSessionExpiredHandled, SESSION_EXPIRED_EVENT } from '@/api/http';
 

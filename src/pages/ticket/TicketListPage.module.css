@@ -1,3 +1,7 @@
+.pageRoot {
+  position: relative;
+}
+
 .bottomSpacer {
   height: var(--bottom-cta-safe-area);
 }

@@ -3,6 +3,21 @@
   gap: 16px;
 }
 
+.ticketFlip {
+  perspective: 1200px;
+  cursor: pointer;
+}
+
+.ticketInner {
+  position: relative;
+  transition: transform 0.55s ease;
+  transform-style: preserve-3d;
+}
+
+.flipped {
+  transform: rotateY(180deg);
+}
+
 .ticket {
   position: relative;
   overflow: hidden;
@@ -10,11 +25,43 @@
   padding: 20px 28px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  min-height: 188px;
 }
 
-.ticket:hover {
-  transform: translateY(-4px);
+.ticketFlip:hover .ticket {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+
+.ticketFace {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.ticketFront {
+  position: relative;
+  padding: 18px 24px 10px;
+  pointer-events: auto;
+}
+
+.ticketBack {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+  padding: 30px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.flipped .ticketFront {
+  pointer-events: none;
+}
+
+.flipped .ticketBack {
+  pointer-events: auto;
 }
 
 .ticket::before {
@@ -258,6 +305,45 @@
 .availableRow {
   margin-top: 2px;
   border-bottom: none;
+}
+
+.backTitle {
+  position: relative;
+  z-index: 2;
+  font-weight: var(--font-semibold);
+  color: var(--TEXT-SECONDARY);
+}
+
+.qrButton {
+  position: relative;
+  z-index: 2;
+  border: 0;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 14px;
+  padding: 10px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.fakeQr {
+  width: 98px;
+  height: 98px;
+  border-radius: 6px;
+  background:
+    linear-gradient(90deg, #000 8%, transparent 8% 16%, #000 16% 24%, transparent 24% 40%, #000 40% 48%, transparent 48% 64%, #000 64% 72%, transparent 72% 84%, #000 84% 100%),
+    linear-gradient(#000 8%, transparent 8% 16%, #000 16% 24%, transparent 24% 40%, #000 40% 48%, transparent 48% 64%, #000 64% 72%, transparent 72% 84%, #000 84% 100%),
+    linear-gradient(45deg, #000 0 14%, #fff 14% 18%, #000 18% 32%, #fff 32% 36%, #000 36% 50%, #fff 50% 54%, #000 54% 68%, #fff 68% 72%, #000 72% 100%);
+  background-size: 100% 100%, 100% 100%, 100% 100%;
+  border: 6px solid #fff;
+}
+
+.qrNotice {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: var(--TEXT-SECONDARY);
+  font-weight: var(--font-semibold);
+  line-height: 1.4;
 }
 
 @keyframes shineSweep {

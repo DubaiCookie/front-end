@@ -7,7 +7,7 @@ import type { FieldSpec, LoginUser } from "@/types/user";
 import { login } from "@/api/auth.api";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/auth.store";
-import Modal from "@/components/common/Modal";
+import Modal from "@/components/common/modals/Modal";
 import { getMyTicketList } from "@/api/ticket.api";
 import { isSameLocalDate } from "@/utils/functions";
 

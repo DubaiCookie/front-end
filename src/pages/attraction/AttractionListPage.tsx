@@ -4,6 +4,7 @@ import AttractionList from "@/components/attraction/AttractionList";
 import { getAttractionList } from "@/api/attraction.api";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import type { AttractionSummary } from "@/types/attraction";
+import { MdAttractions } from "react-icons/md";
 import styles from "./Attraction.module.css";
 
 export default function AttractionListPage() {
@@ -31,7 +32,10 @@ export default function AttractionListPage() {
     <div className={clsx('container', styles.listPage)}>
       <LoadingSpinner isLoading={isLoading} />
       <div className={clsx('page-title')}>
-        Attractions
+        <div className={clsx('glass', 'title-icon-container')}>
+          <MdAttractions className={clsx('title-icon')} />
+        </div>
+        <span>Attractions</span>
       </div>
       <AttractionList attractions={attractions} />
       <div className={styles.listBottomSpacer} />

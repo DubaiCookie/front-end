@@ -34,3 +34,8 @@ export async function getAllTicketList() {
   const { data } = await http.get("/ticket-management");
   return data;
 }
+
+export async function activateTicket(ticketOrderId: number) {
+  const { data } = await http.patch(`/tickets/${ticketOrderId}/activate`);
+  return data;
+}

@@ -5,6 +5,9 @@ import WaitingList from "@/components/waiting/WaitingList";
 import { useAuthStore } from "@/stores/auth.store";
 import { getQueueStatus } from "@/api/queue.api";
 import type { QueueStatusItem } from "@/types/queue";
+import EmptyStateMessage from "@/components/common/EmptyStateMessage";
+import styles from "./WaitingListPage.module.css";
+import { IoHourglass } from "react-icons/io5";
 
 export default function WaitingListPage() {
   const userId = useAuthStore((state) => state.userId);
@@ -33,12 +36,15 @@ export default function WaitingListPage() {
   }, [userId]);
 
   return (
-    <div className={clsx("container")}>
+    <div className={clsx("container", styles.pageRoot)}>
       <LoadingSpinner isLoading={isLoading} />
       <div className={clsx("page-title")}>
-        Waiting Status
+        <div className={clsx("glass", "title-icon-container")}>
+          <IoHourglass className={clsx("title-icon")} />
+        </div>
+        <span>Waiting Status</span>
       </div>
-      <WaitingList items={items} />
+      {items.length > 0 ? <WaitingList items={items} /> : <EmptyStateMessage target="이용 대기중인 어트랙션이" />}
     </div>
   );
 }

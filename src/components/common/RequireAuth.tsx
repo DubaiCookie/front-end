@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import Modal from "@/components/common/Modal";
+import Modal from "@/components/common/modals/Modal";
 import { useAuthStore } from "@/stores/auth.store";
 
 type RequireAuthProps = {
