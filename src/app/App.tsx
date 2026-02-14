@@ -4,9 +4,23 @@ import { router } from '@/app/router';
 import Modal from '@/components/common/modals/Modal';
 import { useAuthStore } from '@/stores/auth.store';
 import { markSessionExpiredHandled, SESSION_EXPIRED_EVENT } from '@/api/http';
+import { subscribeUserQueueStatus } from '@/api/ws';
+import { useQueueStore } from '@/stores/queue.store';
+import type { QueueEventMessage, UserQueueSocketMessage, UserQueueStatusEvent } from '@/types/queue';
+
+function isUserQueueStatusEvent(payload: UserQueueSocketMessage): payload is UserQueueStatusEvent {
+  return "items" in payload;
+}
+
+function isQueueEventMessage(payload: UserQueueSocketMessage): payload is QueueEventMessage {
+  return "status" in payload;
+}
 
 export default function App() {
   const logout = useAuthStore((state) => state.logout);
+  const userId = useAuthStore((state) => state.userId);
+  const setLiveQueueItems = useQueueStore((state) => state.setLiveQueueItems);
+  const setQueueAlertMessage = useQueueStore((state) => state.setQueueAlertMessage);
   const [isSessionExpiredModalOpen, setIsSessionExpiredModalOpen] = useState(false);
 
   useEffect(() => {
@@ -20,6 +34,54 @@ export default function App() {
       window.removeEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
     };
   }, [logout]);
+
+  useEffect(() => {
+    if (!userId) {
+      setLiveQueueItems([]);
+      setQueueAlertMessage(null);
+      return;
+    }
+
+    const rideNameById = new Map<number, string>();
+    let clearAlertTimer: number | null = null;
+    const clearScheduledAlert = () => {
+      if (clearAlertTimer !== null) {
+        window.clearTimeout(clearAlertTimer);
+        clearAlertTimer = null;
+      }
+    };
+
+    const unsubscribe = subscribeUserQueueStatus(userId, (payload) => {
+      if (isUserQueueStatusEvent(payload)) {
+        payload.items.forEach((item) => {
+          rideNameById.set(item.rideId, item.rideName);
+        });
+        setLiveQueueItems(payload.items);
+        return;
+      }
+
+      if (!isQueueEventMessage(payload)) {
+        return;
+      }
+
+      const rideName = rideNameById.get(payload.rideId) ?? "선택한 어트랙션";
+      const message =
+        payload.status === "READY"
+          ? `${rideName}: 지금 탑승 가능합니다.`
+          : `${rideName}: 곧 탑승 순서입니다.`;
+
+      setQueueAlertMessage(message);
+      clearScheduledAlert();
+      clearAlertTimer = window.setTimeout(() => {
+        setQueueAlertMessage(null);
+      }, 5000);
+    });
+
+    return () => {
+      unsubscribe();
+      clearScheduledAlert();
+    };
+  }, [userId, setLiveQueueItems, setQueueAlertMessage]);
 
   return (
     <>

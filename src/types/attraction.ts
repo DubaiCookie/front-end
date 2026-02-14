@@ -1,8 +1,22 @@
 export type Waiting = {
-    ticketType: string;
-    estimatedWaitMinutes: number;
-    waitingCount: number;
+  ticketType: string;
+  estimatedWaitMinutes: number;
+  waitingCount: number;
 }
+
+export type RideMinutesItem = {
+  rideId: number;
+  estimatedWaitMinutes: number;
+};
+
+export type RidesMinutesSocketMessage = {
+  rides: RideMinutesItem[];
+};
+
+export type RideInfoSocketMessage = {
+  rideId: number;
+  waitTimes: Waiting[];
+};
 
 export type AttractionListResponseDto = {
   rideId: number;

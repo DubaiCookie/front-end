@@ -27,3 +27,19 @@ export interface QueueStatusItem {
 export interface QueueStatusResponse {
   items: QueueStatusItem[];
 }
+
+export interface UserQueueStatusEvent {
+  userId: number;
+  items: QueueStatusItem[];
+}
+
+export type QueueAlertStatus = "READY" | "ALMOST_READY";
+
+export interface QueueEventMessage {
+  rideId: number;
+  userId: number;
+  type: TicketKind;
+  status: QueueAlertStatus;
+}
+
+export type UserQueueSocketMessage = UserQueueStatusEvent | QueueEventMessage;

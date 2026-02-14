@@ -69,3 +69,23 @@
   line-height: 1;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
 }
+
+.queueAlert {
+  position: fixed;
+  top: calc(var(--header-height) + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 70;
+  width: calc(min(100vw, var(--app-max-width)) - 24px);
+  text-align: center;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 123, 144, 0.34);
+  color: var(--PRIMARY-PINK);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-medium);
+  box-shadow: 0 8px 18px rgba(255, 107, 138, 0.24);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}

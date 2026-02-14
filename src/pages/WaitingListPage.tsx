@@ -9,9 +9,11 @@ import EmptyStateMessage from "@/components/common/EmptyStateMessage";
 import styles from "./WaitingListPage.module.css";
 import { IoHourglass } from "react-icons/io5";
 import Modal from "@/components/common/modals/Modal";
+import { useQueueStore } from "@/stores/queue.store";
 
 export default function WaitingListPage() {
   const userId = useAuthStore((state) => state.userId);
+  const liveQueueItems = useQueueStore((state) => state.liveQueueItems);
   const [items, setItems] = useState<QueueStatusItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCancelItem, setSelectedCancelItem] = useState<QueueStatusItem | null>(null);
@@ -36,6 +38,13 @@ export default function WaitingListPage() {
   useEffect(() => {
     void fetchQueueStatus();
   }, [fetchQueueStatus]);
+
+  useEffect(() => {
+    if (!userId) {
+      return;
+    }
+    setItems(liveQueueItems);
+  }, [liveQueueItems, userId]);
 
   const handleCancel = (item: QueueStatusItem) => {
     setSelectedCancelItem(item);

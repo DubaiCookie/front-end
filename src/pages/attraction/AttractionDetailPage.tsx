@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getAttractionDetail } from "@/api/attraction.api";
+import { subscribeRideInfo } from "@/api/ws";
 import type { AttractionDetail } from "@/types/attraction";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import Button from "@/components/common/Button";
@@ -45,6 +46,37 @@ export default function AttractionDetailPage() {
 
     void fetchAttractionDetail();
   }, [attractionId, detailRefreshKey]);
+
+  useEffect(() => {
+    if (!attractionId) {
+      return;
+    }
+
+    const parsedRideId = Number(attractionId);
+    if (Number.isNaN(parsedRideId)) {
+      return;
+    }
+
+    const unsubscribe = subscribeRideInfo(parsedRideId, (payload) => {
+      if (payload.rideId !== parsedRideId) {
+        return;
+      }
+
+      setAttraction((prev) => {
+        if (!prev || prev.attractionId !== parsedRideId) {
+          return prev;
+        }
+        return {
+          ...prev,
+          waitTimes: payload.waitTimes,
+        };
+      });
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [attractionId]);
 
   const premiumWaiting = attraction?.waitTimes.find((wait) => wait.ticketType === "PREMIUM");
   const generalWaiting = attraction?.waitTimes.find((wait) => wait.ticketType === "GENERAL");
@@ -106,7 +138,7 @@ export default function AttractionDetailPage() {
       : modalMode === "ticketUnavailable"
         ? "대기 불가"
         : modalMode === "queueConfirm"
-          ? "입장 대기"
+          ? "줄서기"
           : "대기 등록 완료";
 
   const modalContent =
@@ -117,7 +149,7 @@ export default function AttractionDetailPage() {
     ) : modalMode === "queueConfirm" ? (
       <div className={styles.queueModalContent}>
         <p>
-          <span className={styles.emphasisPrimary}>{attraction?.name}</span>에 입장 대기를 등록하시겠습니까?
+          <span className={styles.emphasisPrimary}>{attraction?.name}</span>에 줄서기를 등록하시겠습니까?
         </p>
         <p
           className={clsx(
