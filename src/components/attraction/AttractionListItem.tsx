@@ -1,7 +1,6 @@
 import clsx from "clsx";
 import styles from "./AttractionListItem.module.css";
 import { IoIosTime } from "react-icons/io";
-import { FaCircleDot } from "react-icons/fa6";
 import type { AttractionSummary } from "@/types/attraction";
 import { Link } from "react-router-dom";
 
@@ -16,9 +15,15 @@ export default function AttractionListItem({ attraction }: AttractionListItemPro
             : attraction.generalWaitingTime < 60
                 ? styles.waitingMid
                 : styles.waitingHigh;
+    const waitingLabel =
+        attraction.generalWaitingTime < 30
+            ? "여유"
+            : attraction.generalWaitingTime < 60
+                ? "보통"
+                : "혼잡";
 
     return (
-        <Link to={`/attraction/${attraction.attractionId}`} className={clsx(styles.root, 'flex-row')}>
+        <Link to={`/attraction/${attraction.attractionId}`} className={styles.root}>
             <div className={clsx(styles.info)}>
                 <p className={clsx(styles.name)}>{attraction.name}</p>
                 <p className={clsx(styles.description)}>{attraction.description}</p>
@@ -26,11 +31,10 @@ export default function AttractionListItem({ attraction }: AttractionListItemPro
                     <IoIosTime className={clsx(styles.timeIcon)} />
                     <span>{attraction.operatingTime}</span>
                 </p>
-                <div className={clsx(styles.waitingTimeWrap, waitingLevelClass, styles.mediumText, 'flex-row')}>
-                    <span className={clsx(styles.dotIconWrap, waitingLevelClass)}>
-                        <FaCircleDot className={clsx(styles.dotIcon)} />
-                    </span>
-                    <span>{attraction.generalWaitingTime} 분</span>
+                <div className={clsx(styles.waitingTimeWrap, waitingLevelClass, styles.mediumText)}>
+                    <span className={styles.waitingLabel}>{waitingLabel}</span>
+                    <span className={styles.waitingDivider}>|</span>
+                    <span className={styles.waitingTimeValue}>{attraction.generalWaitingTime}분</span>
                 </div>
             </div>
             <div className={clsx(styles.imageWrap)}>

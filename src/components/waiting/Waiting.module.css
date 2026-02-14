@@ -38,7 +38,7 @@
 .rideName {
   font-size: var(--font-size-lg);
   font-weight: var(--font-semibold);
-  color: var(--PRIMARY-PINK);
+  color: var(--TEXT-PRIMARY);
   line-height: 1;
 }
 

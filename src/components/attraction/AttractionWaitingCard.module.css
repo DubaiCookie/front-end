@@ -8,7 +8,11 @@
 }
 
 .generalCard {
-  background: linear-gradient(135deg, rgba(255, 107, 138, 0.22), rgba(253, 147, 170, 0.26));
+  background: linear-gradient(135deg, rgba(168, 237, 234, 0.34), rgba(204, 231, 255, 0.32));
+}
+
+.generalCard .waitingTime {
+  color: var(--TEXT-PRIMARY);
 }
 
 .waitingType {
