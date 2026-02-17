@@ -126,12 +126,6 @@ export default function Calendar({
 
   return (
     <section className={clsx(styles.calendar, className)}>
-      <header className={styles.header}>
-        <p className={styles.title}>날짜 선택</p>
-        <p className={styles.range}>
-          {toDateKey(today)} ~ {toDateKey(maxDate)}
-        </p>
-      </header>
       <div className={styles.monthHeader}>
         <button
           type="button"

@@ -10,15 +10,17 @@ import { preparePayment } from "@/api/payment.api";
 import styles from "./TicketOrderPage.module.css";
 import Modal from "@/components/common/modals/Modal";
 import { env } from "@/utils/env";
+import ticketTypeStyles from "@/components/ticket/TicketType.module.css";
 
 export default function TicketOrderPage() {
   const userId = useAuthStore((state) => state.userId);
   const username = useAuthStore((state) => state.username);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTicketType, setSelectedTicketType] = useState<TicketKind | null>(null);
-  const [ticketQuantity, setTicketQuantity] = useState(1);
+  const ticketQuantity = 1;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isQuantityLimitModalOpen, setIsQuantityLimitModalOpen] = useState(false);
   const unavailableDates: string[] = [];
 
   const loadTossScript = async () => {
@@ -142,12 +144,25 @@ export default function TicketOrderPage() {
           setErrorMessage(null);
         }}
       />
+      <Modal
+        isOpen={isQuantityLimitModalOpen}
+        title="수량 안내"
+        content="티켓은 인당 1일 1매만 구매 가능합니다."
+        buttonTitle="확인"
+        onClose={() => {
+          setIsQuantityLimitModalOpen(false);
+        }}
+        onButtonClick={() => {
+          setIsQuantityLimitModalOpen(false);
+        }}
+      />
       <div className={clsx("page-title")}>
         <div className={clsx("glass", "title-icon-container")}>
           <MdOutlinePayment className={clsx("title-icon")} />
         </div>
         <span>Ticket Order</span>
       </div>
+      <h3 className={clsx("font-h3", ticketTypeStyles.title)}>날짜 선택</h3>
       <Calendar
         unavailableDates={unavailableDates}
         onDateSelect={(date) => {
@@ -156,13 +171,13 @@ export default function TicketOrderPage() {
       />
       <TicketTypeList selectedType={selectedTicketType} onSelectType={setSelectedTicketType} />
       <section className={styles.quantitySection}>
-        <p className={styles.quantityLabel}>수량 선택</p>
+        <h3 className={clsx("font-h3", ticketTypeStyles.title)}>수량 선택</h3>
         <div className={styles.quantityCard}>
           <button
             type="button"
             className={styles.quantityButton}
             onClick={() => {
-              setTicketQuantity((prev) => Math.max(1, prev - 1));
+              setIsQuantityLimitModalOpen(true);
             }}
           >
             -
@@ -172,17 +187,18 @@ export default function TicketOrderPage() {
             type="button"
             className={styles.quantityButton}
             onClick={() => {
-              setTicketQuantity((prev) => Math.min(10, prev + 1));
+              setIsQuantityLimitModalOpen(true);
             }}
           >
             +
           </button>
         </div>
       </section>
-
-      <div className={styles.payButtonWrap}>
+      <div className={styles.bottomSpacer} />
+      <div className="button-bottom">
         <Button
           title={isSubmitting ? "결제 준비 중..." : "결제하기"}
+          className={styles.payButton}
           onClick={() => {
             void handlePayClick();
           }}

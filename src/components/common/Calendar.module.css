@@ -7,22 +7,6 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
-.header {
-  margin-bottom: 14px;
-}
-
-.title {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-bold);
-  color: var(--TEXT-PRIMARY);
-}
-
-.range {
-  margin-top: 4px;
-  font-size: 12px;
-  color: var(--TEXT-SECONDARY);
-}
-
 .monthHeader {
   display: grid;
   grid-template-columns: auto 1fr auto;
