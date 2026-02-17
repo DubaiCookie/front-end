@@ -46,6 +46,7 @@
   line-height: 1.45;
   margin-bottom: 16px;
   text-align: center;
+  white-space: pre-wrap;
 }
 
 .button {

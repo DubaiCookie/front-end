@@ -13,6 +13,7 @@ import TicketOrderPage from '@/pages/ticket/TicketOrderPage';
 import TicketOrderSuccessPage from '@/pages/ticket/TicketOrderSuccessPage';
 import TicketOrderFailPage from '@/pages/ticket/TicketOrderFailPage';
 import WaitingListPage from '@/pages/WaitingListPage';
+import ErrorPage from '@/pages/ErrorPage';
 
 export const router = createBrowserRouter([
   {
@@ -86,6 +87,10 @@ export const router = createBrowserRouter([
             <MyPage />
           </RequireAuth>
         ),
+      },
+      {
+        path: '*',
+        element: <ErrorPage />,
       },
     ],
   },

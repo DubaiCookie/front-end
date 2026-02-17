@@ -1,0 +1,31 @@
+.pageRoot {
+  min-height: calc(100svh - var(--header-height) - var(--content-bottom-safe-area));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.code {
+  font-size: 44px;
+  line-height: 1;
+  font-weight: var(--font-bold);
+  color: var(--PRIMARY-PINK);
+}
+
+.title {
+  font-size: var(--font-size-title);
+  font-weight: var(--font-semibold);
+  color: var(--TEXT-PRIMARY);
+}
+
+.description {
+  color: var(--TEXT-SECONDARY);
+}
+
+.action {
+  width: 100%;
+  max-width: 320px;
+}

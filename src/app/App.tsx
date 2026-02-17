@@ -109,8 +109,14 @@ export default function App() {
       />
       <Modal
         isOpen={isRequestFailedModalOpen}
-        title="오류"
-        content="요청 진행 중 오류가 발생했습니다. 잠시후 다시 시도해주세요."
+        title="요청 실패"
+        content={
+          <>
+            진행 중 오류가 발생했습니다.
+            <br />
+            잠시 후 다시 시도해주세요.
+          </>
+        }
         buttonTitle="확인"
         onClose={() => {
           setIsRequestFailedModalOpen(false);
