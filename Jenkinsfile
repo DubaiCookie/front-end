@@ -34,11 +34,13 @@ pipeline {
         stage('03. Build Image') {
             steps {
                 withCredentials([
-                    string(credentialsId: 'vite-api-base-url', variable: 'VITE_API_BASE_URL')
+                    string(credentialsId: 'vite-api-base-url', variable: 'VITE_API_BASE_URL'),
+                    string(credentialsId: 'vite-toss-client-key', variable: 'VITE_TOSS_CLIENT_KEY')
                 ]) {
                     sh '''
                         docker build \
                             --build-arg VITE_API_BASE_URL="$VITE_API_BASE_URL" \
+                            --build-arg VITE_TOSS_CLIENT_KEY="$VITE_TOSS_CLIENT_KEY" \
                             -t $IMAGE_NAME .
                     '''
                 }
