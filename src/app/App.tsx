@@ -3,7 +3,7 @@ import { RouterProvider } from 'react-router-dom';
 import { router } from '@/app/router';
 import Modal from '@/components/common/modals/Modal';
 import { useAuthStore } from '@/stores/auth.store';
-import { markSessionExpiredHandled, SESSION_EXPIRED_EVENT } from '@/api/http';
+import { markSessionExpiredHandled, REQUEST_FAILED_EVENT, SESSION_EXPIRED_EVENT } from '@/api/http';
 import { subscribeUserQueueStatus } from '@/api/ws';
 import { useQueueStore } from '@/stores/queue.store';
 import type { QueueEventMessage, UserQueueSocketMessage, UserQueueStatusEvent } from '@/types/queue';
@@ -22,6 +22,7 @@ export default function App() {
   const setLiveQueueItems = useQueueStore((state) => state.setLiveQueueItems);
   const setQueueAlertMessage = useQueueStore((state) => state.setQueueAlertMessage);
   const [isSessionExpiredModalOpen, setIsSessionExpiredModalOpen] = useState(false);
+  const [isRequestFailedModalOpen, setIsRequestFailedModalOpen] = useState(false);
 
   useEffect(() => {
     const handleSessionExpired = () => {
@@ -29,9 +30,15 @@ export default function App() {
       setIsSessionExpiredModalOpen(true);
     };
 
+    const handleRequestFailed = () => {
+      setIsRequestFailedModalOpen(true);
+    };
+
     window.addEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
+    window.addEventListener(REQUEST_FAILED_EVENT, handleRequestFailed);
     return () => {
       window.removeEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
+      window.removeEventListener(REQUEST_FAILED_EVENT, handleRequestFailed);
     };
   }, [logout]);
 
@@ -91,9 +98,25 @@ export default function App() {
         title="세션 만료"
         content="유효시간이 만료되어 로그아웃 되었습니다."
         buttonTitle="확인"
+        onClose={() => {
+          setIsSessionExpiredModalOpen(false);
+          markSessionExpiredHandled();
+        }}
         onButtonClick={() => {
           setIsSessionExpiredModalOpen(false);
           markSessionExpiredHandled();
+        }}
+      />
+      <Modal
+        isOpen={isRequestFailedModalOpen}
+        title="오류"
+        content="요청 진행 중 오류가 발생했습니다. 잠시후 다시 시도해주세요."
+        buttonTitle="확인"
+        onClose={() => {
+          setIsRequestFailedModalOpen(false);
+        }}
+        onButtonClick={() => {
+          setIsRequestFailedModalOpen(false);
         }}
       />
     </>

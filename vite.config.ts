@@ -37,6 +37,11 @@ export default defineConfig({
   server: {
     port: 3001,
     proxy: {
+      '/api/payments': {
+        target: 'http://202.30.16.217:8078',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
       '/api': {
         target: 'https://baeminjun.store',
         changeOrigin: true,

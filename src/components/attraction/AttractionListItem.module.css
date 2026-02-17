@@ -21,6 +21,8 @@
   padding: 14px 14px 14px 15px;
   min-width: 0;
   justify-content: space-between;
+  position: relative;
+  z-index: 2;
 }
 
 .name {
@@ -28,9 +30,14 @@
   font-weight: var(--font-semibold);
   line-height: 1.2;
   letter-spacing: -0.2px;
-  white-space: nowrap;
+  width: calc(100% + 110px);
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: clip;
+  text-shadow: 0 1px 6px rgba(255, 255, 255, 0.55);
 }
 
 .description {

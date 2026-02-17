@@ -134,7 +134,7 @@ export default function AttractionDetailPage() {
   const isModalOpen = modalMode !== null;
   const modalTitle =
     modalMode === "loginRequired"
-      ? "로그인 필요"
+      ? "로그인이 필요합니다"
       : modalMode === "ticketUnavailable"
         ? "대기 불가"
         : modalMode === "queueConfirm"
@@ -181,6 +181,9 @@ export default function AttractionDetailPage() {
         title={modalTitle}
         content={modalContent}
         buttonTitle="확인"
+        onClose={() => {
+          setModalMode(null);
+        }}
         onButtonClick={() => {
           void handleModalButtonClick();
         }}

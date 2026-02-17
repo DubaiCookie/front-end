@@ -26,9 +26,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   hasTodayActiveTicket: localStorage.getItem('hasTodayActiveTicket') === 'true',
   todayActiveTicketType: (localStorage.getItem('todayActiveTicketType') as TicketKind | null) ?? null,
   setAuthUser: ({ userId, username }) => {
+    const safeUsername = username ?? "";
     localStorage.setItem('userId', String(userId));
-    localStorage.setItem('username', username);
-    set({ userId, username });
+    localStorage.setItem('username', safeUsername);
+    set({ userId, username: safeUsername });
   },
   setTodayActiveTicket: ({ hasTodayActiveTicket, todayActiveTicketType }) => {
     localStorage.setItem('hasTodayActiveTicket', String(hasTodayActiveTicket));

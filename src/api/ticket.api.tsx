@@ -15,6 +15,36 @@ type UserTicketDto = {
   payment_at?: string;
 };
 
+function normalizeTicketListPayload(payload: unknown): UserTicketDto[] {
+  if (Array.isArray(payload)) {
+    return payload as UserTicketDto[];
+  }
+
+  if (!payload || typeof payload !== "object") {
+    return [];
+  }
+
+  const wrapped = payload as {
+    data?: unknown;
+    tickets?: unknown;
+    content?: unknown;
+  };
+
+  if (Array.isArray(wrapped.data)) {
+    return wrapped.data as UserTicketDto[];
+  }
+
+  if (Array.isArray(wrapped.tickets)) {
+    return wrapped.tickets as UserTicketDto[];
+  }
+
+  if (Array.isArray(wrapped.content)) {
+    return wrapped.content as UserTicketDto[];
+  }
+
+  return [];
+}
+
 function mapTicket(dto: UserTicketDto): UserTicket {
   return {
     ticketOrderId: dto.ticketOrderId ?? dto.ticket_order_id ?? 0,
@@ -26,8 +56,9 @@ function mapTicket(dto: UserTicketDto): UserTicket {
 }
 
 export async function getMyTicketList() {
-  const { data } = await http.get<UserTicketDto[]>("/tickets/my");
-  return data.map(mapTicket);
+  const { data } = await http.get("/tickets/my");
+  const tickets = normalizeTicketListPayload(data);
+  return tickets.map(mapTicket);
 }
 
 export async function getAllTicketList() {

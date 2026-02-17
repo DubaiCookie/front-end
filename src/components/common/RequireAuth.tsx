@@ -22,6 +22,9 @@ export default function RequireAuth({ children }: RequireAuthProps) {
       title="로그인이 필요합니다"
       content="해당 페이지는 로그인 후 이용할 수 있어요."
       buttonTitle="확인"
+      onClose={() => {
+        navigate("/login", { replace: true });
+      }}
       onButtonClick={() => {
         navigate("/login", { replace: true });
       }}

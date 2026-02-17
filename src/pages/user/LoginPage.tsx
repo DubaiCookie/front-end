@@ -43,9 +43,10 @@ export default function LoginPage() {
     const handleLogin = async (values: LoginUser) => {
         try {
             const response = await login(values);
+            const resolvedUsername = response.username?.trim() || values.userId;
             setAuthUser({
                 userId: response.userId,
-                username: response.username,
+                username: resolvedUsername,
             });
 
             try {
@@ -85,6 +86,9 @@ export default function LoginPage() {
                 title="로그인 실패"
                 content="아이디/비밀번호를 확인해주세요."
                 buttonTitle="확인"
+                onClose={() => {
+                    setIsInvalidCredentialsModalOpen(false);
+                }}
                 onButtonClick={() => {
                     setIsInvalidCredentialsModalOpen(false);
                 }}
@@ -94,6 +98,9 @@ export default function LoginPage() {
                 title="로그인 완료"
                 content="로그인이 완료되었습니다."
                 buttonTitle="확인"
+                onClose={() => {
+                    setIsSuccessModalOpen(false);
+                }}
                 onButtonClick={() => {
                     setIsSuccessModalOpen(false);
                     navigate("/attraction");

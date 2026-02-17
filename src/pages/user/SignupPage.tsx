@@ -101,6 +101,9 @@ export default function SignupPage() {
         title="회원가입 실패"
         content="중복된 ID 입니다."
         buttonTitle="확인"
+        onClose={() => {
+          setIsDuplicateIdModalOpen(false);
+        }}
         onButtonClick={() => {
           setIsDuplicateIdModalOpen(false);
         }}
@@ -110,6 +113,9 @@ export default function SignupPage() {
         title="회원가입 완료"
         content="회원가입이 성공적으로 완료되었습니다."
         buttonTitle="확인"
+        onClose={() => {
+          setIsSuccessModalOpen(false);
+        }}
         onButtonClick={() => {
           setIsSuccessModalOpen(false);
           navigate("/login");

@@ -8,7 +8,7 @@ type ModalProps = Omit<ComponentPropsWithoutRef<"div">, "content"> & {
   content: ReactNode;
   buttonTitle: string;
   onButtonClick: () => void;
-  onClose?: () => void;
+  onClose: () => void;
 };
 
 export default function Modal({
@@ -31,7 +31,7 @@ export default function Modal({
         <button
           type="button"
           className={styles.closeButton}
-          onClick={onClose ?? onButtonClick}
+          onClick={onClose}
           aria-label="닫기"
         >
           ×

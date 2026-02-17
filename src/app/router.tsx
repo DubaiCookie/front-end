@@ -10,6 +10,8 @@ import AttractionListPage from '@/pages/attraction/AttractionListPage';
 import AttractionDetailPage from '@/pages/attraction/AttractionDetailPage';
 import TicketListPage from '@/pages/ticket/TicketListPage';
 import TicketOrderPage from '@/pages/ticket/TicketOrderPage';
+import TicketOrderSuccessPage from '@/pages/ticket/TicketOrderSuccessPage';
+import TicketOrderFailPage from '@/pages/ticket/TicketOrderFailPage';
 import WaitingListPage from '@/pages/WaitingListPage';
 
 export const router = createBrowserRouter([
@@ -50,6 +52,22 @@ export const router = createBrowserRouter([
         element: (
           <RequireAuth>
             <TicketOrderPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: 'ticket/order/success',
+        element: (
+          <RequireAuth>
+            <TicketOrderSuccessPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: 'ticket/order/fail',
+        element: (
+          <RequireAuth>
+            <TicketOrderFailPage />
           </RequireAuth>
         ),
       },

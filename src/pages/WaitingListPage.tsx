@@ -17,6 +17,7 @@ export default function WaitingListPage() {
   const [items, setItems] = useState<QueueStatusItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCancelItem, setSelectedCancelItem] = useState<QueueStatusItem | null>(null);
+  const [selectedSnoozeItem, setSelectedSnoozeItem] = useState<QueueStatusItem | null>(null);
 
   const fetchQueueStatus = useCallback(async () => {
     if (!userId) {
@@ -48,6 +49,10 @@ export default function WaitingListPage() {
 
   const handleCancel = (item: QueueStatusItem) => {
     setSelectedCancelItem(item);
+  };
+
+  const handleSnooze = (item: QueueStatusItem) => {
+    setSelectedSnoozeItem(item);
   };
 
   const handleConfirmCancel = async () => {
@@ -90,6 +95,18 @@ export default function WaitingListPage() {
           void handleConfirmCancel();
         }}
       />
+      <Modal
+        isOpen={Boolean(selectedSnoozeItem)}
+        title="준비중입니다"
+        content={`${selectedSnoozeItem?.rideName ?? ""} 미루기 기능은 준비중입니다.`}
+        buttonTitle="확인"
+        onClose={() => {
+          setSelectedSnoozeItem(null);
+        }}
+        onButtonClick={() => {
+          setSelectedSnoozeItem(null);
+        }}
+      />
       <div className={clsx("page-title")}>
         <div className={clsx("glass", "title-icon-container")}>
           <IoHourglass className={clsx("title-icon")} />
@@ -97,7 +114,7 @@ export default function WaitingListPage() {
         <span>Waiting Status</span>
       </div>
       {items.length > 0 ? (
-        <WaitingList items={items} onCancel={handleCancel} />
+        <WaitingList items={items} onCancel={handleCancel} onSnooze={handleSnooze} />
       ) : (
         <EmptyStateMessage target="이용 대기중인 어트랙션이" />
       )}

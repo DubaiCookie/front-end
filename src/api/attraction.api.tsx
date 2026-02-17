@@ -1,10 +1,43 @@
 import { http } from "@/api/http";
 import type { AttractionDetail, AttractionDetailResponseDto, AttractionListResponseDto } from "@/types/attraction";
 
-export async function getAttractionList() {
-  const { data } = await http.get<AttractionListResponseDto[]>("/rides");
+function normalizeAttractionListPayload(payload: unknown): AttractionListResponseDto[] {
+  const queue: unknown[] = [payload];
+  const visited = new Set<unknown>();
 
-  return data.map((attraction) => ({
+  while (queue.length > 0) {
+    const current = queue.shift();
+    if (visited.has(current)) {
+      continue;
+    }
+    visited.add(current);
+
+    if (Array.isArray(current)) {
+      const first = current[0] as { rideId?: unknown } | undefined;
+      if (!first || typeof first === "object" && "rideId" in first) {
+        return current as AttractionListResponseDto[];
+      }
+      continue;
+    }
+
+    if (!current || typeof current !== "object") {
+      continue;
+    }
+
+    const obj = current as Record<string, unknown>;
+    for (const value of Object.values(obj)) {
+      queue.push(value);
+    }
+  }
+
+  return [];
+}
+
+export async function getAttractionList() {
+  const { data } = await http.get("/rides");
+  const list = normalizeAttractionListPayload(data);
+
+  return list.map((attraction) => ({
     attractionId: attraction.rideId,
     name: attraction.name,
     description: attraction.shortDescription,
@@ -35,5 +68,3 @@ export async function getAttractionDetail(attractionId: number | string) {
 
   return transformedData;
 }
-
-

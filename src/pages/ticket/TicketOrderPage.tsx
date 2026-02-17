@@ -2,16 +2,149 @@ import clsx from "clsx";
 import { useState } from "react";
 import { MdOutlinePayment } from "react-icons/md";
 import Calendar from "@/components/common/Calendar";
+import TicketTypeList from "@/components/ticket/TicketTypeList";
+import type { TicketKind } from "@/types/ticket";
+import Button from "@/components/common/Button";
+import { useAuthStore } from "@/stores/auth.store";
+import { preparePayment } from "@/api/payment.api";
+import styles from "./TicketOrderPage.module.css";
+import Modal from "@/components/common/modals/Modal";
+import { env } from "@/utils/env";
 
 export default function TicketOrderPage() {
+  const userId = useAuthStore((state) => state.userId);
+  const username = useAuthStore((state) => state.username);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedTicketType, setSelectedTicketType] = useState<TicketKind | null>(null);
+  const [ticketQuantity, setTicketQuantity] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const unavailableDates: string[] = [];
 
+  const loadTossScript = async () => {
+    if (window.TossPayments) {
+      return window.TossPayments;
+    }
+
+    await new Promise<void>((resolve, reject) => {
+      const existingScript = document.querySelector<HTMLScriptElement>('script[data-toss-sdk="true"]');
+      if (existingScript) {
+        existingScript.addEventListener("load", () => resolve(), { once: true });
+        existingScript.addEventListener("error", () => reject(new Error("Toss SDK 로드에 실패했습니다.")), { once: true });
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = "https://js.tosspayments.com/v1/payment";
+      script.async = true;
+      script.dataset.tossSdk = "true";
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("Toss SDK 로드에 실패했습니다."));
+      document.body.appendChild(script);
+    });
+
+    if (!window.TossPayments) {
+      throw new Error("Toss SDK 초기화에 실패했습니다.");
+    }
+
+    return window.TossPayments;
+  };
+
+  const handlePayClick = async () => {
+    if (!userId || !selectedDate || !selectedTicketType) {
+      return;
+    }
+
+    const tossClientKey = env.TOSS_CLIENT_KEY;
+    if (!tossClientKey) {
+      setErrorMessage("VITE_TOSS_CLIENT_KEY 설정이 필요합니다.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const prepared = await preparePayment({
+        userId,
+        ticketType: selectedTicketType,
+        availableDate: selectedDate,
+        ticketQuantity,
+      });
+
+      const amount = Number(prepared.amount);
+      const backendOrderId = Number(prepared.orderId);
+      const orderName = String(prepared.orderName ?? "").trim();
+      const tossOrderId = `ORDER-${backendOrderId}`;
+      const finalAmount = amount;
+
+      if (!Number.isFinite(finalAmount) || finalAmount <= 0) {
+        throw new Error(`유효하지 않은 결제 금액입니다. amount=${prepared.amount}`);
+      }
+      if (!Number.isFinite(backendOrderId) || backendOrderId <= 0) {
+        throw new Error(`유효하지 않은 주문 번호입니다. orderId=${prepared.orderId}`);
+      }
+      if (!orderName) {
+        throw new Error("유효하지 않은 주문명입니다.");
+      }
+      if (!/^[A-Za-z0-9_-]{6,64}$/.test(tossOrderId)) {
+        throw new Error(`토스 주문번호 형식이 올바르지 않습니다. tossOrderId=${tossOrderId}`);
+      }
+
+      const TossPayments = await loadTossScript();
+      const tossPayments = TossPayments(tossClientKey);
+      const baseUrl = env.APP_BASE_URL || window.location.origin;
+      const successUrl = `${baseUrl}/ticket/order/success?backendOrderId=${backendOrderId}`;
+      const failUrl = `${baseUrl}/ticket/order/fail?backendOrderId=${backendOrderId}`;
+
+      sessionStorage.setItem(
+        "pending-payment",
+        JSON.stringify({
+          orderId: backendOrderId,
+          amount: finalAmount,
+          tossOrderId,
+        }),
+      );
+
+      await tossPayments.requestPayment("CARD", {
+        amount: finalAmount,
+        orderId: tossOrderId,
+        orderName,
+        successUrl,
+        failUrl,
+        customerName: username ?? undefined,
+        windowTarget: "iframe",
+        card: {
+          flowMode: "DEFAULT",
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      if (error instanceof Error && error.message) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("결제 준비 중 오류가 발생했습니다.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className={clsx('container')}>
-      <div className={clsx('page-title')}>
-        <div className={clsx('glass', 'title-icon-container')}>
-          <MdOutlinePayment className={clsx('title-icon')} />
+    <div className={clsx("container", styles.pageRoot)}>
+      <Modal
+        isOpen={Boolean(errorMessage)}
+        title="결제 오류"
+        content={errorMessage ?? ""}
+        buttonTitle="확인"
+        onClose={() => {
+          setErrorMessage(null);
+        }}
+        onButtonClick={() => {
+          setErrorMessage(null);
+        }}
+      />
+      <div className={clsx("page-title")}>
+        <div className={clsx("glass", "title-icon-container")}>
+          <MdOutlinePayment className={clsx("title-icon")} />
         </div>
         <span>Ticket Order</span>
       </div>
@@ -21,7 +154,41 @@ export default function TicketOrderPage() {
           setSelectedDate(date);
         }}
       />
-      {selectedDate && <p>선택한 날짜: {selectedDate}</p>}
+      <TicketTypeList selectedType={selectedTicketType} onSelectType={setSelectedTicketType} />
+      <section className={styles.quantitySection}>
+        <p className={styles.quantityLabel}>수량 선택</p>
+        <div className={styles.quantityCard}>
+          <button
+            type="button"
+            className={styles.quantityButton}
+            onClick={() => {
+              setTicketQuantity((prev) => Math.max(1, prev - 1));
+            }}
+          >
+            -
+          </button>
+          <span className={styles.quantityValue}>{ticketQuantity}</span>
+          <button
+            type="button"
+            className={styles.quantityButton}
+            onClick={() => {
+              setTicketQuantity((prev) => Math.min(10, prev + 1));
+            }}
+          >
+            +
+          </button>
+        </div>
+      </section>
+
+      <div className={styles.payButtonWrap}>
+        <Button
+          title={isSubmitting ? "결제 준비 중..." : "결제하기"}
+          onClick={() => {
+            void handlePayClick();
+          }}
+          disabled={!selectedDate || !selectedTicketType || isSubmitting || !userId}
+        />
+      </div>
     </div>
   );
 }

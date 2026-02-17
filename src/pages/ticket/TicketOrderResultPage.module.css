@@ -1,0 +1,21 @@
+.pageRoot {
+  min-height: calc(100svh - var(--header-height) - var(--content-bottom-safe-area));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+}
+
+.title {
+  font-size: var(--font-size-title);
+  font-weight: var(--font-semibold);
+}
+
+.description {
+  color: var(--TEXT-SECONDARY);
+  line-height: 1.5;
+}
+
+.actions {
+  margin-top: 16px;
+}

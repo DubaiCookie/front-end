@@ -1,0 +1,49 @@
+.pageRoot {
+  position: relative;
+  padding-bottom: var(--bottom-cta-safe-area);
+}
+
+.quantitySection {
+  margin-top: 24px;
+}
+
+.quantityLabel {
+  margin-bottom: 10px;
+  color: var(--TEXT-SECONDARY);
+}
+
+.quantityCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--BORDER-LIGHT);
+}
+
+.quantityButton {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--BORDER-LIGHT);
+  background: #fff;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.quantityValue {
+  font-size: 18px;
+  font-weight: var(--font-semibold);
+  min-width: 24px;
+  text-align: center;
+}
+
+.payButtonWrap {
+  position: fixed;
+  bottom: var(--bottom-cta-offset);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  width: calc(min(100vw, var(--app-max-width)) - 32px);
+}

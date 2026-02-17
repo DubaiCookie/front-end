@@ -14,8 +14,15 @@ const refreshHttp = axios.create({
 });
 
 export const SESSION_EXPIRED_EVENT = "session-expired";
+export const REQUEST_FAILED_EVENT = "request-failed";
 
 const EXCLUDED_401_PATHS = ["/login", "/signup", "/rides", "/refresh"];
+const EXCLUDED_GENERIC_ERROR_CASES: Array<{ path: string; status?: number }> = [
+  { path: "/login", status: 401 },
+  { path: "/signup", status: 400 },
+  { path: "/payments" },
+  { path: "/payments/confirm" },
+];
 
 function resolveRequestPath(url?: string) {
   if (!url) {
@@ -35,6 +42,15 @@ function shouldSkipRefresh(url?: string) {
   return EXCLUDED_401_PATHS.some((excludedPath) => path === excludedPath || path.startsWith(`${excludedPath}/`));
 }
 
+function shouldSkipGenericError(url: string | undefined, status?: number) {
+  const path = resolveRequestPath(url);
+  return EXCLUDED_GENERIC_ERROR_CASES.some((item) => {
+    const pathMatched = path === item.path || path.startsWith(`${item.path}/`);
+    const statusMatched = item.status === undefined || item.status === status;
+    return pathMatched && statusMatched;
+  });
+}
+
 type RetriableConfig = {
   _retry?: boolean;
   url?: string;
@@ -49,7 +65,17 @@ export function markSessionExpiredHandled() {
 http.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (!axios.isAxiosError(error) || error.response?.status !== 401) {
+    if (!axios.isAxiosError(error)) {
+      window.dispatchEvent(new Event(REQUEST_FAILED_EVENT));
+      return Promise.reject(error);
+    }
+
+    if (shouldSkipGenericError(error.config?.url, error.response?.status)) {
+      return Promise.reject(error);
+    }
+
+    if (error.response?.status !== 401) {
+      window.dispatchEvent(new Event(REQUEST_FAILED_EVENT));
       return Promise.reject(error);
     }
 
