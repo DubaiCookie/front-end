@@ -97,7 +97,7 @@ export default function TicketListItem({ ticket, onQrClick }: TicketListItemProp
                                     onQrClick(ticket);
                                 }}
                             >
-                                <div className={styles.fakeQr} />
+                                <img src="/ticket-qr.png" alt="티켓 QR" className={styles.qrImage} />
                             </button>
                         </>
                     ) : (

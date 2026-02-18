@@ -12,6 +12,8 @@
   position: relative;
   transition: transform 0.55s ease;
   transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  will-change: transform;
 }
 
 .flipped {
@@ -35,18 +37,22 @@
 .ticketFace {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  transform: translateZ(0);
 }
 
 .ticketFront {
   position: relative;
   padding: 18px 24px 10px;
   pointer-events: auto;
+  transform: rotateY(0deg) translateZ(0);
 }
 
 .ticketBack {
   position: absolute;
   inset: 0;
-  transform: rotateY(180deg);
+  transform: rotateY(180deg) translateZ(0);
   padding: 30px 24px;
   display: flex;
   flex-direction: column;
@@ -62,6 +68,11 @@
 
 .flipped .ticketBack {
   pointer-events: auto;
+}
+
+.ticketFace * {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .ticket::before {
@@ -325,15 +336,13 @@
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
 }
 
-.fakeQr {
+.qrImage {
   width: 98px;
   height: 98px;
   border-radius: 6px;
-  background:
-    linear-gradient(90deg, #000 8%, transparent 8% 16%, #000 16% 24%, transparent 24% 40%, #000 40% 48%, transparent 48% 64%, #000 64% 72%, transparent 72% 84%, #000 84% 100%),
-    linear-gradient(#000 8%, transparent 8% 16%, #000 16% 24%, transparent 24% 40%, #000 40% 48%, transparent 48% 64%, #000 64% 72%, transparent 72% 84%, #000 84% 100%),
-    linear-gradient(45deg, #000 0 14%, #fff 14% 18%, #000 18% 32%, #fff 32% 36%, #000 36% 50%, #fff 50% 54%, #000 54% 68%, #fff 68% 72%, #000 72% 100%);
-  background-size: 100% 100%, 100% 100%, 100% 100%;
+  object-fit: contain;
+  display: block;
+  background: #fff;
   border: 6px solid #fff;
 }
 
