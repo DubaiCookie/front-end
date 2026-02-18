@@ -97,8 +97,8 @@ export default function WaitingListPage() {
       />
       <Modal
         isOpen={Boolean(selectedSnoozeItem)}
-        title="준비중입니다"
-        content={`${selectedSnoozeItem?.rideName ?? ""} 미루기 기능은 준비중입니다.`}
+        title="준비중"
+        content="미루기 기능은 준비중입니다."
         buttonTitle="확인"
         onClose={() => {
           setSelectedSnoozeItem(null);

@@ -240,9 +240,68 @@ class StompSocketClient {
 
 const client = new StompSocketClient();
 
+function normalizeTicketType(raw: string | undefined) {
+  if (!raw) {
+    return "GENERAL";
+  }
+  const upper = raw.toUpperCase();
+  if (upper === "PREMIUM") {
+    return "PREMIUM";
+  }
+  if (upper === "BASIC" || upper === "GENERAL") {
+    return "GENERAL";
+  }
+  return "GENERAL";
+}
+
+function normalizeRideInfoPayload(payload: unknown): RideInfoSocketMessage {
+  const obj = (payload ?? {}) as {
+    rideId?: number;
+    ride_id?: number;
+    waitTimes?: Array<{
+      ticketType?: string;
+      ticket_type?: string;
+      estimatedWaitMinutes?: number;
+      estimated_wait_minutes?: number;
+      waitingCount?: number;
+      waiting_count?: number;
+    }>;
+  };
+
+  const waitTimesRaw = Array.isArray(obj.waitTimes) ? obj.waitTimes : [];
+
+  return {
+    rideId: obj.rideId ?? obj.ride_id ?? 0,
+    waitTimes: waitTimesRaw.map((wait) => ({
+      ticketType: normalizeTicketType(wait.ticketType ?? wait.ticket_type),
+      estimatedWaitMinutes: wait.estimatedWaitMinutes ?? wait.estimated_wait_minutes ?? 0,
+      waitingCount: wait.waitingCount ?? wait.waiting_count ?? 0,
+    })),
+  };
+}
+
+function normalizeRidesMinutesPayload(payload: unknown): RidesMinutesSocketMessage {
+  const obj = (payload ?? {}) as {
+    rides?: Array<{
+      rideId?: number;
+      ride_id?: number;
+      estimatedWaitMinutes?: number;
+      estimated_wait_minutes?: number;
+    }>;
+  };
+  const ridesRaw = Array.isArray(obj.rides) ? obj.rides : [];
+
+  return {
+    rides: ridesRaw.map((ride) => ({
+      rideId: ride.rideId ?? ride.ride_id ?? 0,
+      estimatedWaitMinutes: ride.estimatedWaitMinutes ?? ride.estimated_wait_minutes ?? 0,
+    })),
+  };
+}
+
 export function subscribeRidesMinutes(callback: (payload: RidesMinutesSocketMessage) => void) {
   return client.subscribe("/sub/rides/minutes", (payload) => {
-    callback(payload as RidesMinutesSocketMessage);
+    callback(normalizeRidesMinutesPayload(payload));
   }, {
     activateDestination: "/pub/rides/minutes",
   });
@@ -250,7 +309,7 @@ export function subscribeRidesMinutes(callback: (payload: RidesMinutesSocketMess
 
 export function subscribeRideInfo(rideId: number, callback: (payload: RideInfoSocketMessage) => void) {
   return client.subscribe(`/sub/rides/${rideId}/info`, (payload) => {
-    callback(payload as RideInfoSocketMessage);
+    callback(normalizeRideInfoPayload(payload));
   }, {
     activateDestination: `/pub/rides/${rideId}/info`,
   });

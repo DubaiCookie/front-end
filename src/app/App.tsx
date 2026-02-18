@@ -50,13 +50,6 @@ export default function App() {
     }
 
     const rideNameById = new Map<number, string>();
-    let clearAlertTimer: number | null = null;
-    const clearScheduledAlert = () => {
-      if (clearAlertTimer !== null) {
-        window.clearTimeout(clearAlertTimer);
-        clearAlertTimer = null;
-      }
-    };
 
     const unsubscribe = subscribeUserQueueStatus(userId, (payload) => {
       if (isUserQueueStatusEvent(payload)) {
@@ -78,15 +71,10 @@ export default function App() {
           : `${rideName}: 곧 탑승 순서입니다.`;
 
       setQueueAlertMessage(message);
-      clearScheduledAlert();
-      clearAlertTimer = window.setTimeout(() => {
-        setQueueAlertMessage(null);
-      }, 5000);
     });
 
     return () => {
       unsubscribe();
-      clearScheduledAlert();
     };
   }, [userId, setLiveQueueItems, setQueueAlertMessage]);
 

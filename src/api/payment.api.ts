@@ -79,11 +79,11 @@ function toPaymentResponse(input: unknown): PaymentResponse {
 }
 
 export async function preparePayment(payload: PreparePaymentRequest) {
-  const { data } = await http.post("/payments", payload);
+  const { data } = await http.post("/payments", payload, { baseURL: "" });
   return toPaymentResponse(data);
 }
 
 export async function confirmPayment(payload: ConfirmPaymentRequest) {
-  const { data } = await http.post("/payments/confirm", payload);
+  const { data } = await http.post("/payments/confirm", payload, { baseURL: "" });
   return toPaymentResponse(data);
 }

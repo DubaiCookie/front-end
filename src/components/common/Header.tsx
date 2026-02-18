@@ -9,6 +9,7 @@ import { FiLogIn } from "react-icons/fi";
 export default function Header() {
     const username = useAuthStore((s) => s.username);
     const queueAlertMessage = useQueueStore((s) => s.queueAlertMessage);
+    const setQueueAlertMessage = useQueueStore((s) => s.setQueueAlertMessage);
     const isLoggedIn = Boolean(username);
 
     return (
@@ -36,9 +37,17 @@ export default function Header() {
                 </div>
             </header>
             {queueAlertMessage && (
-                <div className={styles.queueAlert} role="status" aria-live="polite">
+                <button
+                    type="button"
+                    className={styles.queueAlert}
+                    role="status"
+                    aria-live="polite"
+                    onClick={() => {
+                        setQueueAlertMessage(null);
+                    }}
+                >
                     {queueAlertMessage}
-                </div>
+                </button>
             )}
         </>
     );

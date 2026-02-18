@@ -88,4 +88,6 @@
   box-shadow: 0 8px 18px rgba(255, 107, 138, 0.24);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  border-style: solid;
+  cursor: pointer;
 }

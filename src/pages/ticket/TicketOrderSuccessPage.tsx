@@ -89,7 +89,7 @@ export default function TicketOrderSuccessPage() {
       <h1 className={styles.title}>결제 {isConfirming ? "승인 중" : result ? "완료" : "실패"}</h1>
       <p className={styles.description}>
         {isConfirming && "결제 승인 요청을 처리하고 있습니다."}
-        {!isConfirming && result && `주문 ${result.orderName} 결제가 처리되었습니다.`}
+        {!isConfirming && result && `${result.orderName} 결제가 처리되었습니다.`}
         {!isConfirming && !result && errorMessage}
       </p>
       <div className={styles.actions}>

@@ -1,6 +1,44 @@
 import { http } from "@/api/http";
 import type { AttractionDetail, AttractionDetailResponseDto, AttractionListResponseDto } from "@/types/attraction";
 
+type WaitTimeDto = {
+  ticketType?: string;
+  ticket_type?: string;
+  estimatedWaitMinutes?: number;
+  estimated_wait_minutes?: number;
+  waitingCount?: number;
+  waiting_count?: number;
+};
+
+function normalizeTicketType(raw: string | undefined) {
+  if (!raw) {
+    return "GENERAL";
+  }
+  const upper = raw.toUpperCase();
+  if (upper === "PREMIUM") {
+    return "PREMIUM";
+  }
+  if (upper === "BASIC" || upper === "GENERAL") {
+    return "GENERAL";
+  }
+  return "GENERAL";
+}
+
+function normalizeWaitTimes(waitTimes: unknown) {
+  if (!Array.isArray(waitTimes)) {
+    return [];
+  }
+
+  return waitTimes.map((wait) => {
+    const dto = wait as WaitTimeDto;
+    return {
+      ticketType: normalizeTicketType(dto.ticketType ?? dto.ticket_type),
+      estimatedWaitMinutes: dto.estimatedWaitMinutes ?? dto.estimated_wait_minutes ?? 0,
+      waitingCount: dto.waitingCount ?? dto.waiting_count ?? 0,
+    };
+  });
+}
+
 function normalizeAttractionListPayload(payload: unknown): AttractionListResponseDto[] {
   const queue: unknown[] = [payload];
   const visited = new Set<unknown>();
@@ -43,7 +81,7 @@ export async function getAttractionList() {
     description: attraction.shortDescription,
     operatingTime: attraction.operatingTime,
     generalWaitingTime:
-      attraction.waitTimes.find((wait) => wait.ticketType === "GENERAL")?.estimatedWaitMinutes ?? 0,
+      normalizeWaitTimes(attraction.waitTimes).find((wait) => wait.ticketType === "GENERAL")?.estimatedWaitMinutes ?? 0,
     imageUrl: attraction.photo,
   }));
 }
@@ -63,7 +101,7 @@ export async function getAttractionDetail(attractionId: number | string) {
     imageUrl: data.photo,
     operatingTime: data.operatingTime,
     ridingTime: data.ridingTime,
-    waitTimes: data.waitTimes,
+    waitTimes: normalizeWaitTimes(data.waitTimes),
   };
 
   return transformedData;
