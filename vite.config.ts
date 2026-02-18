@@ -22,9 +22,9 @@ export default defineConfig({
         theme_color: '#FF6B8A',
         background_color: '#ffffff',
         icons: [
-          { src: '/logo-icon.svg', sizes: '192x192', type: 'image/svg+xml' },
-          { src: '/logo-icon.svg', sizes: '512x512', type: 'image/svg+xml' },
-          { src: '/logo-icon.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' },
+          { src: '/logo-icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/logo-icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/logo-icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
         ],
       },
     }),
