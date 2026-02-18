@@ -1,4 +1,4 @@
-import { http } from "@/api/http";
+import axios from "axios";
 import type { TicketKind } from "@/types/ticket";
 
 export type PreparePaymentRequest = {
@@ -57,6 +57,12 @@ type PaymentResponseDto = {
   updated_at?: string;
 };
 
+const paymentHttp = axios.create({
+  baseURL: "",
+  timeout: 10_000,
+  withCredentials: true,
+});
+
 function toPaymentResponse(input: unknown): PaymentResponse {
   const root = input as { data?: PaymentResponseDto } & PaymentResponseDto;
   const dto = (root?.data ?? root) as PaymentResponseDto;
@@ -79,11 +85,11 @@ function toPaymentResponse(input: unknown): PaymentResponse {
 }
 
 export async function preparePayment(payload: PreparePaymentRequest) {
-  const { data } = await http.post("/payments", payload, { baseURL: "" });
+  const { data } = await paymentHttp.post("/payments", payload);
   return toPaymentResponse(data);
 }
 
 export async function confirmPayment(payload: ConfirmPaymentRequest) {
-  const { data } = await http.post("/payments/confirm", payload, { baseURL: "" });
+  const { data } = await paymentHttp.post("/payments/confirm", payload);
   return toPaymentResponse(data);
 }
