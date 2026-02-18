@@ -20,7 +20,7 @@ export default function App() {
   const logout = useAuthStore((state) => state.logout);
   const userId = useAuthStore((state) => state.userId);
   const setLiveQueueItems = useQueueStore((state) => state.setLiveQueueItems);
-  const setQueueAlertMessage = useQueueStore((state) => state.setQueueAlertMessage);
+  const setQueueAlert = useQueueStore((state) => state.setQueueAlert);
   const [isSessionExpiredModalOpen, setIsSessionExpiredModalOpen] = useState(false);
   const [isRequestFailedModalOpen, setIsRequestFailedModalOpen] = useState(false);
 
@@ -45,7 +45,7 @@ export default function App() {
   useEffect(() => {
     if (!userId) {
       setLiveQueueItems([]);
-      setQueueAlertMessage(null);
+      setQueueAlert(null);
       return;
     }
 
@@ -70,13 +70,17 @@ export default function App() {
           ? `${rideName}: 지금 탑승 가능합니다.`
           : `${rideName}: 곧 탑승 순서입니다.`;
 
-      setQueueAlertMessage(message);
+      setQueueAlert({
+        rideId: payload.rideId,
+        status: payload.status,
+        message,
+      });
     });
 
     return () => {
       unsubscribe();
     };
-  }, [userId, setLiveQueueItems, setQueueAlertMessage]);
+  }, [userId, setLiveQueueItems, setQueueAlert]);
 
   return (
     <>

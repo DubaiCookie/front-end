@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import styles from '@/components/common/Header.module.css';
 import { Link } from 'react-router-dom';
@@ -5,15 +6,107 @@ import { useAuthStore } from "@/stores/auth.store";
 import { useQueueStore } from "@/stores/queue.store";
 import { IoNotifications } from "react-icons/io5";
 import { FiLogIn } from "react-icons/fi";
+import Modal from '@/components/common/modals/Modal';
+import { boardQueue } from '@/api/queue.api';
+
+type BoardingModalMode = "confirm" | "success" | "failed" | null;
 
 export default function Header() {
     const username = useAuthStore((s) => s.username);
-    const queueAlertMessage = useQueueStore((s) => s.queueAlertMessage);
-    const setQueueAlertMessage = useQueueStore((s) => s.setQueueAlertMessage);
+    const userId = useAuthStore((s) => s.userId);
+    const queueAlert = useQueueStore((s) => s.queueAlert);
+    const setQueueAlert = useQueueStore((s) => s.setQueueAlert);
     const isLoggedIn = Boolean(username);
+    const [boardingModalMode, setBoardingModalMode] = useState<BoardingModalMode>(null);
+    const [isBoardingSubmitting, setIsBoardingSubmitting] = useState(false);
+
+    useEffect(() => {
+        if (!queueAlert || queueAlert.status === "ALMOST_READY") {
+            return;
+        }
+
+        const timeoutId = window.setTimeout(() => {
+            setQueueAlert(null);
+        }, 30_000);
+
+        return () => {
+            window.clearTimeout(timeoutId);
+        };
+    }, [queueAlert, setQueueAlert]);
+
+    const handleQueueAlertClick = () => {
+        if (!queueAlert) {
+            return;
+        }
+
+        if (queueAlert.status !== "ALMOST_READY") {
+            setQueueAlert(null);
+            return;
+        }
+
+        setBoardingModalMode("confirm");
+    };
+
+    const handleConfirmBoarding = async () => {
+        if (isBoardingSubmitting) {
+            return;
+        }
+
+        if (!queueAlert?.rideId || !userId) {
+            setBoardingModalMode("failed");
+            return;
+        }
+
+        try {
+            setIsBoardingSubmitting(true);
+            await boardQueue({
+                userId,
+                rideId: queueAlert.rideId,
+            });
+            setQueueAlert(null);
+            setBoardingModalMode("success");
+        } catch (error) {
+            console.error(error);
+            setBoardingModalMode("failed");
+        } finally {
+            setIsBoardingSubmitting(false);
+        }
+    };
 
     return (
         <>
+            <Modal
+                isOpen={boardingModalMode !== null}
+                title={
+                    boardingModalMode === "confirm"
+                        ? "탑승"
+                        : boardingModalMode === "success"
+                            ? "탑승 완료"
+                            : "탑승 실패"
+                }
+                content={
+                    boardingModalMode === "confirm"
+                        ? "탑승하시겠습니까?"
+                        : boardingModalMode === "success"
+                            ? "탑승이 완료되었습니다."
+                            : "탑승 처리가 실패했습니다."
+                }
+                buttonTitle="확인"
+                onClose={() => {
+                    if (isBoardingSubmitting) {
+                        return;
+                    }
+                    setBoardingModalMode(null);
+                }}
+                onButtonClick={() => {
+                    if (boardingModalMode === "confirm") {
+                        void handleConfirmBoarding();
+                        return;
+                    }
+
+                    setBoardingModalMode(null);
+                }}
+            />
             <header className={clsx(styles.root, 'container', 'flex-row')}>
                 <Link to="/attraction" className={styles.logoLink} aria-label="WayThing 홈으로 이동">
                     <img src="/logo-mark.svg" alt="" className={styles.logoIcon} />
@@ -36,17 +129,15 @@ export default function Header() {
                         </>)}
                 </div>
             </header>
-            {queueAlertMessage && (
+            {queueAlert && (
                 <button
                     type="button"
                     className={styles.queueAlert}
                     role="status"
                     aria-live="polite"
-                    onClick={() => {
-                        setQueueAlertMessage(null);
-                    }}
+                    onClick={handleQueueAlertClick}
                 >
-                    {queueAlertMessage}
+                    {queueAlert.message}
                 </button>
             )}
         </>

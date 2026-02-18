@@ -32,3 +32,13 @@ export async function cancelQueue(payload: RequestQueueCancel) {
   const { data } = await http.post("/queue/cancel", request);
   return data;
 }
+
+export async function boardQueue(payload: RequestQueueCancel) {
+  const request: RequestQueueCancel = {
+    userId: payload.userId,
+    rideId: payload.rideId,
+  };
+
+  const { data } = await http.post("/queue/complete", request);
+  return data;
+}

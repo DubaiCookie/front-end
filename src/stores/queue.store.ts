@@ -1,20 +1,20 @@
 import { create } from "zustand";
-import type { QueueStatusItem } from "@/types/queue";
+import type { QueueAlert, QueueStatusItem } from "@/types/queue";
 
 type QueueState = {
   liveQueueItems: QueueStatusItem[];
-  queueAlertMessage: string | null;
+  queueAlert: QueueAlert | null;
   setLiveQueueItems: (items: QueueStatusItem[]) => void;
-  setQueueAlertMessage: (message: string | null) => void;
+  setQueueAlert: (alert: QueueAlert | null) => void;
 };
 
 export const useQueueStore = create<QueueState>((set) => ({
   liveQueueItems: [],
-  queueAlertMessage: null,
+  queueAlert: null,
   setLiveQueueItems: (items) => {
     set({ liveQueueItems: items });
   },
-  setQueueAlertMessage: (message) => {
-    set({ queueAlertMessage: message });
+  setQueueAlert: (alert) => {
+    set({ queueAlert: alert });
   },
 }));
