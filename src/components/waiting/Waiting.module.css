@@ -115,6 +115,7 @@
   flex: 1;
   border-radius: 10px;
   height: 36px;
+  font-size: var(--font-size-base);
   font-weight: var(--font-semibold);
   cursor: pointer;
 }
