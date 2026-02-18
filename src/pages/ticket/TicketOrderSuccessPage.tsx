@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Button from "@/components/common/Button";
 import { confirmPayment, type PaymentResponse } from "@/api/payment.api";
@@ -11,6 +11,7 @@ export default function TicketOrderSuccessPage() {
   const [isConfirming, setIsConfirming] = useState(true);
   const [result, setResult] = useState<PaymentResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const hasRequestedConfirmRef = useRef(false);
 
   const queryPaymentKey = searchParams.get("paymentKey");
   const queryTossOrderId = searchParams.get("orderId");
@@ -34,6 +35,11 @@ export default function TicketOrderSuccessPage() {
   }, []);
 
   useEffect(() => {
+    if (hasRequestedConfirmRef.current) {
+      return;
+    }
+    hasRequestedConfirmRef.current = true;
+
     const runConfirm = async () => {
       const paymentKey = queryPaymentKey;
       const tossOrderId = queryTossOrderId ?? pendingPayment?.tossOrderId;
