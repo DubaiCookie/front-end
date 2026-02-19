@@ -13,7 +13,7 @@ import { enqueue } from "@/api/queue.api";
 import type { EnqueueResponse } from "@/types/queue";
 import styles from "./Attraction.module.css";
 
-type QueueModalMode = "loginRequired" | "ticketUnavailable" | "queueConfirm" | "queueCompleted" | null;
+type QueueModalMode = "loginRequired" | "ticketUnavailable" | "queueConfirm" | "queueCompleted" | "queueDenied" | null;
 
 export default function AttractionDetailPage() {
   const { attractionId } = useParams<{ attractionId: string }>();
@@ -125,7 +125,7 @@ export default function AttractionDetailPage() {
       setModalMode("queueCompleted");
     } catch (error) {
       console.error(error);
-      setModalMode(null);
+      setModalMode("queueDenied");
     } finally {
       setIsEnqueueLoading(false);
     }
@@ -139,6 +139,8 @@ export default function AttractionDetailPage() {
         ? "대기 불가"
         : modalMode === "queueConfirm"
           ? "줄서기"
+          : modalMode === "queueDenied"
+            ? "탑승 불가"
           : "대기 등록 완료";
 
   const modalContent =
@@ -163,6 +165,8 @@ export default function AttractionDetailPage() {
           예상 대기시간: <span className={styles.emphasisPrimary}>{selectedTypeWaiting?.estimatedWaitMinutes ?? 0}</span> 분
         </p>
       </div>
+    ) : modalMode === "queueDenied" ? (
+      `${attraction?.name ?? "해당 어트랙션"} 탑승 횟수를 초과했습니다.`
     ) : (
       <div className={styles.queueModalContent}>
         <p>

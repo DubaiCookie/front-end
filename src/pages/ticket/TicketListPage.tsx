@@ -95,11 +95,11 @@ export default function TicketListPage() {
 
   const modalTitle =
     modalMode === "alreadyActive"
-      ? "입장 처리 완료"
+      ? "입장 완료"
       : modalMode === "invalidDate"
       ? "입장 불가"
       : modalMode === "confirmEntry"
-        ? "입장 처리 확인"
+        ? "입장 확인"
         : "입장 완료";
 
   const modalContent =
@@ -108,7 +108,7 @@ export default function TicketListPage() {
       : modalMode === "invalidDate"
       ? "사용 가능 날짜가 아닙니다."
       : modalMode === "confirmEntry"
-        ? "입장 완료 처리하겠습니까?"
+        ? "입장 하시겠습니까?"
         : "입장되었습니다.";
 
   return (

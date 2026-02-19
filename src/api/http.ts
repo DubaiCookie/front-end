@@ -20,6 +20,7 @@ const EXCLUDED_401_PATHS = ["/login", "/signup", "/rides", "/refresh"];
 const EXCLUDED_GENERIC_ERROR_CASES: Array<{ path: string; status?: number }> = [
   { path: "/login", status: 401 },
   { path: "/signup", status: 400 },
+  { path: "/queue/enqueue" },
   { path: "/payments" },
   { path: "/payments/confirm" },
 ];

@@ -21,7 +21,7 @@ export default function Header() {
     const [isBoardingSubmitting, setIsBoardingSubmitting] = useState(false);
 
     useEffect(() => {
-        if (!queueAlert || queueAlert.status === "ALMOST_READY") {
+        if (!queueAlert || queueAlert.status === "READY") {
             return;
         }
 
@@ -39,7 +39,7 @@ export default function Header() {
             return;
         }
 
-        if (queueAlert.status !== "ALMOST_READY") {
+        if (queueAlert.status !== "READY") {
             setQueueAlert(null);
             return;
         }
