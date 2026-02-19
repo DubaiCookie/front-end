@@ -37,6 +37,7 @@ export type QueueAlertStatus = "READY" | "ALMOST_READY";
 
 export interface QueueAlert {
   rideId: number;
+  rideName: string;
   status: QueueAlertStatus;
   message: string;
 }

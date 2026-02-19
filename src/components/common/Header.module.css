@@ -82,12 +82,28 @@
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(255, 123, 144, 0.34);
-  color: var(--PRIMARY-PINK);
-  font-size: var(--font-size-base);
-  font-weight: var(--font-semibold);
+  color: var(--TEXT-PRIMARY);
   box-shadow: 0 8px 18px rgba(255, 107, 138, 0.24);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-style: solid;
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.queueAlertRideName {
+  color: var(--PRIMARY-PINK);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-semibold);
+  line-height: 1.35;
+}
+
+.queueAlertBody {
+  color: var(--TEXT-PRIMARY);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-medium);
+  line-height: 1.35;
+  white-space: pre-line;
 }

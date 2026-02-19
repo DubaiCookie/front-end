@@ -72,6 +72,7 @@ export default function App() {
 
       setQueueAlert({
         rideId: payload.rideId,
+        rideName,
         status: payload.status,
         message,
       });
