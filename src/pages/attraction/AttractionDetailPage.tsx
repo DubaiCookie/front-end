@@ -136,12 +136,12 @@ export default function AttractionDetailPage() {
     modalMode === "loginRequired"
       ? "로그인이 필요합니다"
       : modalMode === "ticketUnavailable"
-        ? "대기 불가"
+        ? "줄서기 불가"
         : modalMode === "queueConfirm"
           ? "줄서기"
           : modalMode === "queueDenied"
-            ? "탑승 불가"
-          : "대기 등록 완료";
+            ? "줄서기 불가"
+          : "줄서기 등록 완료";
 
   const modalContent =
     modalMode === "loginRequired" ? (
