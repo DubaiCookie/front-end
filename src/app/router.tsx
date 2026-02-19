@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import DefaultLayout from '@/layouts/DefaultLayout';
 import RequireAuth from '@/components/common/RequireAuth';
+import PreventAuth from '@/components/common/PreventAuth';
 
 import SignupPage from '@/pages/user/SignupPage';
 import LoginPage from '@/pages/user/LoginPage';
@@ -26,11 +27,19 @@ export const router = createBrowserRouter([
       },
       {
         path: 'signup',
-        element: <SignupPage />,
+        element: (
+          <PreventAuth>
+            <SignupPage />
+          </PreventAuth>
+        ),
       },
       {
         path: 'login',
-        element: <LoginPage />,
+        element: (
+          <PreventAuth>
+            <LoginPage />
+          </PreventAuth>
+        ),
       },
       {
         path: 'attraction',
