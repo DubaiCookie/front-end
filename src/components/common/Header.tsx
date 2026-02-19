@@ -7,7 +7,7 @@ import { useQueueStore } from "@/stores/queue.store";
 import { IoNotifications } from "react-icons/io5";
 import { FiLogIn } from "react-icons/fi";
 import Modal from '@/components/common/modals/Modal';
-import { boardQueue } from '@/api/queue.api';
+import { boardQueue, getQueueStatus } from '@/api/queue.api';
 
 type BoardingModalMode = "confirm" | "success" | "failed" | null;
 
@@ -16,6 +16,7 @@ export default function Header() {
     const userId = useAuthStore((s) => s.userId);
     const queueAlert = useQueueStore((s) => s.queueAlert);
     const setQueueAlert = useQueueStore((s) => s.setQueueAlert);
+    const setLiveQueueItems = useQueueStore((s) => s.setLiveQueueItems);
     const isLoggedIn = Boolean(username);
     const [boardingModalMode, setBoardingModalMode] = useState<BoardingModalMode>(null);
     const [isBoardingSubmitting, setIsBoardingSubmitting] = useState(false);
@@ -63,6 +64,8 @@ export default function Header() {
                 userId,
                 rideId: queueAlert.rideId,
             });
+            const refreshedQueue = await getQueueStatus(userId);
+            setLiveQueueItems(refreshedQueue);
             setQueueAlert(null);
             setBoardingModalMode("success");
         } catch (error) {
