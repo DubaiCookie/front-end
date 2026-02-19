@@ -78,7 +78,7 @@ export default function Header() {
 
     const queueAlertBodyText = queueAlert
         ? queueAlert.status === "READY"
-            ? "지금 탑승 가능합니다. 직원에게 메세지를 보여주세요."
+            ? "지금 탑승구로 이동해 직원에게 메세지를 보여주세요."
             : "곧 탑승 순서입니다. 탑승 장소로 이동해주세요."
         : "";
 
