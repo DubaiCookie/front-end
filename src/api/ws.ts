@@ -1,8 +1,9 @@
 import type { RideInfoSocketMessage, RidesMinutesSocketMessage } from "@/types/attraction";
 import type { UserQueueSocketMessage } from "@/types/queue";
+import { env } from "@/utils/env";
 
 const DEFAULT_WS_URL = "wss://baeminjun.store/ws/queue";
-const WS_URL = import.meta.env.VITE_WS_URL ?? DEFAULT_WS_URL;
+const WS_URL = env.WS_URL || DEFAULT_WS_URL;
 
 type StompHeaders = Record<string, string>;
 type StompCallback = (payload: unknown) => void;
