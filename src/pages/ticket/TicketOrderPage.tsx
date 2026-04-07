@@ -75,7 +75,7 @@ export default function TicketOrderPage() {
       const amount = Number(prepared.amount);
       const backendOrderId = Number(prepared.orderId);
       const orderName = String(prepared.orderName ?? "").trim();
-      const tossOrderId = `ORDER-${backendOrderId}`;
+      const tossOrderId = `ORDER-${backendOrderId}-${Date.now()}`;
       const finalAmount = amount;
 
       if (!Number.isFinite(finalAmount) || finalAmount <= 0) {
