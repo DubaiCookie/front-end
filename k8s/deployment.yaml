@@ -17,6 +17,6 @@ spec:
         - name: harbor-secret
       containers:
         - name: frontend
-          image: amdp-registry.skala-ai.com/skala26a-cloud/team3-frontend:9ac08860adaa3e459d2dcdc0a3b11dfdf5e898c9
+          image: amdp-registry.skala-ai.com/skala26a-cloud/team3-frontend:8656e9ddb8ff3aa3ee0d4a16638bc7d21bef5dee
           ports:
             - containerPort: 3001
