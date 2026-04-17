@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/sehaim/Desktop/skala/skala-pjt/**)",
+      "Bash(git -C /Users/sehaim/Desktop/skala/skala-pjt/front-end log --oneline -30)",
+      "Bash(git -C /Users/sehaim/Desktop/skala/skala-pjt/front-end log --oneline --all)"
+    ]
+  }
+}
