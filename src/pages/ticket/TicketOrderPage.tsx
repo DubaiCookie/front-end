@@ -15,6 +15,7 @@ import {
 } from "@/api/ticket.api";
 import styles from "./TicketOrderPage.module.css";
 import Modal from "@/components/common/modals/Modal";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { env } from "@/utils/env";
 import ticketTypeStyles from "@/components/ticket/TicketType.module.css";
 
@@ -182,6 +183,7 @@ export default function TicketOrderPage() {
 
   return (
     <div className={clsx("container", styles.pageRoot)}>
+      <LoadingSpinner isLoading={ticketsLoading || datesLoading} />
       <Modal
         isOpen={Boolean(errorMessage)}
         title="오류"
@@ -203,7 +205,6 @@ export default function TicketOrderPage() {
         tickets={tickets}
         selectedType={selectedTicketType}
         onSelectType={handleSelectType}
-        loading={ticketsLoading}
         error={ticketsError}
       />
 
@@ -213,7 +214,6 @@ export default function TicketOrderPage() {
           <h3 className={clsx("font-h3", ticketTypeStyles.title)} style={{ marginTop: 24 }}>
             날짜 선택
           </h3>
-          {datesLoading && <p className={styles.loadingDates}>날짜 정보를 불러오는 중...</p>}
           {datesError && (
             <p className={clsx(styles.loadingDates, styles.stockWarning)}>{datesError}</p>
           )}
