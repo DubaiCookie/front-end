@@ -3,10 +3,10 @@ import type { TicketKind } from '@/types/ticket';
 
 type AuthState = {
   userId: number | null;
-  username: string | null;
+  nickname: string | null;
   hasTodayActiveTicket: boolean;
   todayActiveTicketType: TicketKind | null;
-  setAuthUser: (user: { userId: number; username: string }) => void;
+  setAuthUser: (user: { userId: number; nickname: string }) => void;
   setTodayActiveTicket: (payload: { hasTodayActiveTicket: boolean; todayActiveTicketType: TicketKind | null }) => void;
   logout: () => void;
 };
@@ -22,14 +22,14 @@ export const useAuthStore = create<AuthState>((set) => ({
     const parsed = Number(value);
     return Number.isNaN(parsed) ? null : parsed;
   })(),
-  username: localStorage.getItem('username'),
+  nickname: localStorage.getItem('nickname'),
   hasTodayActiveTicket: localStorage.getItem('hasTodayActiveTicket') === 'true',
   todayActiveTicketType: (localStorage.getItem('todayActiveTicketType') as TicketKind | null) ?? null,
-  setAuthUser: ({ userId, username }) => {
-    const safeUsername = username ?? "";
+  setAuthUser: ({ userId, nickname }) => {
+    const safeNickname = nickname ?? "";
     localStorage.setItem('userId', String(userId));
-    localStorage.setItem('username', safeUsername);
-    set({ userId, username: safeUsername });
+    localStorage.setItem('nickname', safeNickname);
+    set({ userId, nickname: safeNickname });
   },
   setTodayActiveTicket: ({ hasTodayActiveTicket, todayActiveTicketType }) => {
     localStorage.setItem('hasTodayActiveTicket', String(hasTodayActiveTicket));
@@ -42,12 +42,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   logout: () => {
     localStorage.removeItem('userId');
-    localStorage.removeItem('username');
+    localStorage.removeItem('nickname');
     localStorage.removeItem('hasTodayActiveTicket');
     localStorage.removeItem('todayActiveTicketType');
     set({
       userId: null,
-      username: null,
+      nickname: null,
       hasTodayActiveTicket: false,
       todayActiveTicketType: null,
     });

@@ -9,8 +9,8 @@ type RequireAuthProps = {
 
 export default function RequireAuth({ children }: RequireAuthProps) {
   const navigate = useNavigate();
-  const username = useAuthStore((state) => state.username);
-  const isLoggedIn = Boolean(username);
+  const nickname = useAuthStore((state) => state.nickname);
+  const isLoggedIn = Boolean(nickname);
 
   if (isLoggedIn) {
     return <>{children}</>;

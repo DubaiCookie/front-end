@@ -1,13 +1,43 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv, type PluginOption } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { mkdirSync, writeFileSync } from 'node:fs';
 
-export default defineConfig({
+function firebaseMessagingConfigPlugin(mode: string): PluginOption {
+  const env = loadEnv(mode, process.cwd(), '');
+
+  return {
+    name: 'firebase-messaging-config',
+    closeBundle() {
+      const config = {
+        apiKey: env.VITE_FIREBASE_API_KEY ?? '',
+        authDomain: env.VITE_FIREBASE_AUTH_DOMAIN ?? '',
+        projectId: env.VITE_FIREBASE_PROJECT_ID ?? '',
+        storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET ?? '',
+        messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? '',
+        appId: env.VITE_FIREBASE_APP_ID ?? '',
+        vapidKey: env.VITE_FIREBASE_VAPID_KEY ?? '',
+      };
+
+      mkdirSync(path.resolve(__dirname, 'dist'), { recursive: true });
+      writeFileSync(
+        path.resolve(__dirname, 'dist/firebase-messaging-config.json'),
+        `${JSON.stringify(config, null, 2)}\n`,
+      );
+    },
+  };
+}
+
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
+    firebaseMessagingConfigPlugin(mode),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        importScripts: ['/firebase-messaging-sw.js'],
+      },
       devOptions: {
         enabled: false,
         suppressWarnings: true,
@@ -48,4 +78,4 @@ export default defineConfig({
       },
     },
   }
-});
+}));

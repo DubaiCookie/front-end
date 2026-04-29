@@ -14,7 +14,7 @@ import ticketTypeStyles from "@/components/ticket/TicketType.module.css";
 
 export default function TicketOrderPage() {
   const userId = useAuthStore((state) => state.userId);
-  const username = useAuthStore((state) => state.username);
+  const nickname = useAuthStore((state) => state.nickname);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTicketType, setSelectedTicketType] = useState<TicketKind | null>(null);
   const ticketQuantity = 1;
@@ -112,7 +112,7 @@ export default function TicketOrderPage() {
         orderName,
         successUrl,
         failUrl,
-        customerName: username ?? undefined,
+        customerName: nickname ?? undefined,
         windowTarget: "iframe",
         card: {
           flowMode: "DEFAULT",

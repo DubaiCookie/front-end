@@ -16,10 +16,13 @@ const refreshHttp = axios.create({
 export const SESSION_EXPIRED_EVENT = "session-expired";
 export const REQUEST_FAILED_EVENT = "request-failed";
 
-const EXCLUDED_401_PATHS = ["/login", "/signup", "/rides", "/refresh"];
+const EXCLUDED_401_PATHS = ["/user/login", "/user/signup", "/user/refresh", "/rides"];
 const EXCLUDED_GENERIC_ERROR_CASES: Array<{ path: string; status?: number }> = [
-  { path: "/login", status: 401 },
-  { path: "/signup", status: 400 },
+  { path: "/user/login", status: 400 },
+  { path: "/user/login", status: 401 },
+  { path: "/user/login", status: 404 },
+  { path: "/user/signup", status: 400 },
+  { path: "/user/signup", status: 409 },
   { path: "/queue/enqueue" },
   { path: "/payments" },
   { path: "/payments/confirm" },
@@ -88,7 +91,7 @@ http.interceptors.response.use(
     originalRequest._retry = true;
 
     try {
-      await refreshHttp.post("/refresh");
+      await refreshHttp.post("/user/refresh");
       return http(originalRequest);
     } catch (refreshError) {
       if (!hasNotifiedSessionExpired) {

@@ -7,8 +7,8 @@ type PreventAuthProps = {
 };
 
 export default function PreventAuth({ children }: PreventAuthProps) {
-  const username = useAuthStore((state) => state.username);
-  const isLoggedIn = Boolean(username);
+  const nickname = useAuthStore((state) => state.nickname);
+  const isLoggedIn = Boolean(nickname);
 
   if (isLoggedIn) {
     return <Navigate to="/attraction" replace />;

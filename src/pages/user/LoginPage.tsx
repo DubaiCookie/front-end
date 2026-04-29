@@ -3,24 +3,25 @@ import styles from "./user.module.css"
 import { useState } from "react";
 import axios from "axios";
 import InputForm from "@/components/common/inputs/InputForm";
-import type { FieldSpec, LoginUser } from "@/types/user";
+import type { FieldSpec, LoginFormValues } from "@/types/user";
 import { login } from "@/api/auth.api";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/auth.store";
 import Modal from "@/components/common/modals/Modal";
 import { getMyTicketList } from "@/api/ticket.api";
 import { isSameLocalDate } from "@/utils/functions";
+import { requestAndRegisterPushToken } from "@/lib/push-notification";
 
 
-const loginFields: FieldSpec<'userId' | 'password'>[] = [
+const loginFields: FieldSpec<'email' | 'password'>[] = [
     {
-        name: 'userId',
-        label: 'ID',
-        type: 'userId',
-        placeholder: 'ID를 입력하세요.',
-        autoComplete: 'username',
+        name: 'email',
+        label: '이메일',
+        type: 'email',
+        placeholder: '이메일을 입력하세요.',
+        autoComplete: 'email',
         required: true,
-        validate: (v) => (v.length > 0 ? null : '사용자 ID를 입력해주세요.'),
+        validate: (v) => (v.length > 0 ? null : '이메일을 입력해주세요.'),
     },
     {
         name: 'password',
@@ -39,14 +40,14 @@ export default function LoginPage() {
     const setTodayActiveTicket = useAuthStore((state) => state.setTodayActiveTicket);
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [isInvalidCredentialsModalOpen, setIsInvalidCredentialsModalOpen] = useState(false);
+    const [isServerErrorModalOpen, setIsServerErrorModalOpen] = useState(false);
 
-    const handleLogin = async (values: LoginUser) => {
+    const handleLogin = async (values: LoginFormValues) => {
         try {
             const response = await login(values);
-            const resolvedUsername = response.username?.trim() || values.userId;
             setAuthUser({
                 userId: response.userId,
-                username: resolvedUsername,
+                nickname: response.nickname,
             });
 
             try {
@@ -71,8 +72,23 @@ export default function LoginPage() {
             }
             setIsSuccessModalOpen(true);
         } catch (error) {
-            if (axios.isAxiosError(error) && error.response?.status === 401) {
-                setIsInvalidCredentialsModalOpen(true);
+            if (axios.isAxiosError(error)) {
+                const status = error.response?.status;
+                const code: string = error.response?.data?.code ?? "";
+
+                if (status === 401 && code === "INVALID_CREDENTIALS") {
+                    setIsInvalidCredentialsModalOpen(true);
+                    return;
+                }
+                if (status === 404 && code === "USER_NOT_FOUND") {
+                    setIsInvalidCredentialsModalOpen(true);
+                    return;
+                }
+                if (status === 400 && code === "MISSING_REQUIRED_FIELD") {
+                    setIsInvalidCredentialsModalOpen(true);
+                    return;
+                }
+                setIsServerErrorModalOpen(true);
                 return;
             }
             throw error;
@@ -84,26 +100,30 @@ export default function LoginPage() {
             <Modal
                 isOpen={isInvalidCredentialsModalOpen}
                 title="로그인 실패"
-                content="아이디/비밀번호를 확인해주세요."
+                content="이메일/비밀번호를 확인해주세요."
                 buttonTitle="확인"
-                onClose={() => {
-                    setIsInvalidCredentialsModalOpen(false);
-                }}
-                onButtonClick={() => {
-                    setIsInvalidCredentialsModalOpen(false);
-                }}
+                onClose={() => setIsInvalidCredentialsModalOpen(false)}
+                onButtonClick={() => setIsInvalidCredentialsModalOpen(false)}
+            />
+            <Modal
+                isOpen={isServerErrorModalOpen}
+                title="오류"
+                content="일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+                buttonTitle="확인"
+                onClose={() => setIsServerErrorModalOpen(false)}
+                onButtonClick={() => setIsServerErrorModalOpen(false)}
             />
             <Modal
                 isOpen={isSuccessModalOpen}
                 title="로그인 완료"
                 content="로그인이 완료되었습니다."
                 buttonTitle="확인"
-                onClose={() => {
-                    setIsSuccessModalOpen(false);
-                }}
+                onClose={() => setIsSuccessModalOpen(false)}
                 onButtonClick={() => {
                     setIsSuccessModalOpen(false);
-                    navigate("/attraction");
+                    void requestAndRegisterPushToken()
+                        .catch(console.error)
+                        .finally(() => navigate("/attraction"));
                 }}
             />
             <div className={clsx('container', 'flex-column')}>

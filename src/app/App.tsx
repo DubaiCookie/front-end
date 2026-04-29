@@ -7,6 +7,7 @@ import { markSessionExpiredHandled, REQUEST_FAILED_EVENT, SESSION_EXPIRED_EVENT 
 import { subscribeUserQueueStatus } from '@/api/ws';
 import { useQueueStore } from '@/stores/queue.store';
 import type { QueueEventMessage, UserQueueSocketMessage, UserQueueStatusEvent } from '@/types/queue';
+import { syncPushTokenIfPermitted } from '@/lib/push-notification';
 
 function isUserQueueStatusEvent(payload: UserQueueSocketMessage): payload is UserQueueStatusEvent {
   return "items" in payload;
@@ -50,6 +51,7 @@ export default function App() {
     }
 
     const rideNameById = new Map<number, string>();
+    void syncPushTokenIfPermitted().catch(console.error);
 
     const unsubscribe = subscribeUserQueueStatus(userId, (payload) => {
       if (isUserQueueStatusEvent(payload)) {

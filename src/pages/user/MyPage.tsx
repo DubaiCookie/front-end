@@ -7,6 +7,7 @@ import MenuList from "@/components/common/lists/MenuList";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { FaUserCircle } from "react-icons/fa";
 import Modal from "@/components/common/modals/Modal";
+import { unregisterStoredPushToken } from "@/lib/push-notification";
 
 export default function MyPage() {
   const logoutStore = useAuthStore((state) => state.logout);
@@ -18,6 +19,7 @@ export default function MyPage() {
   const handleLogout = async () => {
     try {
       setIsSubmitting(true);
+      await unregisterStoredPushToken();
       await logoutApi();
     } catch (error) {
       console.error(error);

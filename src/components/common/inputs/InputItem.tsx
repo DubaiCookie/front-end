@@ -14,6 +14,9 @@ function toInputType(type: FieldSpec["type"]) {
     if (type === "password") {
         return "password";
     }
+    if (type === "email") {
+        return "email";
+    }
     return "text";
 }
 
