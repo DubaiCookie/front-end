@@ -7,7 +7,6 @@ type TicketTypeListProps = {
   tickets: TicketProduct[];
   selectedType: TicketKind | null;
   onSelectType: (type: TicketKind) => void;
-  loading?: boolean;
   error?: string | null;
 };
 
@@ -16,13 +15,12 @@ const TICKET_META: Record<TicketKind, { title: string; description: string }> = 
   PREMIUM: { title: "Premium", description: "우선 입장 혜택이 포함된 프리미엄 입장권이에요." },
 };
 
-export default function TicketTypeList({ tickets, selectedType, onSelectType, loading, error }: TicketTypeListProps) {
+export default function TicketTypeList({ tickets, selectedType, onSelectType, error }: TicketTypeListProps) {
   return (
     <section className={styles.section}>
       <h3 className={clsx("font-h3", styles.title)}>종류 선택</h3>
-      {loading && <p className={styles.stateText}>불러오는 중...</p>}
       {error && <p className={clsx(styles.stateText, styles.errorText)}>{error}</p>}
-      {!loading && !error && (
+      {!error && (
         <div className={styles.list}>
           {tickets.map((ticket) => {
             const meta = TICKET_META[ticket.ticketType];

@@ -32,6 +32,17 @@ type IssuedTicketDto = {
   claimedAt?: string | null;
 };
 
+type MyIssuedTicketDto = {
+  issuedTicketId?: number;
+  ticketOrderId?: number;
+  ticketCode?: string;
+  entryStatus?: string;
+  claimedAt?: string | null;
+  ticketType?: string;
+  availableAt?: string;
+  orderedAt?: string;
+};
+
 type TicketOrderDto = {
   ticketOrderId?: number;
   ticketManagementId?: number;
@@ -112,31 +123,6 @@ function mapTicketOrder(dto: TicketOrderDto): TicketOrder {
   };
 }
 
-function toUserTickets(order: TicketOrder): UserTicket[] {
-  if (order.issuedTickets.length === 0) {
-    return [
-      {
-        ticketOrderId: order.ticketOrderId,
-        issuedTicketId: 0,
-        ticketCode: "",
-        availableAt: order.availableAt,
-        entryStatus: "AVAILABLE",
-        ticketType: order.ticketType,
-        paymentDate: order.orderedAt,
-      },
-    ];
-  }
-
-  return order.issuedTickets.map((issuedTicket) => ({
-    ticketOrderId: order.ticketOrderId,
-    issuedTicketId: issuedTicket.issuedTicketId,
-    ticketCode: issuedTicket.ticketCode,
-    availableAt: order.availableAt,
-    entryStatus: issuedTicket.entryStatus,
-    ticketType: order.ticketType,
-    paymentDate: order.orderedAt,
-  }));
-}
 
 export function getTicketErrorMessage(error: unknown, fallback = "티켓 요청 중 오류가 발생했습니다.") {
   if (!axios.isAxiosError(error)) {
@@ -183,7 +169,19 @@ export async function getMyTicketOrders() {
   return data.map(mapTicketOrder);
 }
 
-export async function getMyTicketList() {
-  const orders = await getMyTicketOrders();
-  return orders.flatMap(toUserTickets);
+function mapMyIssuedTicket(dto: MyIssuedTicketDto): UserTicket {
+  return {
+    ticketOrderId: dto.ticketOrderId ?? 0,
+    issuedTicketId: dto.issuedTicketId ?? 0,
+    ticketCode: dto.ticketCode ?? "",
+    availableAt: dto.availableAt ?? "",
+    entryStatus: normalizeEntryStatus(dto.entryStatus),
+    ticketType: normalizeTicketType(dto.ticketType),
+    paymentDate: dto.orderedAt ?? "",
+  };
+}
+
+export async function getMyTicketList(): Promise<UserTicket[]> {
+  const { data } = await http.get<MyIssuedTicketDto[]>("/tickets/issued/my");
+  return data.map(mapMyIssuedTicket);
 }
