@@ -12,11 +12,11 @@ import { boardQueue } from '@/api/queue.api';
 type BoardingModalMode = "confirm" | "success" | "failed" | null;
 
 export default function Header() {
-    const username = useAuthStore((s) => s.username);
+    const nickname = useAuthStore((s) => s.nickname);
     const userId = useAuthStore((s) => s.userId);
     const queueAlert = useQueueStore((s) => s.queueAlert);
     const setQueueAlert = useQueueStore((s) => s.setQueueAlert);
-    const isLoggedIn = Boolean(username);
+    const isLoggedIn = Boolean(nickname);
     const [boardingModalMode, setBoardingModalMode] = useState<BoardingModalMode>(null);
     const [isBoardingSubmitting, setIsBoardingSubmitting] = useState(false);
 
@@ -123,7 +123,7 @@ export default function Header() {
                     {isLoggedIn ? (
                         <>
                             <p className={clsx(styles.headerText, styles.userBadge, 'flex-row', 'glass')}>
-                                <span className={clsx(styles.userName)}>{username}</span>
+                                <span className={clsx(styles.userName)}>{nickname}</span>
                                 <span>님</span>
                             </p>
                             <IoNotifications className={clsx(styles.icon)} />

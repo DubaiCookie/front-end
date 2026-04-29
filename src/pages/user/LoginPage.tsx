@@ -10,6 +10,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import Modal from "@/components/common/modals/Modal";
 import { getMyTicketList } from "@/api/ticket.api";
 import { isSameLocalDate } from "@/utils/functions";
+import { requestAndRegisterPushToken } from "@/lib/push-notification";
 
 
 const loginFields: FieldSpec<'email' | 'password'>[] = [
@@ -120,7 +121,9 @@ export default function LoginPage() {
                 onClose={() => setIsSuccessModalOpen(false)}
                 onButtonClick={() => {
                     setIsSuccessModalOpen(false);
-                    navigate("/attraction");
+                    void requestAndRegisterPushToken()
+                        .catch(console.error)
+                        .finally(() => navigate("/attraction"));
                 }}
             />
             <div className={clsx('container', 'flex-column')}>
