@@ -48,6 +48,18 @@ export type CreateTicketOrderPayload = {
   orderQuantity?: number;
 };
 
+export type AvailableDate = {
+  date: string;
+  stock: number;
+  ticketManagementId: number;
+};
+
+type AvailableDateDto = {
+  date?: string;
+  stock?: number;
+  ticketManagementId?: number;
+};
+
 function normalizeTicketType(raw?: string): TicketKind {
   return raw === "PREMIUM" ? "PREMIUM" : "BASIC";
 }
@@ -133,6 +145,17 @@ export function getTicketErrorMessage(error: unknown, fallback = "티켓 요청 
 
   const data = error.response?.data as { message?: string; code?: string } | undefined;
   return data?.message || data?.code || fallback;
+}
+
+export async function getAvailableDatesByType(ticketType: TicketKind): Promise<AvailableDate[]> {
+  const { data } = await http.get<AvailableDateDto[]>("/tickets/management/available-dates", {
+    params: { ticketType },
+  });
+  return data.map((dto) => ({
+    date: dto.date ?? "",
+    stock: dto.stock ?? 0,
+    ticketManagementId: dto.ticketManagementId ?? 0,
+  }));
 }
 
 export async function getTicketProducts() {

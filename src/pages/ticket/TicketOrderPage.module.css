@@ -2,6 +2,28 @@
   position: relative;
 }
 
+.loadingDates {
+  font-size: 13px;
+  color: var(--TEXT-SECONDARY);
+  padding: 12px 0;
+  margin-top: 8px;
+}
+
+.stockInfo {
+  font-size: 13px;
+  color: var(--TEXT-SECONDARY);
+  margin-top: 8px;
+}
+
+.stockWarning {
+  color: #e03e3e;
+}
+
+.quantityDisabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 .quantitySection {
   margin-top: 24px;
 }

@@ -6,6 +6,7 @@ type CalendarDateInput = string | Date;
 
 type CalendarProps = {
   unavailableDates?: CalendarDateInput[];
+  availableDates?: CalendarDateInput[];
   onDateSelect: (selectedDate: string) => void;
   className?: string;
   initialSelectedDate?: CalendarDateInput;
@@ -45,6 +46,7 @@ function addMonths(base: Date, months: number) {
 
 export default function Calendar({
   unavailableDates = [],
+  availableDates,
   onDateSelect,
   className,
   initialSelectedDate,
@@ -59,6 +61,11 @@ export default function Calendar({
   const unavailableDateSet = useMemo(() => {
     return new Set(unavailableDates.map((item) => normalizeToDateKey(item)));
   }, [unavailableDates]);
+
+  const availableDateSet = useMemo(() => {
+    if (!availableDates) return null;
+    return new Set(availableDates.map((item) => normalizeToDateKey(item)));
+  }, [availableDates]);
 
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(
     initialSelectedDate ? normalizeToDateKey(initialSelectedDate) : null,
@@ -107,7 +114,7 @@ export default function Calendar({
       const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
       const key = toDateKey(date);
       const outOfRange = date < today || date > maxDate;
-      const disabled = outOfRange || unavailableDateSet.has(key);
+      const disabled = outOfRange || (availableDateSet !== null ? !availableDateSet.has(key) : unavailableDateSet.has(key));
 
       nextCells.push({
         type: "date",
@@ -122,7 +129,7 @@ export default function Calendar({
     }
 
     return nextCells;
-  }, [currentMonth, maxDate, today, unavailableDateSet]);
+  }, [currentMonth, maxDate, today, unavailableDateSet, availableDateSet]);
 
   return (
     <section className={clsx(styles.calendar, className)}>

@@ -72,3 +72,13 @@
   color: var(--TEXT-SECONDARY);
   line-height: 1.45;
 }
+
+.stateText {
+  font-size: 14px;
+  color: var(--TEXT-SECONDARY);
+  padding: 8px 0;
+}
+
+.errorText {
+  color: #e03e3e;
+}
