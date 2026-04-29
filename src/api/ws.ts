@@ -2,7 +2,7 @@ import type { AttractionInfoSocketMessage, AttractionsMinutesSocketMessage } fro
 import type { QueueStatusItem, UserQueueSocketMessage } from "@/types/queue";
 import { env } from "@/utils/env";
 
-const DEFAULT_WS_URL = "wss://baeminjun.store/ws/queue";
+const DEFAULT_WS_URL = "wss://skala3-cloud1-team3.cloud.skala-ai.com/ws/queue";
 const WS_URL = env.WS_URL || DEFAULT_WS_URL;
 
 type StompHeaders = Record<string, string>;

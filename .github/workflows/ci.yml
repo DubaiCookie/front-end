@@ -2,7 +2,7 @@ name: Frontend CI
 
 on:
   push:
-    branches: ["main", "develop"]
+    branches: ["main"]
     tags:
       - "v*.*.*"
   workflow_dispatch:
@@ -82,9 +82,9 @@ jobs:
             ${{ steps.vars.outputs.image_versioned }}
             ${{ steps.vars.outputs.image_latest }}
           build-args: |
-            VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
-            VITE_WS_URL=${{ secrets.VITE_WS_URL }}
-            VITE_APP_BASE_URL=${{ secrets.VITE_APP_BASE_URL }}
+            VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL || '/api' }}
+            VITE_WS_URL=${{ secrets.VITE_WS_URL || 'wss://skala3-cloud1-team3.cloud.skala-ai.com/ws/queue' }}
+            VITE_APP_BASE_URL=${{ secrets.VITE_APP_BASE_URL || 'https://skala3-cloud1-team3.cloud.skala-ai.com' }}
             VITE_TOSS_CLIENT_KEY=${{ secrets.VITE_TOSS_CLIENT_KEY }}
             VITE_FIREBASE_API_KEY=${{ secrets.VITE_FIREBASE_API_KEY }}
             VITE_FIREBASE_AUTH_DOMAIN=${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
