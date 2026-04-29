@@ -10,15 +10,15 @@ type AttractionListItemProps = {
 
 export default function AttractionListItem({ attraction }: AttractionListItemProps) {
     const waitingLevelClass =
-        attraction.generalWaitingTime < 30
+        attraction.basicWaitingMinutes < 30
             ? styles.waitingLow
-            : attraction.generalWaitingTime < 60
+            : attraction.basicWaitingMinutes < 60
                 ? styles.waitingMid
                 : styles.waitingHigh;
     const waitingLabel =
-        attraction.generalWaitingTime < 30
+        attraction.basicWaitingMinutes < 30
             ? "여유"
-            : attraction.generalWaitingTime < 60
+            : attraction.basicWaitingMinutes < 60
                 ? "보통"
                 : "혼잡";
 
@@ -34,7 +34,7 @@ export default function AttractionListItem({ attraction }: AttractionListItemPro
                 <div className={clsx(styles.waitingTimeWrap, waitingLevelClass, styles.mediumText)}>
                     <span className={styles.waitingLabel}>{waitingLabel}</span>
                     <span className={styles.waitingDivider}>|</span>
-                    <span className={styles.waitingTimeValue}>{attraction.generalWaitingTime}분</span>
+                    <span className={styles.waitingTimeValue}>{attraction.basicWaitingMinutes}분</span>
                 </div>
             </div>
             <div className={clsx(styles.imageWrap)}>

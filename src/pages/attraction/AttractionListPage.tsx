@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { useEffect, useState } from "react";
 import AttractionList from "@/components/attraction/AttractionList";
 import { getAttractionList } from "@/api/attraction.api";
-import { subscribeRidesMinutes } from "@/api/ws";
+import { subscribeAttractionsMinutes } from "@/api/ws";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import type { AttractionSummary } from "@/types/attraction";
 import { MdAttractions } from "react-icons/md";
@@ -12,7 +12,6 @@ export default function AttractionListPage() {
   const [attractions, setAttractions] = useState<AttractionSummary[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // TODO: error handling 필요
   useEffect(() => {
     const fetchAttractions = async () => {
       try {
@@ -30,23 +29,25 @@ export default function AttractionListPage() {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = subscribeRidesMinutes((payload) => {
+    const unsubscribe = subscribeAttractionsMinutes((payload) => {
       setAttractions((prev) => {
         if (prev.length === 0) {
           return prev;
         }
 
-        const waitingByRideId = new Map(payload.rides.map((ride) => [ride.rideId, ride.estimatedWaitMinutes]));
+        const waitingByAttractionId = new Map(
+          payload.attractions.map((attraction) => [attraction.attractionId, attraction.estimatedMinutes]),
+        );
         let hasChanged = false;
         const next = prev.map((attraction) => {
-          const nextWaitingMinutes = waitingByRideId.get(attraction.attractionId);
-          if (nextWaitingMinutes === undefined || nextWaitingMinutes === attraction.generalWaitingTime) {
+          const nextWaitingMinutes = waitingByAttractionId.get(attraction.attractionId);
+          if (nextWaitingMinutes === undefined || nextWaitingMinutes === attraction.basicWaitingMinutes) {
             return attraction;
           }
           hasChanged = true;
           return {
             ...attraction,
-            generalWaitingTime: nextWaitingMinutes,
+            basicWaitingMinutes: nextWaitingMinutes,
           };
         });
 

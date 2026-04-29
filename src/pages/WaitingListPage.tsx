@@ -69,7 +69,7 @@ export default function WaitingListPage() {
       setIsLoading(true);
       await cancelQueue({
         userId,
-        rideId: selectedCancelItem.rideId,
+        attractionId: selectedCancelItem.attractionId,
       });
       await fetchQueueStatus();
     } catch (error) {
@@ -86,7 +86,7 @@ export default function WaitingListPage() {
       <Modal
         isOpen={Boolean(selectedCancelItem)}
         title="줄서기 취소"
-        content={`${selectedCancelItem?.rideName ?? ""} 줄서기를 취소하시겠습니까?`}
+        content={`${selectedCancelItem?.attractionName ?? ""} 줄서기를 취소하시겠습니까?`}
         buttonTitle="확인"
         onClose={() => {
           setSelectedCancelItem(null);

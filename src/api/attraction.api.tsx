@@ -1,108 +1,68 @@
 import { http } from "@/api/http";
-import type { AttractionDetail, AttractionDetailResponseDto, AttractionListResponseDto } from "@/types/attraction";
+import type {
+  AttractionDetail,
+  AttractionDetailResponseDto,
+  AttractionListResponseDto,
+  AttractionSummary,
+  Waiting,
+} from "@/types/attraction";
 
-type WaitTimeDto = {
-  ticketType?: string;
-  ticket_type?: string;
-  estimatedWaitMinutes?: number;
-  estimated_wait_minutes?: number;
-  waitingCount?: number;
-  waiting_count?: number;
-};
-
-function normalizeTicketType(raw: string | undefined) {
-  if (!raw) {
-    return "GENERAL";
+function formatOperatingTime(openAt?: string | null, closeAt?: string | null) {
+  if (!openAt || !closeAt) {
+    return "";
   }
-  const upper = raw.toUpperCase();
-  if (upper === "PREMIUM") {
-    return "PREMIUM";
-  }
-  if (upper === "BASIC" || upper === "GENERAL") {
-    return "GENERAL";
-  }
-  return "GENERAL";
+  return `${openAt} - ${closeAt}`;
 }
 
-function normalizeWaitTimes(waitTimes: unknown) {
-  if (!Array.isArray(waitTimes)) {
-    return [];
-  }
-
-  return waitTimes.map((wait) => {
-    const dto = wait as WaitTimeDto;
-    return {
-      ticketType: normalizeTicketType(dto.ticketType ?? dto.ticket_type),
-      estimatedWaitMinutes: dto.estimatedWaitMinutes ?? dto.estimated_wait_minutes ?? 0,
-      waitingCount: dto.waitingCount ?? dto.waiting_count ?? 0,
-    };
-  });
+function toBasicWaiting(dto: Pick<AttractionListResponseDto, "waitingMinutesBasic" | "queueCountBasic">): Waiting {
+  return {
+    ticketType: "BASIC",
+    estimatedMinutes: dto.waitingMinutesBasic ?? 0,
+    waitingCount: dto.queueCountBasic ?? 0,
+  };
 }
 
-function normalizeAttractionListPayload(payload: unknown): AttractionListResponseDto[] {
-  const queue: unknown[] = [payload];
-  const visited = new Set<unknown>();
+function toPremiumWaiting(dto: Pick<AttractionListResponseDto, "waitingMinutesPremium" | "queueCountPremium">): Waiting {
+  return {
+    ticketType: "PREMIUM",
+    estimatedMinutes: dto.waitingMinutesPremium ?? 0,
+    waitingCount: dto.queueCountPremium ?? 0,
+  };
+}
 
-  while (queue.length > 0) {
-    const current = queue.shift();
-    if (visited.has(current)) {
-      continue;
-    }
-    visited.add(current);
+function toAttractionSummary(dto: AttractionListResponseDto): AttractionSummary {
+  return {
+    attractionId: dto.attractionId,
+    name: dto.attractionName,
+    description: dto.shortDescription,
+    operatingTime: formatOperatingTime(dto.openAt, dto.closeAt),
+    basicWaitingMinutes: dto.waitingMinutesBasic ?? 0,
+    imageUrl: dto.imageUrl ?? "",
+  };
+}
 
-    if (Array.isArray(current)) {
-      const first = current[0] as { rideId?: unknown } | undefined;
-      if (!first || typeof first === "object" && "rideId" in first) {
-        return current as AttractionListResponseDto[];
-      }
-      continue;
-    }
-
-    if (!current || typeof current !== "object") {
-      continue;
-    }
-
-    const obj = current as Record<string, unknown>;
-    for (const value of Object.values(obj)) {
-      queue.push(value);
-    }
-  }
-
-  return [];
+function toAttractionDetail(dto: AttractionDetailResponseDto): AttractionDetail {
+  return {
+    attractionId: dto.attractionId,
+    name: dto.attractionName,
+    isActive: dto.isActive,
+    capacityPremium: dto.capacityPremium,
+    capacityBasic: dto.capacityBasic,
+    operatingTime: formatOperatingTime(dto.openAt, dto.closeAt),
+    shortDescription: dto.shortDescription,
+    detailDescription: dto.detailDescription,
+    ridingTime: dto.ridingTime,
+    waitTimes: [toPremiumWaiting(dto), toBasicWaiting(dto)],
+    imageUrl: dto.imageUrl ?? "",
+  };
 }
 
 export async function getAttractionList() {
-  const { data } = await http.get("/rides");
-  const list = normalizeAttractionListPayload(data);
-
-  return list.map((attraction) => ({
-    attractionId: attraction.rideId,
-    name: attraction.name,
-    description: attraction.shortDescription,
-    operatingTime: attraction.operatingTime,
-    generalWaitingTime:
-      normalizeWaitTimes(attraction.waitTimes).find((wait) => wait.ticketType === "GENERAL")?.estimatedWaitMinutes ?? 0,
-    imageUrl: attraction.photo,
-  }));
+  const { data } = await http.get<AttractionListResponseDto[]>("/attractions");
+  return data.map(toAttractionSummary);
 }
 
 export async function getAttractionDetail(attractionId: number | string) {
-  const { data } = await http.get<AttractionDetailResponseDto>(`/rides/${attractionId}`);
-
-  const transformedData: AttractionDetail = {
-    attractionId: data.rideId,
-    name: data.name,
-    isActive: data.isActive,
-    capacityTotal: data.capacityTotal,
-    capacityPremium: data.capacityPremium,
-    capacityGeneral: data.capacityGeneral,
-    shortDescription: data.shortDescription,
-    longDescription: data.longDescription,
-    imageUrl: data.photo,
-    operatingTime: data.operatingTime,
-    ridingTime: data.ridingTime,
-    waitTimes: normalizeWaitTimes(data.waitTimes),
-  };
-
-  return transformedData;
+  const { data } = await http.get<AttractionDetailResponseDto>(`/attractions/${attractionId}`);
+  return toAttractionDetail(data);
 }

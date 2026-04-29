@@ -15,7 +15,7 @@ const ticketTypeOptions: Array<{
   priceLabel: string;
 }> = [
   {
-    type: "GENERAL",
+    type: "BASIC",
     title: "Basic",
     description: "기본 입장권으로 대부분의 어트랙션을 이용할 수 있어요.",
     priceLabel: "₩ 45,000",

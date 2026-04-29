@@ -56,7 +56,7 @@ export default function AttractionContentCard({
 
       <section>
         <h2 className={styles.sectionTitle}>상세 안내</h2>
-        <p className={styles.longDescription}>{attraction.longDescription}</p>
+        <p className={styles.longDescription}>{attraction.detailDescription}</p>
       </section>
     </section>
   );

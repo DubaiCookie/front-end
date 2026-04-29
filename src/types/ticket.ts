@@ -1,4 +1,4 @@
-export type TicketKind = "GENERAL" | "PREMIUM";
+export type TicketKind = "BASIC" | "PREMIUM";
 export type ActiveStatus = "ACTIVE" | "DEACTIVE";
 
 export interface UserTicket {

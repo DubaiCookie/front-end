@@ -16,14 +16,15 @@ const refreshHttp = axios.create({
 export const SESSION_EXPIRED_EVENT = "session-expired";
 export const REQUEST_FAILED_EVENT = "request-failed";
 
-const EXCLUDED_401_PATHS = ["/user/login", "/user/signup", "/user/refresh", "/rides"];
+const EXCLUDED_401_PATHS = ["/user/login", "/user/signup", "/user/refresh", "/attractions"];
 const EXCLUDED_GENERIC_ERROR_CASES: Array<{ path: string; status?: number }> = [
   { path: "/user/login", status: 400 },
   { path: "/user/login", status: 401 },
   { path: "/user/login", status: 404 },
   { path: "/user/signup", status: 400 },
   { path: "/user/signup", status: 409 },
-  { path: "/queue/enqueue" },
+  { path: "/queue/attractions/enqueue" },
+  { path: "/queue/attractions/complete" },
   { path: "/payments" },
   { path: "/payments/confirm" },
 ];

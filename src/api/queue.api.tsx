@@ -1,7 +1,6 @@
 import { http } from "@/api/http"
 import type {
   EnqueueResponse,
-  QueueStatusItem,
   QueueStatusResponse,
   RequestEnqueue,
   RequestQueueCancel,
@@ -10,35 +9,38 @@ import type {
 export async function enqueue(payload: RequestEnqueue) {
   const enqueueRequest: RequestEnqueue = {
     userId: payload.userId,
-    rideId: payload.rideId,
+    attractionId: payload.attractionId,
     ticketType: payload.ticketType,
   };
 
-  const { data } = await http.post<EnqueueResponse>("/queue/enqueue", enqueueRequest);
-  return data;
+  const { data } = await http.post<EnqueueResponse>("/queue/attractions/enqueue", enqueueRequest);
+  return {
+    position: data.position,
+    estimatedMinutes: data.estimatedMinutes ?? 0,
+  };
 }
 
 export async function getQueueStatus(userId: number) {
-  const { data } = await http.get<QueueStatusResponse>(`/queue/status/${userId}`);
-  return data.items as QueueStatusItem[];
+  const { data } = await http.get<QueueStatusResponse>(`/queue/attractions/status/${userId}`);
+  return data.queues;
 }
 
 export async function cancelQueue(payload: RequestQueueCancel) {
   const request: RequestQueueCancel = {
     userId: payload.userId,
-    rideId: payload.rideId,
+    attractionId: payload.attractionId,
   };
 
-  const { data } = await http.post("/queue/cancel", request);
+  const { data } = await http.post("/queue/attractions/cancel", request);
   return data;
 }
 
 export async function boardQueue(payload: RequestQueueCancel) {
   const request: RequestQueueCancel = {
     userId: payload.userId,
-    rideId: payload.rideId,
+    attractionId: payload.attractionId,
   };
 
-  const { data } = await http.post("/queue/complete", request);
+  const { data } = await http.post("/queue/attractions/complete", request);
   return data;
 }

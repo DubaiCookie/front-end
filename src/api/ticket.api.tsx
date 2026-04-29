@@ -8,12 +8,16 @@ type UserTicketDto = {
   available_at?: string;
   activeStatus?: "ACTIVE" | "DEACTIVE";
   active_status?: "ACTIVE" | "DEACTIVE";
-  ticketType?: "GENERAL" | "PREMIUM";
-  ticket_type?: "GENERAL" | "PREMIUM";
+  ticketType?: "BASIC" | "GENERAL" | "PREMIUM";
+  ticket_type?: "BASIC" | "GENERAL" | "PREMIUM";
   paymentDate?: string;
   paymentAt?: string;
   payment_at?: string;
 };
+
+function normalizeTicketType(raw?: UserTicketDto["ticketType"]) {
+  return raw === "PREMIUM" ? "PREMIUM" : "BASIC";
+}
 
 function normalizeTicketListPayload(payload: unknown): UserTicketDto[] {
   if (Array.isArray(payload)) {
@@ -50,7 +54,7 @@ function mapTicket(dto: UserTicketDto): UserTicket {
     ticketOrderId: dto.ticketOrderId ?? dto.ticket_order_id ?? 0,
     availableAt: dto.availableAt ?? dto.available_at ?? "",
     activeStatus: dto.activeStatus ?? dto.active_status ?? "DEACTIVE",
-    ticketType: dto.ticketType ?? dto.ticket_type ?? "GENERAL",
+    ticketType: normalizeTicketType(dto.ticketType ?? dto.ticket_type),
     paymentDate: dto.paymentDate ?? dto.paymentAt ?? dto.payment_at ?? "",
   };
 }
