@@ -1,7 +1,7 @@
 import clsx from "clsx"
 import styles from "./Ticket.module.css"
 import type { UserTicket } from "@/types/ticket";
-import { formatDateTime, isSameLocalDate } from "@/utils/functions.ts";
+import { formatDateTime } from "@/utils/functions.ts";
 import { useState, type MouseEvent } from "react";
 
 type TicketListItemProps = {
@@ -11,27 +11,25 @@ type TicketListItemProps = {
 
 export default function TicketListItem({ ticket, onQrClick }: TicketListItemProps) {
     const [isFlipped, setIsFlipped] = useState(false);
-    const today = new Date();
-    const isAvailableToday = isSameLocalDate(new Date(ticket.availableAt), today);
     const isPremium = ticket.ticketType === "PREMIUM";
     const isUsed = ticket.entryStatus === "USED";
+    const isAvailableToday = ticket.entryStatus === "AVAILABLE";
 
-    const headerStatusLabel = isUsed ? "사용 완료" : isAvailableToday ? "Today" : "입장 전";
+    const headerStatusLabel =
+        isUsed            ? "입장 완료" :
+        isAvailableToday  ? "Today"    :
+                            "입장 전";
 
     const handleCardClick = (event: MouseEvent<HTMLElement>) => {
         const target = event.target as HTMLElement;
-        if (target.closest("button")) {
-            return;
-        }
+        if (target.closest("button")) return;
         setIsFlipped((prev) => !prev);
     };
 
     return (
-        <article
-            className={styles.ticketFlip}
-            onClick={handleCardClick}
-        >
+        <article className={styles.ticketFlip} onClick={handleCardClick}>
             <div className={clsx(styles.ticketInner, isFlipped && styles.flipped)}>
+                {/* 앞면 */}
                 <div
                     className={clsx(
                         styles.ticket,
@@ -58,33 +56,27 @@ export default function TicketListItem({ ticket, onQrClick }: TicketListItemProp
                                 {isPremium ? "Premium" : "Basic"}
                             </span>
                         </p>
-                        {headerStatusLabel && (
-                            <span
-                                className={clsx(
-                                    styles.statusBadge,
-                                    isAvailableToday && !isUsed ? styles.statusToday : styles.statusBefore,
-                                )}
-                            >
-                                {headerStatusLabel}
-                            </span>
-                        )}
+                        <span
+                            className={clsx(
+                                styles.statusBadge,
+                                isAvailableToday && !isUsed ? styles.statusToday : styles.statusBefore,
+                            )}
+                        >
+                            {headerStatusLabel}
+                        </span>
                     </header>
 
                     <div className={styles.row}>
                         <span className={styles.label}>구매 날짜</span>
                         <span className={styles.value}>{formatDateTime(ticket.paymentDate)}</span>
                     </div>
-                    <div
-                        className={clsx(
-                            styles.row,
-                            styles.availableRow,
-                        )}
-                    >
+                    <div className={clsx(styles.row, styles.availableRow)}>
                         <span className={styles.label}>사용 가능 날짜</span>
                         <span className={styles.value}>{formatDateTime(ticket.availableAt)}</span>
                     </div>
                 </div>
 
+                {/* 뒷면 */}
                 <div className={clsx(styles.ticket, styles.ticketFace, styles.ticketBack, isPremium ? styles.premium : styles.basic)}>
                     {isAvailableToday && !isUsed ? (
                         <>
@@ -101,7 +93,9 @@ export default function TicketListItem({ ticket, onQrClick }: TicketListItemProp
                             </button>
                         </>
                     ) : (
-                        <p className={styles.qrNotice}>입장 날짜에 QR 코드가 생성됩니다.</p>
+                        <p className={styles.qrNotice}>
+                            {isUsed ? "이미 사용된 티켓입니다." : "입장 날짜에 QR 코드가 생성됩니다."}
+                        </p>
                     )}
                 </div>
             </div>

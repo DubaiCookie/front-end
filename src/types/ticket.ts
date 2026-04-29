@@ -1,5 +1,5 @@
 export type TicketKind = "BASIC" | "PREMIUM";
-export type TicketEntryStatus = "AVAILABLE" | "USED";
+export type TicketEntryStatus = "BEFORE" | "AVAILABLE" | "USED" | "EXPIRED";
 
 export interface TicketProduct {
   ticketId: number;

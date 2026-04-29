@@ -2,6 +2,7 @@ import axios from "axios";
 import { http } from "@/api/http";
 import type {
   IssuedTicket,
+  TicketEntryStatus,
   TicketKind,
   TicketManagement,
   TicketOrder,
@@ -75,8 +76,11 @@ function normalizeTicketType(raw?: string): TicketKind {
   return raw === "PREMIUM" ? "PREMIUM" : "BASIC";
 }
 
-function normalizeEntryStatus(raw?: string) {
-  return raw === "USED" ? "USED" : "AVAILABLE";
+function normalizeEntryStatus(raw?: string): TicketEntryStatus {
+  if (raw === "USED") return "USED";
+  if (raw === "AVAILABLE") return "AVAILABLE";
+  if (raw === "EXPIRED") return "EXPIRED";
+  return "BEFORE";
 }
 
 function mapTicketProduct(dto: TicketProductDto): TicketProduct {

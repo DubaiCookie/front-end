@@ -10,7 +10,6 @@ import styles from "./TicketListPage.module.css";
 import EmptyStateMessage from "@/components/common/EmptyStateMessage";
 import { IoTicket } from "react-icons/io5";
 import Modal from "@/components/common/modals/Modal";
-import { isSameLocalDate } from "@/utils/functions";
 import { useAuthStore } from "@/stores/auth.store";
 
 type TicketModalMode = "alreadyUsed" | "invalidDate" | "showQr" | "error" | null;
@@ -24,11 +23,8 @@ export default function TicketListPage() {
   const setTodayActiveTicket = useAuthStore((state) => state.setTodayActiveTicket);
 
   const syncTodayActiveTicketState = useCallback((nextTickets: UserTicket[]) => {
-    const today = new Date();
     const availableTodayTicket = nextTickets.find(
-      (ticket) =>
-        isSameLocalDate(new Date(ticket.availableAt), today) &&
-        ticket.entryStatus === "AVAILABLE",
+      (ticket) => ticket.entryStatus === "AVAILABLE",
     );
 
     setTodayActiveTicket({
@@ -64,8 +60,7 @@ export default function TicketListPage() {
       return;
     }
 
-    const isAvailableToday = isSameLocalDate(new Date(ticket.availableAt), new Date());
-    if (!isAvailableToday) {
+    if (ticket.entryStatus !== "AVAILABLE") {
       setModalMode("invalidDate");
       return;
     }
