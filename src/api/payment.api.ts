@@ -1,4 +1,4 @@
-import axios from "axios";
+import { http } from "@/api/http";
 import type { TicketKind } from "@/types/ticket";
 
 export type PreparePaymentRequest = {
@@ -8,7 +8,8 @@ export type PreparePaymentRequest = {
   ticketQuantity: number;
 };
 
-export type PaymentStatus = "PENDING" | "DONE" | "CANCELED" | "FAILED" | "COMPLETED";
+export type PaymentStatus = "PENDING" | "COMPLETED" | "FAILED" | "CANCELLED";
+export type OrderStatus = "PENDING" | "PAID" | "CANCELLED" | "EXPIRED";
 
 export type PaymentResponse = {
   paymentId: number;
@@ -19,6 +20,19 @@ export type PaymentResponse = {
   paymentKey: string;
   paymentMethod: string;
   paymentStatus: PaymentStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PaymentOrderResponse = {
+  orderId: number;
+  userId: number;
+  orderName: string;
+  totalAmount: number;
+  orderStatus: OrderStatus;
+  ticketQuantity: number;
+  ticketManagementId: number;
+  expiredAt: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -57,11 +71,30 @@ type PaymentResponseDto = {
   updated_at?: string;
 };
 
-const paymentHttp = axios.create({
-  baseURL: "",
-  timeout: 10_000,
-  withCredentials: true,
-});
+type PaymentOrderResponseDto = {
+  id?: number;
+  orderId?: number;
+  order_id?: number;
+  userId?: number;
+  user_id?: number;
+  orderName?: string;
+  order_name?: string;
+  totalAmount?: number;
+  total_amount?: number;
+  amount?: number;
+  orderStatus?: OrderStatus;
+  order_status?: OrderStatus;
+  ticketQuantity?: number;
+  ticket_quantity?: number;
+  ticketManagementId?: number;
+  ticket_management_id?: number;
+  expiredAt?: string;
+  expired_at?: string;
+  createdAt?: string;
+  created_at?: string;
+  updatedAt?: string;
+  updated_at?: string;
+};
 
 function toPaymentResponse(input: unknown): PaymentResponse {
   const root = input as { data?: PaymentResponseDto } & PaymentResponseDto;
@@ -84,12 +117,40 @@ function toPaymentResponse(input: unknown): PaymentResponse {
   };
 }
 
+function toPaymentOrderResponse(input: unknown): PaymentOrderResponse {
+  const root = input as { data?: PaymentOrderResponseDto } & PaymentOrderResponseDto;
+  const dto = (root?.data ?? root) as PaymentOrderResponseDto;
+
+  return {
+    orderId: dto.orderId ?? dto.order_id ?? dto.id ?? 0,
+    userId: dto.userId ?? dto.user_id ?? 0,
+    orderName: dto.orderName ?? dto.order_name ?? "",
+    totalAmount: Number(dto.totalAmount ?? dto.total_amount ?? dto.amount ?? 0),
+    orderStatus: dto.orderStatus ?? dto.order_status ?? "PENDING",
+    ticketQuantity: dto.ticketQuantity ?? dto.ticket_quantity ?? 0,
+    ticketManagementId: dto.ticketManagementId ?? dto.ticket_management_id ?? 0,
+    expiredAt: dto.expiredAt ?? dto.expired_at ?? "",
+    createdAt: dto.createdAt ?? dto.created_at ?? "",
+    updatedAt: dto.updatedAt ?? dto.updated_at ?? "",
+  };
+}
+
 export async function preparePayment(payload: PreparePaymentRequest) {
-  const { data } = await paymentHttp.post("/payments", payload);
+  const { data } = await http.post("/payments", payload);
   return toPaymentResponse(data);
 }
 
 export async function confirmPayment(payload: ConfirmPaymentRequest) {
-  const { data } = await paymentHttp.post("/payments/confirm", payload);
+  const { data } = await http.post("/payments/confirm", payload);
   return toPaymentResponse(data);
+}
+
+export async function getPaymentByOrderId(orderId: number) {
+  const { data } = await http.get(`/payments/order/${orderId}`);
+  return toPaymentResponse(data);
+}
+
+export async function cancelPaymentOrder(orderId: number) {
+  const { data } = await http.patch(`/orders/${orderId}/cancel`);
+  return toPaymentOrderResponse(data);
 }

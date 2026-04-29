@@ -68,11 +68,11 @@ export default defineConfig(({ mode }) => ({
     port: 3000,
     proxy: {
       '/payments': {
-        target: 'http://a044d24f46bd84ded87846356effbae2-2d75d83d9ffbb02e.elb.ap-northeast-2.amazonaws.com',
+        target: 'https://skala3-cloud1-team3.cloud.skala-ai.com',
         changeOrigin: true,
       },
       '/api': {
-        target: 'http://a044d24f46bd84ded87846356effbae2-2d75d83d9ffbb02e.elb.ap-northeast-2.amazonaws.com',
+        target: 'https://skala3-cloud1-team3.cloud.skala-ai.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },

@@ -7,7 +7,7 @@ import type { TicketKind, TicketProduct } from "@/types/ticket";
 import type { AvailableDate } from "@/api/ticket.api";
 import Button from "@/components/common/Button";
 import { useAuthStore } from "@/stores/auth.store";
-import { preparePayment } from "@/api/payment.api";
+import { cancelPaymentOrder, preparePayment } from "@/api/payment.api";
 import {
   getTicketProducts,
   getAvailableDatesByType,
@@ -134,6 +134,7 @@ export default function TicketOrderPage() {
 
       const amount = Number(prepared.amount);
       const backendOrderId = Number(prepared.orderId);
+      const paymentId = Number(prepared.paymentId);
       const orderName = String(prepared.orderName ?? "").trim();
       const tossOrderId = `ORDER-${backendOrderId}-${Date.now()}`;
 
@@ -156,19 +157,35 @@ export default function TicketOrderPage() {
 
       sessionStorage.setItem(
         "pending-payment",
-        JSON.stringify({ orderId: backendOrderId, amount, tossOrderId }),
+        JSON.stringify({
+          paymentId,
+          orderId: backendOrderId,
+          amount,
+          tossOrderId,
+          ticketType: selectedTicketType,
+          availableDate: selectedDate,
+          ticketQuantity,
+        }),
       );
 
-      await tossPayments.requestPayment("CARD", {
-        amount,
-        orderId: tossOrderId,
-        orderName,
-        successUrl,
-        failUrl,
-        customerName: nickname ?? undefined,
-        windowTarget: "iframe",
-        card: { flowMode: "DEFAULT" },
-      });
+      try {
+        await tossPayments.requestPayment("CARD", {
+          amount,
+          orderId: tossOrderId,
+          orderName,
+          successUrl,
+          failUrl,
+          customerName: nickname ?? undefined,
+          windowTarget: "iframe",
+          card: { flowMode: "DEFAULT" },
+        });
+      } catch (paymentWindowError) {
+        await cancelPaymentOrder(backendOrderId).catch((cancelError) => {
+          console.warn("결제 준비 주문 취소에 실패했습니다.", cancelError);
+        });
+        sessionStorage.removeItem("pending-payment");
+        throw paymentWindowError;
+      }
     } catch (error) {
       console.error(error);
       setErrorMessage(error instanceof Error && error.message ? error.message : "결제 준비 중 오류가 발생했습니다.");

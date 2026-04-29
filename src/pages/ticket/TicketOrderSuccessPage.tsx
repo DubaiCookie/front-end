@@ -6,6 +6,19 @@ import { confirmPayment, type PaymentResponse } from "@/api/payment.api";
 import styles from "./TicketOrderResultPage.module.css";
 import axios from "axios";
 
+type PendingPayment = {
+  paymentId?: number;
+  orderId: number;
+  amount: number;
+  tossOrderId: string;
+};
+
+function parseBackendOrderId(tossOrderId: string | null) {
+  if (!tossOrderId) return 0;
+  const matched = /^ORDER-(\d+)-/.exec(tossOrderId);
+  return matched ? Number(matched[1]) : 0;
+}
+
 export default function TicketOrderSuccessPage() {
   const [searchParams] = useSearchParams();
   const [isConfirming, setIsConfirming] = useState(true);
@@ -24,11 +37,7 @@ export default function TicketOrderSuccessPage() {
       return null;
     }
     try {
-      return JSON.parse(raw) as {
-        orderId: number;
-        amount: number;
-        tossOrderId: string;
-      };
+      return JSON.parse(raw) as PendingPayment;
     } catch {
       return null;
     }
@@ -44,7 +53,9 @@ export default function TicketOrderSuccessPage() {
       const paymentKey = queryPaymentKey;
       const tossOrderId = queryTossOrderId ?? pendingPayment?.tossOrderId;
       const amount = Number(queryAmount ?? pendingPayment?.amount ?? 0);
-      const backendOrderId = Number(queryBackendOrderId ?? pendingPayment?.orderId ?? 0);
+      const backendOrderId = Number(
+        queryBackendOrderId ?? pendingPayment?.orderId ?? parseBackendOrderId(tossOrderId ?? null),
+      );
 
       if (!paymentKey || !tossOrderId || Number.isNaN(amount) || amount <= 0 || backendOrderId <= 0) {
         setErrorMessage("결제 승인 파라미터가 올바르지 않습니다.");
