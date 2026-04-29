@@ -26,6 +26,7 @@ export default function AttractionDetailPage() {
   const userId = useAuthStore((state) => state.userId);
   const hasTodayActiveTicket = useAuthStore((state) => state.hasTodayActiveTicket);
   const todayActiveTicketType = useAuthStore((state) => state.todayActiveTicketType);
+  const todayActiveIssuedTicketId = useAuthStore((state) => state.todayActiveIssuedTicketId);
 
   useEffect(() => {
     if (!attractionId) {
@@ -107,7 +108,8 @@ export default function AttractionDetailPage() {
       modalMode !== "queueConfirm" ||
       !attraction ||
       !userId ||
-      !todayActiveTicketType
+      !todayActiveTicketType ||
+      !todayActiveIssuedTicketId
     ) {
       setModalMode(null);
       return;
@@ -116,9 +118,8 @@ export default function AttractionDetailPage() {
     try {
       setIsEnqueueLoading(true);
       const data = await enqueue({
-        userId,
         attractionId: attraction.attractionId,
-        ticketType: todayActiveTicketType,
+        issuedTicketId: todayActiveIssuedTicketId,
       });
       setEnqueueResult(data);
       setDetailRefreshKey((prev) => prev + 1);

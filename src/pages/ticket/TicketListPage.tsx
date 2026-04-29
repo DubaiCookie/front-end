@@ -30,6 +30,7 @@ export default function TicketListPage() {
     setTodayActiveTicket({
       hasTodayActiveTicket: Boolean(availableTodayTicket),
       todayActiveTicketType: availableTodayTicket?.ticketType ?? null,
+      todayActiveIssuedTicketId: availableTodayTicket?.issuedTicketId ?? null,
     });
   }, [setTodayActiveTicket]);
 

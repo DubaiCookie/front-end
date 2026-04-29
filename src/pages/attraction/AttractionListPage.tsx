@@ -36,7 +36,7 @@ export default function AttractionListPage() {
         }
 
         const waitingByAttractionId = new Map(
-          payload.attractions.map((attraction) => [attraction.attractionId, attraction.estimatedMinutes]),
+          payload.attractions.map((attraction) => [attraction.attractionId, attraction.waitingMinutesBasic]),
         );
         let hasChanged = false;
         const next = prev.map((attraction) => {

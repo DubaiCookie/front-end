@@ -1,5 +1,6 @@
 import type { AttractionInfoSocketMessage, AttractionsMinutesSocketMessage } from "@/types/attraction";
 import type { QueueStatusItem, UserQueueSocketMessage } from "@/types/queue";
+import type { TicketKind } from "@/types/ticket";
 import { env } from "@/utils/env";
 
 const DEFAULT_WS_URL = "wss://skala3-cloud1-team3.cloud.skala-ai.com/ws/queue";
@@ -241,7 +242,7 @@ class StompSocketClient {
 
 const client = new StompSocketClient();
 
-function normalizeTicketType(raw: string | undefined) {
+function normalizeTicketType(raw: string | undefined): TicketKind {
   if (!raw) {
     return "BASIC";
   }
@@ -258,6 +259,14 @@ function normalizeAttractionInfoPayload(payload: unknown): AttractionInfoSocketM
     attraction_id?: number;
     rideId?: number;
     ride_id?: number;
+    waitingMinutesPremium?: number;
+    waiting_minutes_premium?: number;
+    waitingMinutesBasic?: number;
+    waiting_minutes_basic?: number;
+    queueCountPremium?: number;
+    queue_count_premium?: number;
+    queueCountBasic?: number;
+    queue_count_basic?: number;
     waitTimes?: Array<{
       ticketType?: string;
       ticket_type?: string;
@@ -271,15 +280,29 @@ function normalizeAttractionInfoPayload(payload: unknown): AttractionInfoSocketM
   };
 
   const waitTimesRaw = Array.isArray(obj.waitTimes) ? obj.waitTimes : [];
-
-  return {
-    attractionId: obj.attractionId ?? obj.attraction_id ?? obj.rideId ?? obj.ride_id ?? 0,
-    waitTimes: waitTimesRaw.map((wait) => ({
+  const waitTimes = waitTimesRaw.length > 0
+    ? waitTimesRaw.map((wait) => ({
       ticketType: normalizeTicketType(wait.ticketType ?? wait.ticket_type),
       estimatedMinutes:
         wait.estimatedMinutes ?? wait.estimated_minutes ?? wait.estimatedWaitMinutes ?? wait.estimated_wait_minutes ?? 0,
       waitingCount: wait.waitingCount ?? wait.waiting_count ?? 0,
-    })),
+    }))
+    : [
+      {
+        ticketType: "PREMIUM" as const,
+        estimatedMinutes: obj.waitingMinutesPremium ?? obj.waiting_minutes_premium ?? 0,
+        waitingCount: obj.queueCountPremium ?? obj.queue_count_premium ?? 0,
+      },
+      {
+        ticketType: "BASIC" as const,
+        estimatedMinutes: obj.waitingMinutesBasic ?? obj.waiting_minutes_basic ?? 0,
+        waitingCount: obj.queueCountBasic ?? obj.queue_count_basic ?? 0,
+      },
+    ];
+
+  return {
+    attractionId: obj.attractionId ?? obj.attraction_id ?? obj.rideId ?? obj.ride_id ?? 0,
+    waitTimes,
   };
 }
 
@@ -293,6 +316,14 @@ function normalizeAttractionsMinutesPayload(payload: unknown): AttractionsMinute
     estimated_minutes?: number;
     estimatedWaitMinutes?: number;
     estimated_wait_minutes?: number;
+    waitingMinutesPremium?: number;
+    waiting_minutes_premium?: number;
+    waitingMinutesBasic?: number;
+    waiting_minutes_basic?: number;
+    queueCountPremium?: number;
+    queue_count_premium?: number;
+    queueCountBasic?: number;
+    queue_count_basic?: number;
   };
 
   const obj = (payload ?? {}) as {
@@ -304,9 +335,15 @@ function normalizeAttractionsMinutesPayload(payload: unknown): AttractionsMinute
   return {
     attractions: attractionsRaw.map((attraction) => ({
       attractionId: attraction.attractionId ?? attraction.attraction_id ?? attraction.rideId ?? attraction.ride_id ?? 0,
+      waitingMinutesPremium: attraction.waitingMinutesPremium ?? attraction.waiting_minutes_premium ?? 0,
+      waitingMinutesBasic: attraction.waitingMinutesBasic ?? attraction.waiting_minutes_basic ?? 0,
+      queueCountPremium: attraction.queueCountPremium ?? attraction.queue_count_premium ?? 0,
+      queueCountBasic: attraction.queueCountBasic ?? attraction.queue_count_basic ?? 0,
       estimatedMinutes:
         attraction.estimatedMinutes ??
         attraction.estimated_minutes ??
+        attraction.waitingMinutesBasic ??
+        attraction.waiting_minutes_basic ??
         attraction.estimatedWaitMinutes ??
         attraction.estimated_wait_minutes ??
         0,
@@ -315,18 +352,18 @@ function normalizeAttractionsMinutesPayload(payload: unknown): AttractionsMinute
 }
 
 export function subscribeAttractionsMinutes(callback: (payload: AttractionsMinutesSocketMessage) => void) {
-  return client.subscribe("/sub/attractions/minutes", (payload) => {
+  return client.subscribe("/sub/rides/minutes", (payload) => {
     callback(normalizeAttractionsMinutesPayload(payload));
   }, {
-    activateDestination: "/pub/attractions/minutes",
+    activateDestination: "/pub/rides/minutes",
   });
 }
 
 export function subscribeAttractionInfo(attractionId: number, callback: (payload: AttractionInfoSocketMessage) => void) {
-  return client.subscribe(`/sub/attractions/${attractionId}/info`, (payload) => {
+  return client.subscribe(`/sub/rides/${attractionId}/info`, (payload) => {
     callback(normalizeAttractionInfoPayload(payload));
   }, {
-    activateDestination: `/pub/attractions/${attractionId}/info`,
+    activateDestination: `/pub/rides/${attractionId}/info`,
   });
 }
 
