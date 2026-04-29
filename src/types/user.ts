@@ -1,4 +1,4 @@
-export type FieldType = 'userId' | 'password';
+export type FieldType = 'email' | 'password' | 'text';
 
 export type FieldSpec<TName extends string = string> = {
     name: TName;
@@ -7,21 +7,50 @@ export type FieldSpec<TName extends string = string> = {
     placeholder?: string;
     autoComplete?: string;
     required?: boolean;
-
-    // 검증: 통과하면 null, 실패하면 에러메시지
     validate?: (value: string, allValues: Record<string, string>) => string | null;
 };
 
-export interface LoginUser {
-    userId: string;
+export interface LoginFormValues {
+    email: string;
     password: string;
 }
 
-export interface SignupUser extends LoginUser {
+export interface SignupFormValues {
+    email: string;
+    password: string;
     passwordConfirm: string;
+    nickname: string;
 }
 
-export interface RequestUser {
-    username: string;
+export interface LoginRequest {
+    email: string;
     password: string;
+}
+
+export interface SignupRequest {
+    email: string;
+    password: string;
+    nickname: string;
+}
+
+export interface User {
+    userId: number;
+    email: string;
+    nickname: string;
+}
+
+export interface RidePhotoRequest {
+    attractionImageId: number;
+    imageUrl: string;
+    rideDate: string;
+    attractionName: string;
+}
+
+export interface RidePhoto {
+    ridePhotoId: number;
+    userId: number;
+    attractionImageId: number;
+    imageUrl: string;
+    rideDate: string;
+    attractionName: string;
 }
