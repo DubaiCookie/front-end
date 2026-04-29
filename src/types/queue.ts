@@ -1,9 +1,8 @@
 import type { TicketKind } from "@/types/ticket";
 
 export interface RequestEnqueue {
-  userId: number;
   attractionId: number;
-  ticketType: TicketKind;
+  issuedTicketId: number;
 }
 
 export interface RequestQueueCancel {
@@ -14,6 +13,7 @@ export interface RequestQueueCancel {
 export interface EnqueueResponse {
   position: number;
   estimatedMinutes: number;
+  estimatedCycleNumber: number;
 }
 
 export interface QueueStatusItem {

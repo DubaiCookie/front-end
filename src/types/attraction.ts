@@ -9,6 +9,10 @@ export type Waiting = {
 export type AttractionMinutesItem = {
   attractionId: number;
   estimatedMinutes: number;
+  waitingMinutesPremium: number;
+  waitingMinutesBasic: number;
+  queueCountPremium: number;
+  queueCountBasic: number;
 };
 
 export type AttractionsMinutesSocketMessage = {

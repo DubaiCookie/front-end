@@ -67,10 +67,6 @@ export default defineConfig(({ mode }) => ({
   server: {
     port: 3000,
     proxy: {
-      '/payments': {
-        target: 'https://skala3-cloud1-team3.cloud.skala-ai.com',
-        changeOrigin: true,
-      },
       '/api': {
         target: 'https://skala3-cloud1-team3.cloud.skala-ai.com',
         changeOrigin: true,

@@ -27,7 +27,7 @@ export default function WaitingListPage() {
 
     try {
       setIsLoading(true);
-      const data = await getQueueStatus(userId);
+      const data = await getQueueStatus();
       setItems(data);
     } catch (error) {
       console.error(error);

@@ -8,20 +8,20 @@ import type {
 
 export async function enqueue(payload: RequestEnqueue) {
   const enqueueRequest: RequestEnqueue = {
-    userId: payload.userId,
     attractionId: payload.attractionId,
-    ticketType: payload.ticketType,
+    issuedTicketId: payload.issuedTicketId,
   };
 
   const { data } = await http.post<EnqueueResponse>("/queue/attractions/enqueue", enqueueRequest);
   return {
     position: data.position,
     estimatedMinutes: data.estimatedMinutes ?? 0,
+    estimatedCycleNumber: data.estimatedCycleNumber ?? 0,
   };
 }
 
-export async function getQueueStatus(userId: number) {
-  const { data } = await http.get<QueueStatusResponse>(`/queue/attractions/status/${userId}`);
+export async function getQueueStatus() {
+  const { data } = await http.get<QueueStatusResponse>("/queue/attractions/status");
   return data.queues;
 }
 

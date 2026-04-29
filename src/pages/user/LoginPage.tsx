@@ -62,12 +62,14 @@ export default function LoginPage() {
                 setTodayActiveTicket({
                     hasTodayActiveTicket: Boolean(availableTicket),
                     todayActiveTicketType: availableTicket?.ticketType ?? null,
+                    todayActiveIssuedTicketId: availableTicket?.issuedTicketId ?? null,
                 });
             } catch (ticketError) {
                 console.error(ticketError);
                 setTodayActiveTicket({
                     hasTodayActiveTicket: false,
                     todayActiveTicketType: null,
+                    todayActiveIssuedTicketId: null,
                 });
             }
             setIsSuccessModalOpen(true);
