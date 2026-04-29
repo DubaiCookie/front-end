@@ -13,7 +13,7 @@ export default function WaitingList({ items, onCancel, onSnooze }: WaitingListPr
     <div className={styles.list}>
       {items.map((item) => (
         <WaitingListItem
-          key={`${item.rideId}-${item.ticketType}`}
+          key={`${item.attractionId}-${item.ticketType}`}
           item={item}
           onCancel={onCancel}
           onSnooze={onSnooze}

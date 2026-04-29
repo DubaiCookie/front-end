@@ -2,48 +2,49 @@ import type { TicketKind } from "@/types/ticket";
 
 export interface RequestEnqueue {
   userId: number;
-  rideId: number;
+  attractionId: number;
   ticketType: TicketKind;
 }
 
 export interface RequestQueueCancel {
   userId: number;
-  rideId: number;
+  attractionId: number;
 }
 
 export interface EnqueueResponse {
   position: number;
-  estimatedWaitMinutes: number;
+  estimatedMinutes: number;
 }
 
 export interface QueueStatusItem {
-  rideId: number;
-  rideName: string;
+  attractionId: number;
+  attractionName: string;
   ticketType: TicketKind;
   position: number;
-  estimatedWaitMinutes: number;
+  estimatedMinutes: number;
 }
 
 export interface QueueStatusResponse {
-  items: QueueStatusItem[];
+  userId: number;
+  queues: QueueStatusItem[];
 }
 
 export interface UserQueueStatusEvent {
   userId: number;
-  items: QueueStatusItem[];
+  queues: QueueStatusItem[];
 }
 
 export type QueueAlertStatus = "READY" | "ALMOST_READY";
 
 export interface QueueAlert {
-  rideId: number;
-  rideName: string;
+  attractionId: number;
+  attractionName: string;
   status: QueueAlertStatus;
   message: string;
 }
 
 export interface QueueEventMessage {
-  rideId: number;
+  attractionId: number;
   userId: number;
   type: TicketKind;
   status: QueueAlertStatus;

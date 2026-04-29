@@ -1,45 +1,58 @@
+import type { TicketKind } from "@/types/ticket";
+
 export type Waiting = {
-  ticketType: string;
-  estimatedWaitMinutes: number;
+  ticketType: TicketKind;
+  estimatedMinutes: number;
   waitingCount: number;
 }
 
-export type RideMinutesItem = {
-  rideId: number;
-  estimatedWaitMinutes: number;
+export type AttractionMinutesItem = {
+  attractionId: number;
+  estimatedMinutes: number;
 };
 
-export type RidesMinutesSocketMessage = {
-  rides: RideMinutesItem[];
+export type AttractionsMinutesSocketMessage = {
+  attractions: AttractionMinutesItem[];
 };
 
-export type RideInfoSocketMessage = {
-  rideId: number;
+export type AttractionInfoSocketMessage = {
+  attractionId: number;
   waitTimes: Waiting[];
 };
 
 export type AttractionListResponseDto = {
-  rideId: number;
-  name: string;
+  attractionId: number;
+  attractionName: string;
   shortDescription: string;
-  operatingTime: string;
-  waitTimes: Waiting[];
-  photo: string;
+  ridingTime: number;
+  openAt: string;
+  closeAt: string;
+  isActive: boolean;
+  capacityPremium: number;
+  capacityBasic: number;
+  imageUrl: string | null;
+  waitingMinutesPremium: number;
+  waitingMinutesBasic: number;
+  queueCountPremium: number;
+  queueCountBasic: number;
 };
 
 export type AttractionDetailResponseDto = {
-  rideId: number;
-  name: string;
-  ridingTime: number;
-  isActive: boolean;
-  capacityTotal: number;
-  capacityPremium: number;
-  capacityGeneral: number;
+  attractionId: number;
+  attractionName: string;
   shortDescription: string;
-  longDescription: string;
-  photo: string;
-  operatingTime: string;
-  waitTimes: Waiting[];
+  detailDescription: string;
+  ridingTime: number;
+  openAt: string;
+  closeAt: string;
+  isActive: boolean;
+  capacityPremium: number;
+  capacityBasic: number;
+  imageUrl: string | null;
+  waitingMinutesPremium: number;
+  waitingMinutesBasic: number;
+  queueCountPremium: number;
+  queueCountBasic: number;
 };
 
 export interface AttractionSummary {
@@ -47,7 +60,7 @@ export interface AttractionSummary {
     name: string;
     description: string;
     operatingTime: string;
-    generalWaitingTime: number;
+    basicWaitingMinutes: number;
     imageUrl: string;
 }
 
@@ -55,12 +68,11 @@ export interface AttractionDetail {
     attractionId: number;
     name: string;
     isActive: boolean;
-    capacityTotal: number;
     capacityPremium: number;
-    capacityGeneral: number;
+    capacityBasic: number;
     operatingTime: string;
     shortDescription: string;
-    longDescription: string;
+    detailDescription: string;
     ridingTime: number;
     waitTimes: Waiting[];
     imageUrl: string;

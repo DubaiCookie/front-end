@@ -1,5 +1,5 @@
-import type { RideInfoSocketMessage, RidesMinutesSocketMessage } from "@/types/attraction";
-import type { UserQueueSocketMessage } from "@/types/queue";
+import type { AttractionInfoSocketMessage, AttractionsMinutesSocketMessage } from "@/types/attraction";
+import type { QueueStatusItem, UserQueueSocketMessage } from "@/types/queue";
 import { env } from "@/utils/env";
 
 const DEFAULT_WS_URL = "wss://baeminjun.store/ws/queue";
@@ -243,25 +243,26 @@ const client = new StompSocketClient();
 
 function normalizeTicketType(raw: string | undefined) {
   if (!raw) {
-    return "GENERAL";
+    return "BASIC";
   }
   const upper = raw.toUpperCase();
   if (upper === "PREMIUM") {
     return "PREMIUM";
   }
-  if (upper === "BASIC" || upper === "GENERAL") {
-    return "GENERAL";
-  }
-  return "GENERAL";
+  return "BASIC";
 }
 
-function normalizeRideInfoPayload(payload: unknown): RideInfoSocketMessage {
+function normalizeAttractionInfoPayload(payload: unknown): AttractionInfoSocketMessage {
   const obj = (payload ?? {}) as {
+    attractionId?: number;
+    attraction_id?: number;
     rideId?: number;
     ride_id?: number;
     waitTimes?: Array<{
       ticketType?: string;
       ticket_type?: string;
+      estimatedMinutes?: number;
+      estimated_minutes?: number;
       estimatedWaitMinutes?: number;
       estimated_wait_minutes?: number;
       waitingCount?: number;
@@ -272,54 +273,126 @@ function normalizeRideInfoPayload(payload: unknown): RideInfoSocketMessage {
   const waitTimesRaw = Array.isArray(obj.waitTimes) ? obj.waitTimes : [];
 
   return {
-    rideId: obj.rideId ?? obj.ride_id ?? 0,
+    attractionId: obj.attractionId ?? obj.attraction_id ?? obj.rideId ?? obj.ride_id ?? 0,
     waitTimes: waitTimesRaw.map((wait) => ({
       ticketType: normalizeTicketType(wait.ticketType ?? wait.ticket_type),
-      estimatedWaitMinutes: wait.estimatedWaitMinutes ?? wait.estimated_wait_minutes ?? 0,
+      estimatedMinutes:
+        wait.estimatedMinutes ?? wait.estimated_minutes ?? wait.estimatedWaitMinutes ?? wait.estimated_wait_minutes ?? 0,
       waitingCount: wait.waitingCount ?? wait.waiting_count ?? 0,
     })),
   };
 }
 
-function normalizeRidesMinutesPayload(payload: unknown): RidesMinutesSocketMessage {
-  const obj = (payload ?? {}) as {
-    rides?: Array<{
-      rideId?: number;
-      ride_id?: number;
-      estimatedWaitMinutes?: number;
-      estimated_wait_minutes?: number;
-    }>;
+function normalizeAttractionsMinutesPayload(payload: unknown): AttractionsMinutesSocketMessage {
+  type AttractionMinutesDto = {
+    attractionId?: number;
+    attraction_id?: number;
+    rideId?: number;
+    ride_id?: number;
+    estimatedMinutes?: number;
+    estimated_minutes?: number;
+    estimatedWaitMinutes?: number;
+    estimated_wait_minutes?: number;
   };
-  const ridesRaw = Array.isArray(obj.rides) ? obj.rides : [];
+
+  const obj = (payload ?? {}) as {
+    attractions?: AttractionMinutesDto[];
+    rides?: AttractionMinutesDto[];
+  };
+  const attractionsRaw = Array.isArray(obj.attractions) ? obj.attractions : obj.rides ?? [];
 
   return {
-    rides: ridesRaw.map((ride) => ({
-      rideId: ride.rideId ?? ride.ride_id ?? 0,
-      estimatedWaitMinutes: ride.estimatedWaitMinutes ?? ride.estimated_wait_minutes ?? 0,
+    attractions: attractionsRaw.map((attraction) => ({
+      attractionId: attraction.attractionId ?? attraction.attraction_id ?? attraction.rideId ?? attraction.ride_id ?? 0,
+      estimatedMinutes:
+        attraction.estimatedMinutes ??
+        attraction.estimated_minutes ??
+        attraction.estimatedWaitMinutes ??
+        attraction.estimated_wait_minutes ??
+        0,
     })),
   };
 }
 
-export function subscribeRidesMinutes(callback: (payload: RidesMinutesSocketMessage) => void) {
-  return client.subscribe("/sub/rides/minutes", (payload) => {
-    callback(normalizeRidesMinutesPayload(payload));
+export function subscribeAttractionsMinutes(callback: (payload: AttractionsMinutesSocketMessage) => void) {
+  return client.subscribe("/sub/attractions/minutes", (payload) => {
+    callback(normalizeAttractionsMinutesPayload(payload));
   }, {
-    activateDestination: "/pub/rides/minutes",
+    activateDestination: "/pub/attractions/minutes",
   });
 }
 
-export function subscribeRideInfo(rideId: number, callback: (payload: RideInfoSocketMessage) => void) {
-  return client.subscribe(`/sub/rides/${rideId}/info`, (payload) => {
-    callback(normalizeRideInfoPayload(payload));
+export function subscribeAttractionInfo(attractionId: number, callback: (payload: AttractionInfoSocketMessage) => void) {
+  return client.subscribe(`/sub/attractions/${attractionId}/info`, (payload) => {
+    callback(normalizeAttractionInfoPayload(payload));
   }, {
-    activateDestination: `/pub/rides/${rideId}/info`,
+    activateDestination: `/pub/attractions/${attractionId}/info`,
   });
 }
 
 export function subscribeUserQueueStatus(userId: number, callback: (payload: UserQueueSocketMessage) => void) {
   return client.subscribe(`/sub/user/${userId}/queue-status`, (payload) => {
-    callback(payload as UserQueueSocketMessage);
+    callback(normalizeUserQueueSocketPayload(payload));
   }, {
     activateDestination: `/pub/user/${userId}/queue-status`,
   });
+}
+
+function normalizeQueueStatusItem(item: unknown): QueueStatusItem {
+  const obj = (item ?? {}) as {
+    attractionId?: number;
+    attraction_id?: number;
+    rideId?: number;
+    ride_id?: number;
+    attractionName?: string;
+    attraction_name?: string;
+    rideName?: string;
+    ride_name?: string;
+    ticketType?: string;
+    ticket_type?: string;
+    position?: number;
+    estimatedMinutes?: number;
+    estimated_minutes?: number;
+    estimatedWaitMinutes?: number;
+    estimated_wait_minutes?: number;
+  };
+
+  return {
+    attractionId: obj.attractionId ?? obj.attraction_id ?? obj.rideId ?? obj.ride_id ?? 0,
+    attractionName: obj.attractionName ?? obj.attraction_name ?? obj.rideName ?? obj.ride_name ?? "",
+    ticketType: normalizeTicketType(obj.ticketType ?? obj.ticket_type),
+    position: obj.position ?? 0,
+    estimatedMinutes:
+      obj.estimatedMinutes ?? obj.estimated_minutes ?? obj.estimatedWaitMinutes ?? obj.estimated_wait_minutes ?? 0,
+  };
+}
+
+function normalizeUserQueueSocketPayload(payload: unknown): UserQueueSocketMessage {
+  const obj = (payload ?? {}) as {
+    userId?: number;
+    user_id?: number;
+    queues?: unknown[];
+    items?: unknown[];
+    status?: string;
+    attractionId?: number;
+    attraction_id?: number;
+    rideId?: number;
+    ride_id?: number;
+    type?: string;
+  };
+
+  if (obj.status) {
+    return {
+      userId: obj.userId ?? obj.user_id ?? 0,
+      attractionId: obj.attractionId ?? obj.attraction_id ?? obj.rideId ?? obj.ride_id ?? 0,
+      type: normalizeTicketType(obj.type),
+      status: obj.status === "READY" ? "READY" : "ALMOST_READY",
+    };
+  }
+
+  const queuesRaw = Array.isArray(obj.queues) ? obj.queues : obj.items ?? [];
+  return {
+    userId: obj.userId ?? obj.user_id ?? 0,
+    queues: queuesRaw.map(normalizeQueueStatusItem),
+  };
 }

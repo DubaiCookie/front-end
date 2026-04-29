@@ -52,7 +52,7 @@ export default function Header() {
             return;
         }
 
-        if (!queueAlert?.rideId || !userId) {
+        if (!queueAlert?.attractionId || !userId) {
             setBoardingModalMode("failed");
             return;
         }
@@ -61,7 +61,7 @@ export default function Header() {
             setIsBoardingSubmitting(true);
             await boardQueue({
                 userId,
-                rideId: queueAlert.rideId,
+                attractionId: queueAlert.attractionId,
             });
             setQueueAlert(null);
             window.location.reload();
@@ -144,7 +144,7 @@ export default function Header() {
                     aria-live="polite"
                     onClick={handleQueueAlertClick}
                 >
-                    <span className={styles.queueAlertRideName}>{queueAlert.rideName}</span>
+                    <span className={styles.queueAlertRideName}>{queueAlert.attractionName}</span>
                     <span className={styles.queueAlertBody}>{queueAlertBodyText}</span>
                 </button>
             )}

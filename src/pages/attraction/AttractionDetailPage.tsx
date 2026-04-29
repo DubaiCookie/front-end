@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getAttractionDetail } from "@/api/attraction.api";
-import { subscribeRideInfo } from "@/api/ws";
+import { subscribeAttractionInfo } from "@/api/ws";
 import type { AttractionDetail } from "@/types/attraction";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import Button from "@/components/common/Button";
@@ -57,8 +57,8 @@ export default function AttractionDetailPage() {
       return;
     }
 
-    const unsubscribe = subscribeRideInfo(parsedRideId, (payload) => {
-      if (payload.rideId !== parsedRideId) {
+    const unsubscribe = subscribeAttractionInfo(parsedRideId, (payload) => {
+      if (payload.attractionId !== parsedRideId) {
         return;
       }
 
@@ -79,13 +79,13 @@ export default function AttractionDetailPage() {
   }, [attractionId]);
 
   const premiumWaiting = attraction?.waitTimes.find((wait) => wait.ticketType === "PREMIUM");
-  const generalWaiting = attraction?.waitTimes.find((wait) => wait.ticketType === "GENERAL");
+  const basicWaiting = attraction?.waitTimes.find((wait) => wait.ticketType === "BASIC");
   const selectedTypeWaiting =
     todayActiveTicketType
       ? attraction?.waitTimes.find((wait) => wait.ticketType === todayActiveTicketType)
       : null;
 
-  const ridingMinutes = attraction ? Math.round(attraction.ridingTime / 60) : 0;
+  const ridingMinutes = attraction?.ridingTime ?? 0;
   const ticketTypeLabel = todayActiveTicketType === "PREMIUM" ? "Premium" : "Basic";
 
   const handleQueueButtonClick = () => {
@@ -117,7 +117,7 @@ export default function AttractionDetailPage() {
       setIsEnqueueLoading(true);
       const data = await enqueue({
         userId,
-        rideId: attraction.attractionId,
+        attractionId: attraction.attractionId,
         ticketType: todayActiveTicketType,
       });
       setEnqueueResult(data);
@@ -162,7 +162,7 @@ export default function AttractionDetailPage() {
           {ticketTypeLabel}
         </p>
         <p>
-          예상 대기시간: <span className={styles.emphasisPrimary}>{selectedTypeWaiting?.estimatedWaitMinutes ?? 0}</span> 분
+          예상 대기시간: <span className={styles.emphasisPrimary}>{selectedTypeWaiting?.estimatedMinutes ?? 0}</span> 분
         </p>
       </div>
     ) : modalMode === "queueDenied" ? (
@@ -173,7 +173,7 @@ export default function AttractionDetailPage() {
           <span className={styles.emphasisPrimary}>{attraction?.name}</span>에 대기가 등록되었습니다.
         </p>
         <p>내 순서: <span className={styles.emphasisPrimary}>{enqueueResult?.position ?? 0}</span>번째</p>
-        <p>예상 대기시간: <span className={styles.emphasisPrimary}>{enqueueResult?.estimatedWaitMinutes ?? 0}</span> 분</p>
+        <p>예상 대기시간: <span className={styles.emphasisPrimary}>{enqueueResult?.estimatedMinutes ?? 0}</span> 분</p>
       </div>
     );
 
@@ -203,10 +203,10 @@ export default function AttractionDetailPage() {
           <AttractionContentCard
             attraction={attraction}
             ridingMinutes={ridingMinutes}
-            premiumWaitingMinutes={premiumWaiting?.estimatedWaitMinutes ?? 0}
+            premiumWaitingMinutes={premiumWaiting?.estimatedMinutes ?? 0}
             premiumWaitingCount={premiumWaiting?.waitingCount ?? 0}
-            generalWaitingMinutes={generalWaiting?.estimatedWaitMinutes ?? 0}
-            generalWaitingCount={generalWaiting?.waitingCount ?? 0}
+            generalWaitingMinutes={basicWaiting?.estimatedMinutes ?? 0}
+            generalWaitingCount={basicWaiting?.waitingCount ?? 0}
           />
           <div className={styles.bottomSpacer} />
 

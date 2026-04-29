@@ -10,7 +10,7 @@ import type { QueueEventMessage, UserQueueSocketMessage, UserQueueStatusEvent } 
 import { syncPushTokenIfPermitted } from '@/lib/push-notification';
 
 function isUserQueueStatusEvent(payload: UserQueueSocketMessage): payload is UserQueueStatusEvent {
-  return "items" in payload;
+  return "queues" in payload;
 }
 
 function isQueueEventMessage(payload: UserQueueSocketMessage): payload is QueueEventMessage {
@@ -50,15 +50,15 @@ export default function App() {
       return;
     }
 
-    const rideNameById = new Map<number, string>();
+    const attractionNameById = new Map<number, string>();
     void syncPushTokenIfPermitted().catch(console.error);
 
     const unsubscribe = subscribeUserQueueStatus(userId, (payload) => {
       if (isUserQueueStatusEvent(payload)) {
-        payload.items.forEach((item) => {
-          rideNameById.set(item.rideId, item.rideName);
+        payload.queues.forEach((item) => {
+          attractionNameById.set(item.attractionId, item.attractionName);
         });
-        setLiveQueueItems(payload.items);
+        setLiveQueueItems(payload.queues);
         return;
       }
 
@@ -66,15 +66,15 @@ export default function App() {
         return;
       }
 
-      const rideName = rideNameById.get(payload.rideId) ?? "선택한 어트랙션";
+      const attractionName = attractionNameById.get(payload.attractionId) ?? "선택한 어트랙션";
       const message =
         payload.status === "READY"
-          ? `${rideName}: 지금 탑승 가능합니다.`
-          : `${rideName}: 곧 탑승 순서입니다.`;
+          ? `${attractionName}: 지금 탑승 가능합니다.`
+          : `${attractionName}: 곧 탑승 순서입니다.`;
 
       setQueueAlert({
-        rideId: payload.rideId,
-        rideName,
+        attractionId: payload.attractionId,
+        attractionName,
         status: payload.status,
         message,
       });

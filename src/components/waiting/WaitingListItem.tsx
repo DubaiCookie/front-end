@@ -17,7 +17,7 @@ export default function WaitingListItem({ item, onCancel, onSnooze }: WaitingLis
         <div className={styles.headerLeft}>
           <span className={styles.liveBadge}>
             <span className={styles.liveDot} />
-            <span className={styles.rideName}>{item.rideName}</span>
+            <span className={styles.rideName}>{item.attractionName}</span>
           </span>
         </div>
         <span
@@ -35,7 +35,7 @@ export default function WaitingListItem({ item, onCancel, onSnooze }: WaitingLis
         <span className={styles.summaryValue}>{item.position}번째</span>
         <span className={styles.summaryDot}>•</span>
         <span className={styles.summaryLabel}>예상 대기시간</span>
-        <span className={styles.summaryValue}>{item.estimatedWaitMinutes}분</span>
+        <span className={styles.summaryValue}>{item.estimatedMinutes}분</span>
       </div>
 
       <div className={styles.actionRow}>
