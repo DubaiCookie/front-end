@@ -5,7 +5,7 @@ import TicketList from "@/components/ticket/TicketList";
 import Button from "@/components/common/Button";
 import { Link } from "react-router-dom";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
-import { activateTicket, getMyTicketList } from "@/api/ticket.api";
+import { getMyTicketList, getTicketErrorMessage } from "@/api/ticket.api";
 import styles from "./TicketListPage.module.css";
 import EmptyStateMessage from "@/components/common/EmptyStateMessage";
 import { IoTicket } from "react-icons/io5";
@@ -13,14 +13,14 @@ import Modal from "@/components/common/modals/Modal";
 import { isSameLocalDate } from "@/utils/functions";
 import { useAuthStore } from "@/stores/auth.store";
 
-type TicketModalMode = "alreadyActive" | "invalidDate" | "confirmEntry" | "entryDone" | null;
+type TicketModalMode = "alreadyUsed" | "invalidDate" | "showQr" | "error" | null;
 
 export default function TicketListPage() {
   const [tickets, setTickets] = useState<UserTicket[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isActivating, setIsActivating] = useState(false);
   const [modalMode, setModalMode] = useState<TicketModalMode>(null);
   const [selectedTicket, setSelectedTicket] = useState<UserTicket | null>(null);
+  const [errorMessage, setErrorMessage] = useState("");
   const setTodayActiveTicket = useAuthStore((state) => state.setTodayActiveTicket);
 
   const syncTodayActiveTicketState = useCallback((nextTickets: UserTicket[]) => {
@@ -28,7 +28,7 @@ export default function TicketListPage() {
     const availableTodayTicket = nextTickets.find(
       (ticket) =>
         isSameLocalDate(new Date(ticket.availableAt), today) &&
-        ticket.activeStatus === "ACTIVE",
+        ticket.entryStatus === "AVAILABLE",
     );
 
     setTodayActiveTicket({
@@ -46,6 +46,8 @@ export default function TicketListPage() {
         syncTodayActiveTicketState(data);
       } catch (error) {
         console.error(error);
+        setErrorMessage(getTicketErrorMessage(error, "내 티켓을 불러오지 못했습니다."));
+        setModalMode("error");
       } finally {
         setIsLoading(false);
       }
@@ -57,8 +59,8 @@ export default function TicketListPage() {
   const handleQrClick = (ticket: UserTicket) => {
     setSelectedTicket(ticket);
 
-    if (ticket.activeStatus === "ACTIVE") {
-      setModalMode("alreadyActive");
+    if (ticket.entryStatus === "USED") {
+      setModalMode("alreadyUsed");
       return;
     }
 
@@ -68,52 +70,32 @@ export default function TicketListPage() {
       return;
     }
 
-    setModalMode("confirmEntry");
-  };
-
-  const handleModalButtonClick = async () => {
-    if (modalMode !== "confirmEntry" || !selectedTicket?.ticketOrderId) {
-      setModalMode(null);
-      return;
-    }
-
-    try {
-      setIsActivating(true);
-      await activateTicket(selectedTicket.ticketOrderId);
-      const refreshedTickets = await getMyTicketList();
-      setTickets(refreshedTickets);
-      syncTodayActiveTicketState(refreshedTickets);
-
-      setModalMode("entryDone");
-    } catch (error) {
-      console.error(error);
-      setModalMode(null);
-    } finally {
-      setIsActivating(false);
-    }
+    setModalMode("showQr");
   };
 
   const modalTitle =
-    modalMode === "alreadyActive"
-      ? "입장 완료"
+    modalMode === "alreadyUsed"
+      ? "사용 완료"
       : modalMode === "invalidDate"
       ? "입장 불가"
-      : modalMode === "confirmEntry"
-        ? "입장 확인"
-        : "입장 완료";
+      : modalMode === "showQr"
+        ? "입장 QR"
+        : "오류";
 
   const modalContent =
-    modalMode === "alreadyActive"
-      ? "이미 입장 완료된 티켓입니다."
+    modalMode === "alreadyUsed"
+      ? "이미 사용 완료된 티켓입니다."
       : modalMode === "invalidDate"
       ? "사용 가능 날짜가 아닙니다."
-      : modalMode === "confirmEntry"
-        ? "입장 하시겠습니까?"
-        : "입장되었습니다.";
+      : modalMode === "showQr"
+        ? selectedTicket?.ticketCode
+          ? `티켓 코드: ${selectedTicket.ticketCode}`
+          : "발급된 티켓 코드를 확인할 수 없습니다."
+        : errorMessage;
 
   return (
     <div className={clsx("container", styles.pageRoot)}>
-      <LoadingSpinner isLoading={isLoading || isActivating} />
+      <LoadingSpinner isLoading={isLoading} />
       <Modal
         isOpen={modalMode !== null}
         title={modalTitle}
@@ -124,7 +106,8 @@ export default function TicketListPage() {
           setSelectedTicket(null);
         }}
         onButtonClick={() => {
-          void handleModalButtonClick();
+          setModalMode(null);
+          setSelectedTicket(null);
         }}
       />
       <div className={clsx('page-title')}>

@@ -14,9 +14,9 @@ export default function TicketListItem({ ticket, onQrClick }: TicketListItemProp
     const today = new Date();
     const isAvailableToday = isSameLocalDate(new Date(ticket.availableAt), today);
     const isPremium = ticket.ticketType === "PREMIUM";
-    const isActive = ticket.activeStatus === "ACTIVE";
+    const isUsed = ticket.entryStatus === "USED";
 
-    const headerStatusLabel = isAvailableToday ? "Today" : isActive ? null : "입장 전";
+    const headerStatusLabel = isUsed ? "사용 완료" : isAvailableToday ? "Today" : "입장 전";
 
     const handleCardClick = (event: MouseEvent<HTMLElement>) => {
         const target = event.target as HTMLElement;
@@ -49,7 +49,7 @@ export default function TicketListItem({ ticket, onQrClick }: TicketListItemProp
                         <span className={clsx(styles.perforationDot)} />
                         <span className={clsx(styles.perforationDot)} />
                     </div>
-                    {isActive && <div className={clsx(styles.entryStamp)}>입장완료</div>}
+                    {isUsed && <div className={clsx(styles.entryStamp)}>사용완료</div>}
 
                     <header className={clsx(styles.header)}>
                         <p className={clsx(styles.ticketType)}>
@@ -62,7 +62,7 @@ export default function TicketListItem({ ticket, onQrClick }: TicketListItemProp
                             <span
                                 className={clsx(
                                     styles.statusBadge,
-                                    isAvailableToday ? styles.statusToday : styles.statusBefore,
+                                    isAvailableToday && !isUsed ? styles.statusToday : styles.statusBefore,
                                 )}
                             >
                                 {headerStatusLabel}
@@ -86,7 +86,7 @@ export default function TicketListItem({ ticket, onQrClick }: TicketListItemProp
                 </div>
 
                 <div className={clsx(styles.ticket, styles.ticketFace, styles.ticketBack, isPremium ? styles.premium : styles.basic)}>
-                    {isAvailableToday ? (
+                    {isAvailableToday && !isUsed ? (
                         <>
                             <p className={styles.backTitle}>입장 QR</p>
                             <button

@@ -55,7 +55,7 @@ export default function LoginPage() {
                 const today = new Date();
                 const availableTicket = ticketList.find(
                     (ticket) =>
-                        ticket.activeStatus === "ACTIVE" &&
+                        ticket.entryStatus === "AVAILABLE" &&
                         isSameLocalDate(new Date(ticket.availableAt), today),
                 );
 
