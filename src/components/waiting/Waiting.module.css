@@ -96,18 +96,28 @@
 }
 
 .summaryLabel {
+  display: inline-block;
+  text-align: center;
   color: var(--TEXT-SECONDARY);
   font-size: var(--font-size-sm);
+  line-height: 20px;
+  min-height: 20px;
 }
 
 .summaryValue {
+  display: inline-block;
   color: var(--PRIMARY-PINK);
   font-weight: var(--font-semibold);
+  line-height: 20px;
+  min-height: 20px;
 }
 
 .summaryDot {
+  display: inline-block;
   color: var(--SECONDARY-PINK);
   font-weight: var(--font-bold);
+  line-height: 20px;
+  min-height: 20px;
 }
 
 .actionRow {
