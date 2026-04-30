@@ -14,8 +14,6 @@ export default function MyPhotosPage() {
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
-    setIsLoading(true);
-    setFetchError(null);
     getMyPhotoCycles()
       .then(setCycles)
       .catch((err: unknown) => {
