@@ -6,6 +6,7 @@ export type PreparePaymentRequest = {
   ticketType: TicketKind;
   availableDate: string;
   ticketQuantity: number;
+  ticketManagementId: number;
 };
 
 export type PaymentStatus = "PENDING" | "COMPLETED" | "FAILED" | "CANCELLED";
