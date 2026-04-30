@@ -26,8 +26,7 @@ export async function getQueueStatus() {
 }
 
 export async function cancelQueue(payload: RequestQueueCancel) {
-  const request: RequestQueueCancel = {
-    userId: payload.userId,
+  const request = {
     attractionId: payload.attractionId,
   };
 
@@ -35,9 +34,17 @@ export async function cancelQueue(payload: RequestQueueCancel) {
   return data;
 }
 
+export async function deferQueue(payload: RequestQueueCancel) {
+  const request = {
+    attractionId: payload.attractionId,
+  };
+
+  const { data } = await http.post("/queue/attractions/defer", request);
+  return data;
+}
+
 export async function boardQueue(payload: RequestQueueCancel) {
-  const request: RequestQueueCancel = {
-    userId: payload.userId,
+  const request = {
     attractionId: payload.attractionId,
   };
 

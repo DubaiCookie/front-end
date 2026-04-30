@@ -10,6 +10,8 @@ export interface RequestQueueCancel {
   attractionId: number;
 }
 
+export type QueueStatus = "WAITING" | "AVAILABLE";
+
 export interface EnqueueResponse {
   position: number;
   estimatedMinutes: number;
@@ -20,8 +22,10 @@ export interface QueueStatusItem {
   attractionId: number;
   attractionName: string;
   ticketType: TicketKind;
+  status: QueueStatus;
   position: number;
   estimatedMinutes: number;
+  deferCount: number;
 }
 
 export interface QueueStatusResponse {
@@ -45,6 +49,7 @@ export interface QueueAlert {
 
 export interface QueueEventMessage {
   attractionId: number;
+  attractionName?: string;
   userId: number;
   type: TicketKind;
   status: QueueAlertStatus;
