@@ -125,11 +125,15 @@ export default function TicketOrderPage() {
 
     try {
       setIsSubmitting(true);
+      const selectedDateInfo = availableDates.find((d) => d.date === selectedDate);
+      if (!selectedDateInfo) throw new Error("선택한 날짜 정보를 찾을 수 없습니다.");
+
+      const selectedTicket = tickets.find((t) => t.ticketType === selectedTicketType);
       const prepared = await preparePayment({
-        userId,
         ticketType: selectedTicketType,
-        availableDate: selectedDate,
+        ticketManagementId: selectedDateInfo.ticketManagementId,
         ticketQuantity,
+        price: selectedTicket?.price ?? 0,
       });
 
       const amount = Number(prepared.amount);

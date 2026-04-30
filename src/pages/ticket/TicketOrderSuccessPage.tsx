@@ -72,7 +72,6 @@ export default function TicketOrderSuccessPage() {
         const data = await confirmPayment({
           paymentKey,
           orderId: backendOrderId,
-          tossOrderId,
           amount,
         });
         setResult(data);

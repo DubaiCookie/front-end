@@ -1,16 +1,12 @@
 import { http } from "@/api/http";
-import { useAuthStore } from "@/stores/auth.store";
+import { createTicketOrder } from "@/api/ticket.api";
 import type { TicketKind } from "@/types/ticket";
 
-function getAccessToken(): string {
-  return useAuthStore.getState().accessToken ?? "";
-}
-
 export type PreparePaymentRequest = {
-  userId: number;
-  ticketType: TicketKind;
-  availableDate: string;
+  ticketManagementId: number;
   ticketQuantity: number;
+  ticketType: TicketKind;
+  price: number;
 };
 
 export type PaymentStatus = "PENDING" | "COMPLETED" | "FAILED" | "CANCELLED";
@@ -46,7 +42,6 @@ export type PaymentOrderResponse = {
 export type ConfirmPaymentRequest = {
   paymentKey: string;
   orderId: number;
-  tossOrderId: string;
   amount: number;
 };
 
@@ -145,18 +140,26 @@ function toPaymentOrderResponse(input: unknown): PaymentOrderResponse {
 }
 
 export async function preparePayment(payload: PreparePaymentRequest) {
-  const { data } = await http.post("/payments", {
-    ...payload,
-    accessToken: getAccessToken(),
+  const ticketOrder = await createTicketOrder({
+    ticketManagementId: payload.ticketManagementId,
+    orderQuantity: payload.ticketQuantity,
   });
-  return toPaymentResponse(data);
+
+  const orderName = `${payload.ticketType} 티켓 ${payload.ticketQuantity}매`;
+  const amount = payload.price * payload.ticketQuantity;
+
+  const { data } = await http.post("/payments", {
+    orderId: ticketOrder.ticketOrderId,
+    orderType: "TICKET",
+    orderName,
+    amount,
+  });
+
+  return { ...toPaymentResponse(data), orderName };
 }
 
 export async function confirmPayment(payload: ConfirmPaymentRequest) {
-  const { data } = await http.post("/payments/confirm", {
-    ...payload,
-    accessToken: getAccessToken(),
-  });
+  const { data } = await http.post("/payments/confirm", payload);
   return toPaymentResponse(data);
 }
 
