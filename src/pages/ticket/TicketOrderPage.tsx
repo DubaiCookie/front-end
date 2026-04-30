@@ -128,19 +128,19 @@ export default function TicketOrderPage() {
       const selectedDateInfo = availableDates.find((d) => d.date === selectedDate);
       if (!selectedDateInfo) throw new Error("선택한 날짜 정보를 찾을 수 없습니다.");
 
+      const selectedTicket = tickets.find((t) => t.ticketType === selectedTicketType);
       const prepared = await preparePayment({
-        userId,
         ticketType: selectedTicketType,
-        availableDate: selectedDate,
-        ticketQuantity,
         ticketManagementId: selectedDateInfo.ticketManagementId,
+        ticketQuantity,
+        price: selectedTicket?.price ?? 0,
       });
 
       const amount = Number(prepared.amount);
       const backendOrderId = Number(prepared.orderId);
       const paymentId = Number(prepared.paymentId);
       const orderName = String(prepared.orderName ?? "").trim();
-      const tossOrderId = `ORDER-${backendOrderId}-${Date.now()}`;
+      const tossOrderId = prepared.tossOrderId || `ORDER-${backendOrderId}-${Date.now()}`;
 
       if (!Number.isFinite(amount) || amount <= 0) {
         throw new Error(`유효하지 않은 결제 금액입니다. amount=${prepared.amount}`);

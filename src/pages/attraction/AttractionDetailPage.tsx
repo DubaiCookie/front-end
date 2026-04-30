@@ -11,9 +11,16 @@ import Modal from "@/components/common/modals/Modal";
 import { useAuthStore } from "@/stores/auth.store";
 import { enqueue } from "@/api/queue.api";
 import type { EnqueueResponse } from "@/types/queue";
+import { getTodayEntryTicket } from "@/api/ticket.api";
+import type { TicketKind } from "@/types/ticket";
 import styles from "./Attraction.module.css";
 
 type QueueModalMode = "loginRequired" | "ticketUnavailable" | "queueConfirm" | "queueCompleted" | "queueDenied" | null;
+
+type TodayEntryState = {
+  issuedTicketId: number;
+  ticketType: TicketKind;
+} | null;
 
 export default function AttractionDetailPage() {
   const { attractionId } = useParams<{ attractionId: string }>();
@@ -23,10 +30,8 @@ export default function AttractionDetailPage() {
   const [detailRefreshKey, setDetailRefreshKey] = useState(0);
   const [modalMode, setModalMode] = useState<QueueModalMode>(null);
   const [enqueueResult, setEnqueueResult] = useState<EnqueueResponse | null>(null);
+  const [todayEntry, setTodayEntry] = useState<TodayEntryState>(null);
   const userId = useAuthStore((state) => state.userId);
-  const hasTodayActiveTicket = useAuthStore((state) => state.hasTodayActiveTicket);
-  const todayActiveTicketType = useAuthStore((state) => state.todayActiveTicketType);
-  const todayActiveIssuedTicketId = useAuthStore((state) => state.todayActiveIssuedTicketId);
 
   useEffect(() => {
     if (!attractionId) {
@@ -81,26 +86,34 @@ export default function AttractionDetailPage() {
 
   const premiumWaiting = attraction?.waitTimes.find((wait) => wait.ticketType === "PREMIUM");
   const basicWaiting = attraction?.waitTimes.find((wait) => wait.ticketType === "BASIC");
-  const selectedTypeWaiting =
-    todayActiveTicketType
-      ? attraction?.waitTimes.find((wait) => wait.ticketType === todayActiveTicketType)
-      : null;
+  const selectedTypeWaiting = todayEntry
+    ? attraction?.waitTimes.find((wait) => wait.ticketType === todayEntry.ticketType)
+    : null;
 
-  const ridingMinutes = attraction?.ridingTime ?? 0;
-  const ticketTypeLabel = todayActiveTicketType === "PREMIUM" ? "Premium" : "Basic";
+  const ridingMinutes = Math.floor((attraction?.ridingTime ?? 0) / 60);
+  const ticketTypeLabel = todayEntry?.ticketType === "PREMIUM" ? "Premium" : "Basic";
 
-  const handleQueueButtonClick = () => {
+  const handleQueueButtonClick = async () => {
     if (!userId) {
       setModalMode("loginRequired");
       return;
     }
 
-    if (!hasTodayActiveTicket || !todayActiveTicketType) {
+    try {
+      setIsEnqueueLoading(true);
+      const entry = await getTodayEntryTicket();
+      if (!entry.hasEntry || !entry.issuedTicketId || !entry.ticketType) {
+        setModalMode("ticketUnavailable");
+        return;
+      }
+      setTodayEntry({ issuedTicketId: entry.issuedTicketId, ticketType: entry.ticketType });
+      setModalMode("queueConfirm");
+    } catch (error) {
+      console.error(error);
       setModalMode("ticketUnavailable");
-      return;
+    } finally {
+      setIsEnqueueLoading(false);
     }
-
-    setModalMode("queueConfirm");
   };
 
   const handleModalButtonClick = async () => {
@@ -108,8 +121,7 @@ export default function AttractionDetailPage() {
       modalMode !== "queueConfirm" ||
       !attraction ||
       !userId ||
-      !todayActiveTicketType ||
-      !todayActiveIssuedTicketId
+      !todayEntry
     ) {
       setModalMode(null);
       return;
@@ -119,7 +131,7 @@ export default function AttractionDetailPage() {
       setIsEnqueueLoading(true);
       const data = await enqueue({
         attractionId: attraction.attractionId,
-        issuedTicketId: todayActiveIssuedTicketId,
+        issuedTicketId: todayEntry.issuedTicketId,
       });
       setEnqueueResult(data);
       setDetailRefreshKey((prev) => prev + 1);
@@ -157,7 +169,7 @@ export default function AttractionDetailPage() {
         <p
           className={clsx(
             styles.ticketTypeBadge,
-            todayActiveTicketType === "PREMIUM" ? styles.ticketTypePremium : styles.ticketTypeBasic,
+            todayEntry?.ticketType === "PREMIUM" ? styles.ticketTypePremium : styles.ticketTypeBasic,
           )}
         >
           {ticketTypeLabel}
@@ -212,7 +224,7 @@ export default function AttractionDetailPage() {
           <div className={styles.bottomSpacer} />
 
           <div className="button-bottom">
-            <Button title="줄서기" className={styles.queueButton} onClick={handleQueueButtonClick} />
+            <Button title="줄서기" className={styles.queueButton} onClick={() => { void handleQueueButtonClick(); }} />
           </div>
         </>
       )}

@@ -8,8 +8,6 @@ import { login } from "@/api/auth.api";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/auth.store";
 import Modal from "@/components/common/modals/Modal";
-import { getMyTicketList } from "@/api/ticket.api";
-import { isSameLocalDate } from "@/utils/functions";
 import { requestAndRegisterPushToken } from "@/lib/push-notification";
 
 
@@ -38,7 +36,6 @@ export default function LoginPage() {
     const navigate = useNavigate();
     const setAuthUser = useAuthStore((state) => state.setAuthUser);
     const setAccessToken = useAuthStore((state) => state.setAccessToken);
-    const setTodayActiveTicket = useAuthStore((state) => state.setTodayActiveTicket);
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [isInvalidCredentialsModalOpen, setIsInvalidCredentialsModalOpen] = useState(false);
     const [isServerErrorModalOpen, setIsServerErrorModalOpen] = useState(false);
@@ -51,29 +48,6 @@ export default function LoginPage() {
                 nickname: response.nickname,
             });
             setAccessToken(response.accessToken ?? null);
-
-            try {
-                const ticketList = await getMyTicketList();
-                const today = new Date();
-                const availableTicket = ticketList.find(
-                    (ticket) =>
-                        ticket.entryStatus === "AVAILABLE" &&
-                        isSameLocalDate(new Date(ticket.availableAt), today),
-                );
-
-                setTodayActiveTicket({
-                    hasTodayActiveTicket: Boolean(availableTicket),
-                    todayActiveTicketType: availableTicket?.ticketType ?? null,
-                    todayActiveIssuedTicketId: availableTicket?.issuedTicketId ?? null,
-                });
-            } catch (ticketError) {
-                console.error(ticketError);
-                setTodayActiveTicket({
-                    hasTodayActiveTicket: false,
-                    todayActiveTicketType: null,
-                    todayActiveIssuedTicketId: null,
-                });
-            }
             setIsSuccessModalOpen(true);
         } catch (error) {
             if (axios.isAxiosError(error)) {

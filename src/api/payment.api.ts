@@ -1,17 +1,12 @@
 import { http } from "@/api/http";
-import { useAuthStore } from "@/stores/auth.store";
+import { createTicketOrder } from "@/api/ticket.api";
 import type { TicketKind } from "@/types/ticket";
 
-function getAccessToken(): string {
-  return useAuthStore.getState().accessToken ?? "";
-}
-
 export type PreparePaymentRequest = {
-  userId: number;
-  ticketType: TicketKind;
-  availableDate: string;
-  ticketQuantity: number;
   ticketManagementId: number;
+  ticketQuantity: number;
+  ticketType: TicketKind;
+  price: number;
 };
 
 export type PaymentStatus = "PENDING" | "COMPLETED" | "FAILED" | "CANCELLED";
@@ -21,6 +16,7 @@ export type PaymentResponse = {
   paymentId: number;
   userId: number;
   orderId: number;
+  tossOrderId: string;
   orderName: string;
   amount: number;
   paymentKey: string;
@@ -46,7 +42,6 @@ export type PaymentOrderResponse = {
 export type ConfirmPaymentRequest = {
   paymentKey: string;
   orderId: number;
-  tossOrderId: string;
   amount: number;
 };
 
@@ -58,6 +53,8 @@ type PaymentResponseDto = {
   user_id?: number;
   orderId?: number;
   order_id?: number;
+  tossOrderId?: string;
+  toss_order_id?: string;
   orderName?: string;
   order_name?: string;
   amount?: number;
@@ -113,6 +110,7 @@ function toPaymentResponse(input: unknown): PaymentResponse {
     paymentId: dto.paymentId ?? dto.payment_id ?? dto.id ?? 0,
     userId: dto.userId ?? dto.user_id ?? 0,
     orderId: dto.orderId ?? dto.order_id ?? 0,
+    tossOrderId: dto.tossOrderId ?? dto.toss_order_id ?? "",
     orderName: dto.orderName ?? dto.order_name ?? "",
     amount: Number(amountCandidate),
     paymentKey: dto.paymentKey ?? dto.payment_key ?? "",
@@ -142,18 +140,26 @@ function toPaymentOrderResponse(input: unknown): PaymentOrderResponse {
 }
 
 export async function preparePayment(payload: PreparePaymentRequest) {
-  const { data } = await http.post("/payments", {
-    ...payload,
-    accessToken: getAccessToken(),
+  const ticketOrder = await createTicketOrder({
+    ticketManagementId: payload.ticketManagementId,
+    orderQuantity: payload.ticketQuantity,
   });
-  return toPaymentResponse(data);
+
+  const orderName = `${payload.ticketType} 티켓 ${payload.ticketQuantity}매`;
+  const amount = payload.price * payload.ticketQuantity;
+
+  const { data } = await http.post("/payments", {
+    orderId: ticketOrder.ticketOrderId,
+    orderType: "TICKET",
+    orderName,
+    amount,
+  });
+
+  return { ...toPaymentResponse(data), orderName };
 }
 
 export async function confirmPayment(payload: ConfirmPaymentRequest) {
-  const { data } = await http.post("/payments/confirm", {
-    ...payload,
-    accessToken: getAccessToken(),
-  });
+  const { data } = await http.post("/payments/confirm", payload);
   return toPaymentResponse(data);
 }
 
