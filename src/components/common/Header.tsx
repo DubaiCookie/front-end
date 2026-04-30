@@ -126,7 +126,9 @@ export default function Header() {
                                 <span className={clsx(styles.userName)}>{nickname}</span>
                                 <span>님</span>
                             </p>
-                            <IoNotifications className={clsx(styles.icon)} />
+                            <Link to="/notifications" className={styles.notificationLink} aria-label="알림 목록으로 이동">
+                                <IoNotifications className={clsx(styles.icon)} />
+                            </Link>
                         </>)
                         : (<>
                             <Link to="/login" className={clsx('flex-row', styles.headerText)}>

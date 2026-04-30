@@ -1,5 +1,5 @@
 import type { AttractionInfoSocketMessage, AttractionsMinutesSocketMessage } from "@/types/attraction";
-import type { QueueStatusItem, UserQueueSocketMessage } from "@/types/queue";
+import type { QueueStatus, QueueStatusItem, UserQueueSocketMessage } from "@/types/queue";
 import type { TicketKind } from "@/types/ticket";
 import { env } from "@/utils/env";
 
@@ -274,6 +274,10 @@ function normalizeTicketType(raw: string | undefined): TicketKind {
   return "BASIC";
 }
 
+function normalizeQueueStatus(raw: string | undefined): QueueStatus {
+  return raw?.toUpperCase() === "AVAILABLE" ? "AVAILABLE" : "WAITING";
+}
+
 function normalizeAttractionInfoPayload(payload: unknown): AttractionInfoSocketMessage {
   const obj = (payload ?? {}) as {
     attractionId?: number;
@@ -425,20 +429,25 @@ function normalizeQueueStatusItem(item: unknown): QueueStatusItem {
     ride_name?: string;
     ticketType?: string;
     ticket_type?: string;
+    status?: string;
     position?: number;
     estimatedMinutes?: number;
     estimated_minutes?: number;
     estimatedWaitMinutes?: number;
     estimated_wait_minutes?: number;
+    deferCount?: number;
+    defer_count?: number;
   };
 
   return {
     attractionId: obj.attractionId ?? obj.attraction_id ?? obj.rideId ?? obj.ride_id ?? 0,
     attractionName: obj.attractionName ?? obj.attraction_name ?? obj.rideName ?? obj.ride_name ?? "",
     ticketType: normalizeTicketType(obj.ticketType ?? obj.ticket_type),
+    status: normalizeQueueStatus(obj.status),
     position: obj.position ?? 0,
     estimatedMinutes:
       obj.estimatedMinutes ?? obj.estimated_minutes ?? obj.estimatedWaitMinutes ?? obj.estimated_wait_minutes ?? 0,
+    deferCount: obj.deferCount ?? obj.defer_count ?? 0,
   };
 }
 
@@ -454,14 +463,20 @@ function normalizeUserQueueSocketPayload(payload: unknown): UserQueueSocketMessa
     rideId?: number;
     ride_id?: number;
     type?: string;
+    ticketType?: string;
+    ticket_type?: string;
+    attractionName?: string;
+    attraction_name?: string;
   };
 
   if (obj.status) {
+    const status = obj.status.toUpperCase();
     return {
       userId: obj.userId ?? obj.user_id ?? 0,
       attractionId: obj.attractionId ?? obj.attraction_id ?? obj.rideId ?? obj.ride_id ?? 0,
-      type: normalizeTicketType(obj.type),
-      status: obj.status === "READY" ? "READY" : "ALMOST_READY",
+      attractionName: obj.attractionName ?? obj.attraction_name,
+      type: normalizeTicketType(obj.ticketType ?? obj.ticket_type ?? obj.type),
+      status: status === "READY" || status === "AVAILABLE" ? "READY" : "ALMOST_READY",
     };
   }
 

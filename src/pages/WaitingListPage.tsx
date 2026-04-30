@@ -3,13 +3,16 @@ import { useCallback, useEffect, useState } from "react";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import WaitingList from "@/components/waiting/WaitingList";
 import { useAuthStore } from "@/stores/auth.store";
-import { cancelQueue, getQueueStatus } from "@/api/queue.api";
+import { boardQueue, cancelQueue, deferQueue, getQueueStatus } from "@/api/queue.api";
 import type { QueueStatusItem } from "@/types/queue";
 import EmptyStateMessage from "@/components/common/EmptyStateMessage";
 import styles from "./WaitingListPage.module.css";
 import { IoHourglass } from "react-icons/io5";
 import Modal from "@/components/common/modals/Modal";
 import { useQueueStore } from "@/stores/queue.store";
+
+const MAX_DEFER_COUNT = 3;
+const DEFER_CYCLES = 3;
 
 export default function WaitingListPage() {
   const userId = useAuthStore((state) => state.userId);
@@ -18,6 +21,7 @@ export default function WaitingListPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCancelItem, setSelectedCancelItem] = useState<QueueStatusItem | null>(null);
   const [selectedSnoozeItem, setSelectedSnoozeItem] = useState<QueueStatusItem | null>(null);
+  const [selectedBoardItem, setSelectedBoardItem] = useState<QueueStatusItem | null>(null);
 
   const fetchQueueStatus = useCallback(async () => {
     if (!userId) {
@@ -55,6 +59,10 @@ export default function WaitingListPage() {
     setSelectedSnoozeItem(item);
   };
 
+  const handleBoard = (item: QueueStatusItem) => {
+    setSelectedBoardItem(item);
+  };
+
   const handleConfirmCancel = async () => {
     if (!userId) {
       setSelectedCancelItem(null);
@@ -80,6 +88,48 @@ export default function WaitingListPage() {
     }
   };
 
+  const handleConfirmSnooze = async () => {
+    if (!userId || !selectedSnoozeItem) {
+      setSelectedSnoozeItem(null);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      await deferQueue({
+        userId,
+        attractionId: selectedSnoozeItem.attractionId,
+      });
+      await fetchQueueStatus();
+    } catch (error) {
+      console.error(error);
+      setIsLoading(false);
+    } finally {
+      setSelectedSnoozeItem(null);
+    }
+  };
+
+  const handleConfirmBoard = async () => {
+    if (!userId || !selectedBoardItem) {
+      setSelectedBoardItem(null);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      await boardQueue({
+        userId,
+        attractionId: selectedBoardItem.attractionId,
+      });
+      await fetchQueueStatus();
+    } catch (error) {
+      console.error(error);
+      setIsLoading(false);
+    } finally {
+      setSelectedBoardItem(null);
+    }
+  };
+
   return (
     <div className={clsx("container", styles.pageRoot)}>
       <LoadingSpinner isLoading={isLoading} />
@@ -97,14 +147,33 @@ export default function WaitingListPage() {
       />
       <Modal
         isOpen={Boolean(selectedSnoozeItem)}
-        title="준비중"
-        content="미루기 기능은 준비중입니다."
+        title="탑승 미루기"
+        content={
+          <div>
+            <p>{selectedSnoozeItem?.attractionName ?? ""} 줄서기를 {DEFER_CYCLES}회차 뒤로 미룰까요?</p>
+            <p className={styles.deferCountText}>
+              남은 횟수: {Math.max(MAX_DEFER_COUNT - (selectedSnoozeItem?.deferCount ?? 0), 0)}회
+            </p>
+          </div>
+        }
         buttonTitle="확인"
         onClose={() => {
           setSelectedSnoozeItem(null);
         }}
         onButtonClick={() => {
-          setSelectedSnoozeItem(null);
+          void handleConfirmSnooze();
+        }}
+      />
+      <Modal
+        isOpen={Boolean(selectedBoardItem)}
+        title="탑승"
+        content={`${selectedBoardItem?.attractionName ?? ""} 탑승을 완료하시겠습니까?`}
+        buttonTitle="확인"
+        onClose={() => {
+          setSelectedBoardItem(null);
+        }}
+        onButtonClick={() => {
+          void handleConfirmBoard();
         }}
       />
       <div className={clsx("page-title")}>
@@ -114,7 +183,7 @@ export default function WaitingListPage() {
         <span>Waiting Status</span>
       </div>
       {items.length > 0 ? (
-        <WaitingList items={items} onCancel={handleCancel} onSnooze={handleSnooze} />
+        <WaitingList items={items} onCancel={handleCancel} onSnooze={handleSnooze} onBoard={handleBoard} />
       ) : (
         <EmptyStateMessage target="이용 대기중인 어트랙션이" />
       )}

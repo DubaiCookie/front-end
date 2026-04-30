@@ -66,7 +66,7 @@ export default function App() {
         return;
       }
 
-      const attractionName = attractionNameById.get(payload.attractionId) ?? "선택한 어트랙션";
+      const attractionName = payload.attractionName ?? attractionNameById.get(payload.attractionId) ?? "선택한 어트랙션";
       const message =
         payload.status === "READY"
           ? `${attractionName}: 지금 탑승 가능합니다.`

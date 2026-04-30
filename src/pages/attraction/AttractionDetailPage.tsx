@@ -13,6 +13,7 @@ import { enqueue } from "@/api/queue.api";
 import type { EnqueueResponse } from "@/types/queue";
 import { getTodayEntryTicket } from "@/api/ticket.api";
 import type { TicketKind } from "@/types/ticket";
+import { requestAndRegisterPushToken } from "@/lib/push-notification";
 import styles from "./Attraction.module.css";
 
 type QueueModalMode = "loginRequired" | "ticketUnavailable" | "queueConfirm" | "queueCompleted" | "queueDenied" | null;
@@ -134,6 +135,7 @@ export default function AttractionDetailPage() {
         issuedTicketId: todayEntry.issuedTicketId,
       });
       setEnqueueResult(data);
+      void requestAndRegisterPushToken().catch(console.error);
       setDetailRefreshKey((prev) => prev + 1);
       setModalMode("queueCompleted");
     } catch (error) {

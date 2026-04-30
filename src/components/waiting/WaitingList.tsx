@@ -6,9 +6,10 @@ type WaitingListProps = {
   items: QueueStatusItem[];
   onCancel?: (item: QueueStatusItem) => void;
   onSnooze?: (item: QueueStatusItem) => void;
+  onBoard?: (item: QueueStatusItem) => void;
 };
 
-export default function WaitingList({ items, onCancel, onSnooze }: WaitingListProps) {
+export default function WaitingList({ items, onCancel, onSnooze, onBoard }: WaitingListProps) {
   return (
     <div className={styles.list}>
       {items.map((item) => (
@@ -17,6 +18,7 @@ export default function WaitingList({ items, onCancel, onSnooze }: WaitingListPr
           item={item}
           onCancel={onCancel}
           onSnooze={onSnooze}
+          onBoard={onBoard}
         />
       ))}
     </div>

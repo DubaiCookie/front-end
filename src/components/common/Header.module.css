@@ -47,6 +47,11 @@
   color: var(--WHITE)
 }
 
+.notificationLink {
+  display: inline-flex;
+  align-items: center;
+}
+
 .logoLink {
   display: inline-flex;
   align-items: center;

@@ -1,3 +1,8 @@
 .pageRoot {
   position: relative;
 }
+
+.deferCountText {
+  color: var(--PRIMARY-PINK);
+  font-weight: var(--font-semibold);
+}
