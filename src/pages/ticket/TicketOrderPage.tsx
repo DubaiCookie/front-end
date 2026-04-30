@@ -140,7 +140,7 @@ export default function TicketOrderPage() {
       const backendOrderId = Number(prepared.orderId);
       const paymentId = Number(prepared.paymentId);
       const orderName = String(prepared.orderName ?? "").trim();
-      const tossOrderId = `ORDER-${backendOrderId}-${Date.now()}`;
+      const tossOrderId = prepared.tossOrderId || `ORDER-${backendOrderId}-${Date.now()}`;
 
       if (!Number.isFinite(amount) || amount <= 0) {
         throw new Error(`유효하지 않은 결제 금액입니다. amount=${prepared.amount}`);

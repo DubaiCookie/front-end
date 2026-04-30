@@ -16,6 +16,7 @@ export type PaymentResponse = {
   paymentId: number;
   userId: number;
   orderId: number;
+  tossOrderId: string;
   orderName: string;
   amount: number;
   paymentKey: string;
@@ -52,6 +53,8 @@ type PaymentResponseDto = {
   user_id?: number;
   orderId?: number;
   order_id?: number;
+  tossOrderId?: string;
+  toss_order_id?: string;
   orderName?: string;
   order_name?: string;
   amount?: number;
@@ -107,6 +110,7 @@ function toPaymentResponse(input: unknown): PaymentResponse {
     paymentId: dto.paymentId ?? dto.payment_id ?? dto.id ?? 0,
     userId: dto.userId ?? dto.user_id ?? 0,
     orderId: dto.orderId ?? dto.order_id ?? 0,
+    tossOrderId: dto.tossOrderId ?? dto.toss_order_id ?? "",
     orderName: dto.orderName ?? dto.order_name ?? "",
     amount: Number(amountCandidate),
     paymentKey: dto.paymentKey ?? dto.payment_key ?? "",

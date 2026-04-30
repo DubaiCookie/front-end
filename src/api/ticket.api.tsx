@@ -193,3 +193,27 @@ export async function getMyTicketList(): Promise<UserTicket[]> {
 export async function enterTicket(ticketCode: string): Promise<void> {
   await http.post("/tickets/issued/enter", { ticketCode });
 }
+
+type TodayEntryDto = {
+  hasEntry?: boolean;
+  issuedTicketId?: number | null;
+  ticketType?: string | null;
+  ticketCode?: string | null;
+};
+
+export type TodayEntry = {
+  hasEntry: boolean;
+  issuedTicketId: number | null;
+  ticketType: TicketKind | null;
+  ticketCode: string | null;
+};
+
+export async function getTodayEntryTicket(): Promise<TodayEntry> {
+  const { data } = await http.get<TodayEntryDto>("/tickets/issued/today-entry");
+  return {
+    hasEntry: data.hasEntry ?? false,
+    issuedTicketId: data.issuedTicketId ?? null,
+    ticketType: data.ticketType ? normalizeTicketType(data.ticketType) : null,
+    ticketCode: data.ticketCode ?? null,
+  };
+}
