@@ -3,8 +3,29 @@ import type { QueueStatusItem, UserQueueSocketMessage } from "@/types/queue";
 import type { TicketKind } from "@/types/ticket";
 import { env } from "@/utils/env";
 
-const DEFAULT_WS_URL = "wss://skala3-cloud1-team3.cloud.skala-ai.com/ws/queue";
-const WS_URL = env.WS_URL || DEFAULT_WS_URL;
+const DEFAULT_WS_PATH = "/ws/queue";
+
+function resolveWebSocketUrl(rawUrl: string | undefined) {
+  const configuredUrl = rawUrl?.trim() || DEFAULT_WS_PATH;
+
+  if (/^wss?:\/\//i.test(configuredUrl)) {
+    return configuredUrl;
+  }
+
+  if (/^https?:\/\//i.test(configuredUrl)) {
+    return configuredUrl.replace(/^http/i, "ws");
+  }
+
+  const path = configuredUrl.startsWith("/") ? configuredUrl : `/${configuredUrl}`;
+  if (typeof window === "undefined") {
+    return path;
+  }
+
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${protocol}//${window.location.host}${path}`;
+}
+
+const WS_URL = resolveWebSocketUrl(env.WS_URL);
 
 type StompHeaders = Record<string, string>;
 type StompCallback = (payload: unknown) => void;
@@ -329,8 +350,28 @@ function normalizeAttractionsMinutesPayload(payload: unknown): AttractionsMinute
   const obj = (payload ?? {}) as {
     attractions?: AttractionMinutesDto[];
     rides?: AttractionMinutesDto[];
+    attractionId?: number;
+    attraction_id?: number;
+    rideId?: number;
+    ride_id?: number;
+    estimatedMinutes?: number;
+    estimated_minutes?: number;
+    estimatedWaitMinutes?: number;
+    estimated_wait_minutes?: number;
+    waitingMinutesPremium?: number;
+    waiting_minutes_premium?: number;
+    waitingMinutesBasic?: number;
+    waiting_minutes_basic?: number;
+    queueCountPremium?: number;
+    queue_count_premium?: number;
+    queueCountBasic?: number;
+    queue_count_basic?: number;
   };
-  const attractionsRaw = Array.isArray(obj.attractions) ? obj.attractions : obj.rides ?? [];
+  const attractionsRaw = Array.isArray(obj.attractions)
+    ? obj.attractions
+    : Array.isArray(obj.rides)
+      ? obj.rides
+      : [obj];
 
   return {
     attractions: attractionsRaw.map((attraction) => ({
@@ -354,24 +395,21 @@ function normalizeAttractionsMinutesPayload(payload: unknown): AttractionsMinute
 export function subscribeAttractionsMinutes(callback: (payload: AttractionsMinutesSocketMessage) => void) {
   return client.subscribe("/sub/rides/minutes", (payload) => {
     callback(normalizeAttractionsMinutesPayload(payload));
-  }, {
-    activateDestination: "/pub/rides/minutes",
   });
 }
 
 export function subscribeAttractionInfo(attractionId: number, callback: (payload: AttractionInfoSocketMessage) => void) {
-  return client.subscribe(`/sub/rides/${attractionId}/info`, (payload) => {
-    callback(normalizeAttractionInfoPayload(payload));
-  }, {
-    activateDestination: `/pub/rides/${attractionId}/info`,
+  return client.subscribe("/sub/rides/minutes", (payload) => {
+    const normalized = normalizeAttractionInfoPayload(payload);
+    if (normalized.attractionId === attractionId) {
+      callback(normalized);
+    }
   });
 }
 
 export function subscribeUserQueueStatus(userId: number, callback: (payload: UserQueueSocketMessage) => void) {
   return client.subscribe(`/sub/user/${userId}/queue-status`, (payload) => {
     callback(normalizeUserQueueSocketPayload(payload));
-  }, {
-    activateDestination: `/pub/user/${userId}/queue-status`,
   });
 }
 
