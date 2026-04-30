@@ -1,11 +1,16 @@
 import clsx from "clsx";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { MdPhotoCamera } from "react-icons/md";
+import { MdCheckCircle, MdPhotoCamera } from "react-icons/md";
 import { useAuthStore } from "@/stores/auth.store";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import Modal from "@/components/common/modals/Modal";
-import { getMyAttractionImages, type AttractionImage } from "@/api/attraction-image.api";
+import {
+  getMyAttractionImages,
+  getMyPurchasedPhotos,
+  type AttractionImage,
+  type PurchasedPhoto,
+} from "@/api/attraction-image.api";
 import { preparePhotoPayment, cancelPaymentOrder } from "@/api/payment.api";
 import { env } from "@/utils/env";
 import styles from "./RidePhotosPage.module.css";
@@ -15,6 +20,8 @@ export default function RidePhotosPage() {
   const nickname = useAuthStore((state) => state.nickname);
 
   const [photos, setPhotos] = useState<AttractionImage[]>([]);
+  const [purchasedIds, setPurchasedIds] = useState<Set<number>>(new Set());
+  const [purchasedMap, setPurchasedMap] = useState<Map<number, PurchasedPhoto>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
   const [loadingMsg, setLoadingMsg] = useState("처리 중입니다...");
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -29,10 +36,17 @@ export default function RidePhotosPage() {
       return;
     }
 
-    setIsLoading(true);
-    setFetchError(null);
-    getMyAttractionImages(id)
-      .then(setPhotos)
+    Promise.all([
+      getMyAttractionImages(id),
+      getMyPurchasedPhotos(),
+    ])
+      .then(([images, purchased]) => {
+        setPhotos(images);
+        const idSet = new Set(purchased.map((p) => p.attractionImageId));
+        const map = new Map(purchased.map((p) => [p.attractionImageId, p]));
+        setPurchasedIds(idSet);
+        setPurchasedMap(map);
+      })
       .catch((err: unknown) => {
         console.error(err);
         setFetchError("사진을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
@@ -105,12 +119,7 @@ export default function RidePhotosPage() {
 
       sessionStorage.setItem(
         "pending-payment",
-        JSON.stringify({
-          paymentId,
-          orderId: backendOrderId,
-          amount,
-          tossOrderId,
-        }),
+        JSON.stringify({ paymentId, orderId: backendOrderId, amount, tossOrderId }),
       );
 
       try {
@@ -147,15 +156,11 @@ export default function RidePhotosPage() {
     if (status === "COMPLETED") return null;
     if (status === "PENDING") {
       return (
-        <span className={clsx(styles.statusBadge, styles.statusPending)}>
-          분석 중
-        </span>
+        <span className={clsx(styles.statusBadge, styles.statusPending)}>분석 중</span>
       );
     }
     return (
-      <span className={clsx(styles.statusBadge, styles.statusFailed)}>
-        분석 실패
-      </span>
+      <span className={clsx(styles.statusBadge, styles.statusFailed)}>분석 실패</span>
     );
   };
 
@@ -182,7 +187,7 @@ export default function RidePhotosPage() {
 
         <div className={styles.hintBox}>
           <p className={styles.hintTitle}>탑승 사진 구매 안내</p>
-          <p>사진을 구매하면 마이페이지에서 언제든지 확인할 수 있습니다.</p>
+          <p>구매한 사진은 마이페이지 &gt; 구매한 탑승 사진에서 원본으로 확인할 수 있습니다.</p>
         </div>
 
         {fetchError && (
@@ -203,24 +208,40 @@ export default function RidePhotosPage() {
         {photos.length > 0 && (
           <div className={styles.photoGrid}>
             {photos.map((photo) => {
-              const thumbSrc = photo.thumbnailUrl ?? photo.imageUrl;
+              const isPurchased = purchasedIds.has(photo.attractionImageId);
+              const purchasedPhoto = purchasedMap.get(photo.attractionImageId);
               const isReady = photo.analysisStatus === "COMPLETED";
+              const displaySrc = isPurchased
+                ? (purchasedPhoto?.imageUrl ?? photo.thumbnailUrl ?? photo.imageUrl)
+                : (photo.thumbnailUrl ?? photo.imageUrl);
+
               return (
                 <div key={photo.attractionImageId} className={styles.photoCard}>
-                  {thumbSrc ? (
-                    <img
-                      src={thumbSrc}
-                      alt="탑승 사진 썸네일"
-                      className={styles.photoThumb}
-                    />
-                  ) : (
-                    <div
-                      className={styles.photoThumbPlaceholder}
-                      aria-label="사진 준비 중"
-                    >
-                      <MdPhotoCamera />
-                    </div>
-                  )}
+                  <div className={styles.photoPreviewWrapper}>
+                    {displaySrc ? (
+                      <img
+                        src={displaySrc}
+                        alt="탑승 사진"
+                        className={clsx(
+                          styles.photoThumb,
+                          !isPurchased && styles.photoThumbBlurred,
+                        )}
+                      />
+                    ) : (
+                      <div className={styles.photoThumbPlaceholder} aria-label="사진 준비 중">
+                        <MdPhotoCamera />
+                      </div>
+                    )}
+                    {!isPurchased && displaySrc && (
+                      <div className={styles.photoPreviewOverlay}>미리보기</div>
+                    )}
+                    {isPurchased && (
+                      <div className={styles.photoPurchasedBadge}>
+                        <MdCheckCircle />
+                        구매 완료
+                      </div>
+                    )}
+                  </div>
 
                   <div className={styles.photoInfo}>
                     <div>
@@ -230,15 +251,19 @@ export default function RidePhotosPage() {
                       </span>
                       {renderStatusBadge(photo.analysisStatus)}
                     </div>
-                    <button
-                      type="button"
-                      className={styles.photoBuyButton}
-                      disabled={!isReady || isPaying}
-                      onClick={() => { void handleBuyClick(photo); }}
-                      aria-label={`${photo.price.toLocaleString()}원 사진 구매하기`}
-                    >
-                      {isPaying ? "처리 중..." : "구매하기"}
-                    </button>
+                    {isPurchased ? (
+                      <span className={styles.photoPurchasedLabel}>구매 완료</span>
+                    ) : (
+                      <button
+                        type="button"
+                        className={styles.photoBuyButton}
+                        disabled={!isReady || isPaying}
+                        onClick={() => { void handleBuyClick(photo); }}
+                        aria-label={`${photo.price.toLocaleString()}원 사진 구매하기`}
+                      >
+                        {isPaying ? "처리 중..." : "구매하기"}
+                      </button>
+                    )}
                   </div>
                 </div>
               );

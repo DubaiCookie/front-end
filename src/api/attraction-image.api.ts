@@ -31,3 +31,16 @@ export async function getMyPhotoCycles(): Promise<MyPhotoCycle[]> {
   );
   return data;
 }
+
+export interface PurchasedPhoto {
+  ridePhotoId: number;
+  attractionImageId: number;
+  attractionName: string;
+  rideDate: string;
+  imageUrl: string;
+}
+
+export async function getMyPurchasedPhotos(): Promise<PurchasedPhoto[]> {
+  const { data } = await http.get<PurchasedPhoto[]>("/user/photo-orders/my");
+  return data;
+}

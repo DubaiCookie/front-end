@@ -25,12 +25,52 @@
   box-shadow: 0 4px 16px rgba(255, 107, 138, 0.08);
 }
 
+.photoPreviewWrapper {
+  position: relative;
+  overflow: hidden;
+}
+
 .photoThumb {
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover;
   display: block;
   background: #f0f0f0;
+}
+
+.photoThumbBlurred {
+  filter: blur(8px);
+  transform: scale(1.06);
+}
+
+.photoPreviewOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.18);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 15px;
+  font-weight: var(--font-semibold);
+  letter-spacing: 1px;
+  pointer-events: none;
+}
+
+.photoPurchasedBadge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(52, 199, 89, 0.9);
+  color: #fff;
+  font-size: 12px;
+  font-weight: var(--font-semibold);
+  padding: 4px 10px;
+  border-radius: 999px;
+  pointer-events: none;
 }
 
 .photoThumbPlaceholder {
@@ -81,6 +121,15 @@
 .photoBuyButton:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+.photoPurchasedLabel {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-semibold);
+  color: #34c759;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 /* ── Status badge ────────────────────────────────────────────────── */
