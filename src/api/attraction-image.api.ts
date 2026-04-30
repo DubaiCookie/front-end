@@ -20,14 +20,14 @@ export interface MyPhotoCycle {
 
 export async function getMyAttractionImages(cycleId: number): Promise<AttractionImage[]> {
   const { data } = await http.get<AttractionImage[]>(
-    `/attraction-server/attractions/cycles/${cycleId}/images/my`,
+    `/attractions/cycles/${cycleId}/images/my`,
   );
   return data;
 }
 
 export async function getMyPhotoCycles(): Promise<MyPhotoCycle[]> {
   const { data } = await http.get<MyPhotoCycle[]>(
-    "/attraction-server/attractions/my-photo-cycles",
+    "/attractions/my-photo-cycles",
   );
   return data;
 }
