@@ -17,6 +17,7 @@ import WaitingListPage from '@/pages/WaitingListPage';
 import ErrorPage from '@/pages/ErrorPage';
 import FaceFindPage from '@/pages/ai/FaceFindPage';
 import MissingPersonPage from '@/pages/ai/MissingPersonPage';
+import ChatbotPage from '@/pages/ai/ChatbotPage';
 
 export const router = createBrowserRouter([
   {
@@ -110,6 +111,10 @@ export const router = createBrowserRouter([
       {
         path: 'missing-child',
         element: <MissingPersonPage />,
+      },
+      {
+        path: 'chatbot',
+        element: <ChatbotPage />,
       },
       {
         path: '*',

@@ -1,5 +1,5 @@
 import { http } from "@/api/http";
-import type { LoginFormValues, LoginResponse, RefreshResponse, SignupRequest } from "@/types/user";
+import type { LoginFormValues, LoginResponse, RefreshResponse, SignupRequest, User } from "@/types/user";
 
 export async function signup(payload: SignupRequest): Promise<void> {
   await http.post("/user/signup", payload);
