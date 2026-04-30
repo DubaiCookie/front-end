@@ -277,7 +277,6 @@ export default function TicketOrderPage() {
               +
             </button>
           </div>
-          <p className={styles.stockInfo}>최소 {MIN_QUANTITY}장 · 최대 {MAX_QUANTITY}장</p>
         </section>
       )}
 
