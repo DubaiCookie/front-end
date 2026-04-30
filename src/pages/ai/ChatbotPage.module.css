@@ -1,6 +1,8 @@
 .pageRoot {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 /* ── Hint box ───────────────────────────────────────────────────── */
@@ -10,6 +12,7 @@
   border-radius: 12px;
   padding: 12px 14px;
   margin-bottom: 16px;
+  flex-shrink: 0;
 }
 
 .hintTitle {
@@ -55,6 +58,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .chatHeader {
@@ -91,9 +96,10 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  height: 56vh;
-  min-height: 320px;
+  flex: 1 1 auto;
+  min-height: 200px;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 4px 2px;
 }
 
@@ -111,12 +117,13 @@
 }
 
 .bubble {
-  max-width: 82%;
+  max-width: min(82%, 360px);
   padding: 10px 12px;
   border-radius: 14px;
   font-size: var(--font-size-base);
   line-height: 1.5;
   word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .bubbleUser {
@@ -203,6 +210,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  flex-shrink: 0;
 }
 
 .suggestBtn {
@@ -232,6 +240,7 @@
   align-items: flex-end;
   border-top: 1px solid var(--BORDER-LIGHT);
   padding-top: 10px;
+  flex-shrink: 0;
 }
 
 .input {
@@ -282,4 +291,70 @@
 
 .bottomSpacer {
   height: 24px;
+  flex-shrink: 0;
+}
+
+/* ── Responsive: 좁은 폭 (≤ 360px) ──────────────────────────────── */
+@media (max-width: 360px) {
+  .chatCard {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .hintBox {
+    padding: 10px 12px;
+    margin-bottom: 12px;
+  }
+
+  .bubble {
+    max-width: 88%;
+    padding: 9px 11px;
+    font-size: var(--font-size-sm);
+  }
+
+  .input {
+    font-size: var(--font-size-sm);
+  }
+
+  .suggestBtn {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+}
+
+/* ── Responsive: 짧은 높이 (≤ 640px, 가로 모드 등) ─────────────── */
+@media (max-height: 640px) {
+  .hintBox {
+    display: none;
+  }
+
+  .messageList {
+    min-height: 140px;
+  }
+
+  .bottomSpacer {
+    height: 8px;
+  }
+}
+
+/* ── Responsive: 매우 짧은 높이 (≤ 480px) ──────────────────────── */
+@media (max-height: 480px) {
+  .chatCard {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .messageList {
+    min-height: 100px;
+  }
+
+  .input {
+    min-height: 36px;
+  }
+
+  .sendBtn {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
 }

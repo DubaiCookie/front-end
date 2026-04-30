@@ -236,7 +236,7 @@ export default function ChatbotPage() {
           <form className={styles.inputBar} onSubmit={handleSubmit}>
             <textarea
               className={styles.input}
-              placeholder="궁금한 점을 입력해 주세요. (Enter: 전송, Shift+Enter: 줄바꿈)"
+              placeholder="궁금한 점을 입력해 주세요"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
