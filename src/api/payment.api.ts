@@ -41,7 +41,6 @@ export type PaymentOrderResponse = {
 export type ConfirmPaymentRequest = {
   paymentKey: string;
   orderId: number;
-  tossOrderId: string;
   amount: number;
 };
 
