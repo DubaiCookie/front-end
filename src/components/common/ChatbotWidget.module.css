@@ -184,6 +184,75 @@
   margin: 0;
 }
 
+/* ── Ride images (놀이기구 카테고리 자동 노출) ─────────────────── */
+.rideImageList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.rideImageItem {
+  margin: 0;
+  border: 1px solid var(--BORDER-LIGHT);
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.rideImage {
+  display: block;
+  width: 100%;
+  max-height: 160px;
+  object-fit: cover;
+}
+
+.rideImageCaption {
+  padding: 4px 8px;
+  font-size: 11px;
+  color: var(--TEXT-SECONDARY);
+  text-align: center;
+}
+
+/* ── Follow-up suggestion chips ─────────────────────────────────── */
+.followUpList {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--BORDER-LIGHT);
+}
+
+.followUpBtn {
+  text-align: left;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 107, 138, 0.25);
+  color: var(--PRIMARY-PINK);
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.followUpBtn::before {
+  content: "↳ ";
+  margin-right: 2px;
+  color: var(--SECONDARY-PINK);
+}
+
+.followUpBtn:hover:not(:disabled) {
+  background: rgba(255, 107, 138, 0.1);
+}
+
+.followUpBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ── Source chips ───────────────────────────────────────────────── */
 .sourceList {
   display: flex;

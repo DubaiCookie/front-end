@@ -3,13 +3,21 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { IoChatbubbleEllipses, IoClose, IoSend, IoSparkles } from "react-icons/io5";
 import Modal from "@/components/common/modals/Modal";
 import { askChatbot } from "@/api/chatbot.api";
+import { getAttractionList } from "@/api/attraction.api";
 import type { ChatMessage, RetrievedSource } from "@/types/chatbot";
 import styles from "./ChatbotWidget.module.css";
 
 type Bubble = ChatMessage & {
   id: string;
   sources?: RetrievedSource[];
+  followUps?: string[];
 };
+
+const RIDE_CATEGORIES = new Set(["rides", "attractions"]);
+
+function normalizeName(name: string): string {
+  return name.replace(/\s+/g, "").toLowerCase();
+}
 
 const SUGGESTED_QUESTIONS = [
   "오늘 야간 퍼레이드는 몇 시에 시작하나요?",
@@ -47,6 +55,9 @@ export default function ChatbotWidget() {
   const [isSending, setIsSending] = useState(false);
   const [errorModal, setErrorModal] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [rideImageMap, setRideImageMap] = useState<Map<string, string>>(
+    () => new Map(),
+  );
 
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -64,6 +75,39 @@ export default function ChatbotWidget() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [isOpen]);
+
+  // 챗봇이 처음 열릴 때 한 번만 어트랙션 리스트를 받아 이름→이미지 매핑 캐시.
+  useEffect(() => {
+    if (!isOpen || rideImageMap.size > 0) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const attractions = await getAttractionList();
+        if (cancelled) return;
+        const map = new Map<string, string>();
+        for (const a of attractions) {
+          if (a.imageUrl) {
+            map.set(normalizeName(a.name), a.imageUrl);
+          }
+        }
+        setRideImageMap(map);
+      } catch (err) {
+        // 어트랙션 서버 일시 장애 시 챗봇은 텍스트로만 동작 — 조용히 무시.
+        console.warn("attraction list fetch failed (chatbot image lookup disabled)", err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, rideImageMap.size]);
+
+  const lookupRideImage = useCallback(
+    (source: RetrievedSource): string | null => {
+      if (!RIDE_CATEGORIES.has(source.category)) return null;
+      return rideImageMap.get(normalizeName(source.title)) ?? null;
+    },
+    [rideImageMap],
+  );
 
   const apiHistory = useMemo<ChatMessage[]>(
     () =>
@@ -107,6 +151,7 @@ export default function ChatbotWidget() {
             role: "assistant",
             content: res.answer || "(응답이 비어 있습니다)",
             sources: res.sources,
+            followUps: res.follow_ups ?? [],
           },
         ]);
       } catch (err: unknown) {
@@ -194,36 +239,87 @@ export default function ChatbotWidget() {
           </div>
 
           <div className={styles.messageList} ref={listRef}>
-            {bubbles.map((b) => (
-              <div
-                key={b.id}
-                className={clsx(
-                  styles.bubbleRow,
-                  b.role === "user" ? styles.bubbleRowUser : styles.bubbleRowBot,
-                )}
-              >
+            {bubbles.map((b, idx) => {
+              const rideImages = b.sources
+                ? b.sources
+                    .map((s) => ({ source: s, url: lookupRideImage(s) }))
+                    .filter((x): x is { source: RetrievedSource; url: string } =>
+                      x.url !== null,
+                    )
+                : [];
+              const isLastAssistant =
+                b.role === "assistant" && idx === bubbles.length - 1;
+              const showFollowUps =
+                isLastAssistant &&
+                !isSending &&
+                (b.followUps?.length ?? 0) > 0;
+
+              return (
                 <div
+                  key={b.id}
                   className={clsx(
-                    styles.bubble,
-                    b.role === "user" ? styles.bubbleUser : styles.bubbleBot,
+                    styles.bubbleRow,
+                    b.role === "user" ? styles.bubbleRowUser : styles.bubbleRowBot,
                   )}
                 >
-                  <p className={styles.bubbleText}>{b.content}</p>
-                  {b.sources && b.sources.length > 0 && (
-                    <div className={styles.sourceList}>
-                      {b.sources.map((s) => (
-                        <span key={s.id} className={styles.sourceChip}>
-                          <span className={styles.sourceCategory}>
-                            {categoryLabel(s.category)}
+                  <div
+                    className={clsx(
+                      styles.bubble,
+                      b.role === "user" ? styles.bubbleUser : styles.bubbleBot,
+                    )}
+                  >
+                    <p className={styles.bubbleText}>{b.content}</p>
+
+                    {rideImages.length > 0 && (
+                      <div className={styles.rideImageList}>
+                        {rideImages.map(({ source, url }) => (
+                          <figure key={source.id} className={styles.rideImageItem}>
+                            <img
+                              src={url}
+                              alt={source.title}
+                              className={styles.rideImage}
+                              loading="lazy"
+                            />
+                            <figcaption className={styles.rideImageCaption}>
+                              {source.title}
+                            </figcaption>
+                          </figure>
+                        ))}
+                      </div>
+                    )}
+
+                    {b.sources && b.sources.length > 0 && (
+                      <div className={styles.sourceList}>
+                        {b.sources.map((s) => (
+                          <span key={s.id} className={styles.sourceChip}>
+                            <span className={styles.sourceCategory}>
+                              {categoryLabel(s.category)}
+                            </span>
+                            <span className={styles.sourceTitle}>{s.title}</span>
                           </span>
-                          <span className={styles.sourceTitle}>{s.title}</span>
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    )}
+
+                    {showFollowUps && (
+                      <div className={styles.followUpList}>
+                        {b.followUps!.map((q) => (
+                          <button
+                            key={q}
+                            type="button"
+                            className={styles.followUpBtn}
+                            disabled={isSending}
+                            onClick={() => void send(q)}
+                          >
+                            {q}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
 
             {isSending && (
               <div className={clsx(styles.bubbleRow, styles.bubbleRowBot)}>

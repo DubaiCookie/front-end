@@ -23,4 +23,5 @@ export type ChatResponse = {
   conversation_id: string;
   answer: string;
   sources: RetrievedSource[];
+  follow_ups?: string[];
 };
