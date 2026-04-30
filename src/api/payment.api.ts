@@ -139,6 +139,20 @@ function toPaymentOrderResponse(input: unknown): PaymentOrderResponse {
   };
 }
 
+export type PhotoPaymentRequest = {
+  attractionImageId: number;
+  orderName: string;
+  amount: number;
+};
+
+export async function preparePhotoPayment(payload: PhotoPaymentRequest) {
+  const { data } = await http.post("/payments/photo", {
+    ...payload,
+    accessToken: getAccessToken(),
+  });
+  return toPaymentResponse(data);
+}
+
 export async function preparePayment(payload: PreparePaymentRequest) {
   const ticketOrder = await createTicketOrder({
     ticketManagementId: payload.ticketManagementId,
