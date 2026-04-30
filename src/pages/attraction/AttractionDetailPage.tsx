@@ -86,7 +86,7 @@ export default function AttractionDetailPage() {
       ? attraction?.waitTimes.find((wait) => wait.ticketType === todayActiveTicketType)
       : null;
 
-  const ridingMinutes = attraction?.ridingTime ?? 0;
+  const ridingMinutes = Math.floor((attraction?.ridingTime ?? 0) / 60);
   const ticketTypeLabel = todayActiveTicketType === "PREMIUM" ? "Premium" : "Basic";
 
   const handleQueueButtonClick = () => {
