@@ -39,6 +39,9 @@ export default function FaceFindPage() {
   // ── Selfie handlers ────────────────────────────────────────────
 
   const handleSelfieChange = (file: File) => {
+    if (selfiePreview) {
+      URL.revokeObjectURL(selfiePreview);
+    }
     setSelfieFile(file);
     setSelfiePreview(URL.createObjectURL(file));
   };
@@ -102,11 +105,21 @@ export default function FaceFindPage() {
   // ── Group photo handlers ───────────────────────────────────────
 
   const handleGroupFile = (file: File) => {
+    if (groupPreview) {
+      URL.revokeObjectURL(groupPreview);
+    }
     setGroupFile(file);
     setGroupPreview(URL.createObjectURL(file));
     if (resultUrl) {
       URL.revokeObjectURL(resultUrl);
       setResultUrl(null);
+    }
+  };
+
+  const triggerGroupPicker = () => {
+    if (groupInputRef.current) {
+      groupInputRef.current.value = "";
+      groupInputRef.current.click();
     }
   };
 
@@ -327,7 +340,7 @@ export default function FaceFindPage() {
             <button
               type="button"
               className={clsx(styles.uploadArea, isDragOver && styles.dragOver)}
-              onClick={() => groupInputRef.current?.click()}
+              onClick={triggerGroupPicker}
               onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
               onDragLeave={() => setIsDragOver(false)}
               onDrop={handleDrop}
@@ -349,6 +362,16 @@ export default function FaceFindPage() {
           />
 
           <div className={styles.actionRow}>
+            {groupFile && (
+              <button
+                type="button"
+                className={styles.btnSecondary}
+                disabled={isLoading}
+                onClick={triggerGroupPicker}
+              >
+                사진 변경
+              </button>
+            )}
             <button
               type="button"
               className={styles.btnPrimary}
