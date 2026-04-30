@@ -2,6 +2,7 @@ import axios from "axios";
 import { env } from "@/utils/env";
 import type {
   FaceRegisterResponse,
+  FaceStatusResponse,
   FaceUnregisterResponse,
   SessionCreateRequest,
   SessionCreateResponse,
@@ -21,16 +22,24 @@ const aiHttp = axios.create({
 
 // ── Face ─────────────────────────────────────────────────────────────────────
 
+/** 현재 로그인 사용자의 얼굴 등록 상태를 조회합니다. */
+export async function getFaceStatus(): Promise<FaceStatusResponse> {
+  const { data } = await aiHttp.get<FaceStatusResponse>("/face/status");
+  return data;
+}
+
 /**
- * 사용자 얼굴 사진 1장을 등록합니다.
- * replace=true 이면 기존 등록 사진 전체 삭제 후 재등록합니다.
+ * 사용자 얼굴 사진을 최대 5장까지 등록합니다.
+ * replace=true(기본값)이면 기존 등록 사진 전체 삭제 후 재등록합니다.
  */
 export async function registerFace(
-  photo: File,
-  replace = false,
+  photos: File[],
+  replace = true,
 ): Promise<FaceRegisterResponse> {
   const form = new FormData();
-  form.append("photo", photo);
+  for (const photo of photos) {
+    form.append("photos", photo);
+  }
 
   const { data } = await aiHttp.post<FaceRegisterResponse>(
     `/face/register?replace=${replace}`,

@@ -1,16 +1,19 @@
 import clsx from "clsx";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { MdFaceRetouchingNatural } from "react-icons/md";
 import { IoCloudUploadOutline } from "react-icons/io5";
 import { useAuthStore } from "@/stores/auth.store";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import Modal from "@/components/common/modals/Modal";
 import {
+  getFaceStatus,
   registerFace,
   unregisterFace,
   findFaceThumbnail,
 } from "@/api/ai.api";
 import styles from "./FaceFindPage.module.css";
+
+const MAX_PHOTOS = 5;
 
 type RegisterState = "idle" | "registered" | "error";
 
@@ -19,8 +22,9 @@ export default function FaceFindPage() {
 
   // Step 1 — face registration
   const [registerState, setRegisterState] = useState<RegisterState>("idle");
-  const [selfieFile, setSelfieFile] = useState<File | null>(null);
-  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+  const [registeredCount, setRegisteredCount] = useState(0);
+  const [selfieFiles, setSelfieFiles] = useState<File[]>([]);
+  const [selfiePreviews, setSelfiePreviews] = useState<string[]>([]);
   const selfieInputRef = useRef<HTMLInputElement>(null);
 
   // Step 2 — group photo find
@@ -36,45 +40,57 @@ export default function FaceFindPage() {
   const [errorModal, setErrorModal] = useState<string | null>(null);
   const [infoModal, setInfoModal] = useState<string | null>(null);
 
+  // 마운트 시 등록 상태 확인 — 이전에 등록한 사진이 있으면 Step 1 건너뜀
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    (async () => {
+      try {
+        const s = await getFaceStatus();
+        if (s.registered) {
+          setRegisterState("registered");
+          setRegisteredCount(s.total_photos);
+        }
+      } catch {
+        // 네트워크 오류 등은 무시 — 텍스트로만 진행
+      }
+    })();
+  }, [isLoggedIn]);
+
   // ── Selfie handlers ────────────────────────────────────────────
 
-  const handleSelfieChange = (file: File) => {
-    if (selfiePreview) {
-      URL.revokeObjectURL(selfiePreview);
-    }
-    setSelfieFile(file);
-    setSelfiePreview(URL.createObjectURL(file));
-  };
-
   const handleSelfieInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleSelfieChange(file);
-    }
+    const picked = Array.from(e.target.files ?? []).slice(0, MAX_PHOTOS);
+    if (picked.length === 0) return;
+    selfiePreviews.forEach(URL.revokeObjectURL);
+    setSelfieFiles(picked);
+    setSelfiePreviews(picked.map((f) => URL.createObjectURL(f)));
   };
 
-  const clearSelfie = () => {
-    setSelfieFile(null);
-    if (selfiePreview) {
-      URL.revokeObjectURL(selfiePreview);
-    }
-    setSelfiePreview(null);
-    if (selfieInputRef.current) {
-      selfieInputRef.current.value = "";
-    }
+  const removeSelfie = (idx: number) => {
+    URL.revokeObjectURL(selfiePreviews[idx]);
+    setSelfieFiles((prev) => prev.filter((_, i) => i !== idx));
+    setSelfiePreviews((prev) => prev.filter((_, i) => i !== idx));
+    if (selfieInputRef.current) selfieInputRef.current.value = "";
+  };
+
+  const clearSelfies = () => {
+    selfiePreviews.forEach(URL.revokeObjectURL);
+    setSelfieFiles([]);
+    setSelfiePreviews([]);
+    if (selfieInputRef.current) selfieInputRef.current.value = "";
   };
 
   const handleRegister = async () => {
-    if (!selfieFile) {
-      return;
-    }
+    if (selfieFiles.length === 0) return;
 
     try {
       setLoadingMsg("얼굴을 등록하는 중입니다...");
       setIsLoading(true);
-      await registerFace(selfieFile, true);
+      const res = await registerFace(selfieFiles, true);
       setRegisterState("registered");
-      setInfoModal("얼굴 등록이 완료되었습니다. 이제 단체 사진에서 나를 찾을 수 있습니다.");
+      setRegisteredCount(res.total_photos);
+      clearSelfies();
+      setInfoModal(`얼굴 등록이 완료되었습니다. (${res.total_photos}장 등록)\n이제 단체 사진에서 나를 찾을 수 있습니다.`);
     } catch (err: unknown) {
       console.error(err);
       setRegisterState("error");
@@ -92,7 +108,8 @@ export default function FaceFindPage() {
       setIsLoading(true);
       await unregisterFace();
       setRegisterState("idle");
-      clearSelfie();
+      setRegisteredCount(0);
+      clearSelfies();
       setInfoModal("등록된 얼굴 정보가 삭제되었습니다.");
     } catch (err) {
       console.error(err);
@@ -105,9 +122,7 @@ export default function FaceFindPage() {
   // ── Group photo handlers ───────────────────────────────────────
 
   const handleGroupFile = (file: File) => {
-    if (groupPreview) {
-      URL.revokeObjectURL(groupPreview);
-    }
+    if (groupPreview) URL.revokeObjectURL(groupPreview);
     setGroupFile(file);
     setGroupPreview(URL.createObjectURL(file));
     if (resultUrl) {
@@ -125,39 +140,29 @@ export default function FaceFindPage() {
 
   const handleGroupInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      handleGroupFile(file);
-    }
+    if (file) handleGroupFile(file);
   };
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
     const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith("image/")) {
-      handleGroupFile(file);
-    }
+    if (file && file.type.startsWith("image/")) handleGroupFile(file);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const clearGroupPhoto = () => {
     setGroupFile(null);
-    if (groupPreview) {
-      URL.revokeObjectURL(groupPreview);
-    }
+    if (groupPreview) URL.revokeObjectURL(groupPreview);
     setGroupPreview(null);
     if (resultUrl) {
       URL.revokeObjectURL(resultUrl);
       setResultUrl(null);
     }
-    if (groupInputRef.current) {
-      groupInputRef.current.value = "";
-    }
+    if (groupInputRef.current) groupInputRef.current.value = "";
   };
 
   const handleFind = async () => {
-    if (!groupFile) {
-      return;
-    }
+    if (!groupFile) return;
 
     if (registerState !== "registered") {
       setErrorModal("먼저 내 얼굴 사진을 등록해 주세요. (Step 1)");
@@ -183,7 +188,7 @@ export default function FaceFindPage() {
 
   const registerStatusLabel =
     registerState === "registered"
-      ? "얼굴 등록 완료"
+      ? `얼굴 등록 완료 (${registeredCount}장)`
       : registerState === "error"
         ? "등록 실패 — 다시 시도해 주세요"
         : "아직 등록되지 않음";
@@ -247,7 +252,7 @@ export default function FaceFindPage() {
         <div className={styles.hintBox}>
           <p className={styles.hintTitle}>이용 방법</p>
           <ul className={styles.hintList}>
-            <li>Step 1: 내 얼굴이 잘 나온 정면 사진을 등록합니다.</li>
+            <li>Step 1: 내 얼굴이 잘 나온 정면 사진을 최대 5장 등록합니다. (등록 후 재방문 시 재등록 불필요)</li>
             <li>Step 2: 나를 찾고 싶은 단체 사진을 업로드합니다.</li>
             <li>초록색 박스로 나의 위치를 표시해 드립니다.</li>
           </ul>
@@ -263,17 +268,38 @@ export default function FaceFindPage() {
           </div>
 
           <div style={{ marginTop: 12 }}>
-            {selfiePreview ? (
-              <div className={styles.previewWrap}>
-                <img src={selfiePreview} alt="등록할 셀피" className={styles.previewImg} />
-                <button
-                  type="button"
-                  className={styles.previewClear}
-                  onClick={clearSelfie}
-                  aria-label="셀피 삭제"
-                >
-                  ×
-                </button>
+            {selfiePreviews.length > 0 ? (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {selfiePreviews.map((url, idx) => (
+                  <div key={url} className={styles.previewWrap} style={{ width: 80, height: 80 }}>
+                    <img
+                      src={url}
+                      alt={`등록할 사진 ${idx + 1}`}
+                      className={styles.previewImg}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                    <button
+                      type="button"
+                      className={styles.previewClear}
+                      onClick={() => removeSelfie(idx)}
+                      aria-label={`사진 ${idx + 1} 삭제`}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+                {selfiePreviews.length < MAX_PHOTOS && (
+                  <button
+                    type="button"
+                    className={styles.uploadArea}
+                    style={{ width: 80, height: 80, minHeight: "unset" }}
+                    onClick={() => selfieInputRef.current?.click()}
+                    aria-label="사진 추가"
+                  >
+                    <IoCloudUploadOutline style={{ fontSize: 20 }} />
+                    <span style={{ fontSize: 11 }}>추가</span>
+                  </button>
+                )}
               </div>
             ) : (
               <button
@@ -283,8 +309,8 @@ export default function FaceFindPage() {
                 aria-label="셀피 선택"
               >
                 <IoCloudUploadOutline className={styles.uploadIcon} />
-                <span className={styles.uploadText}>정면 사진을 선택하세요</span>
-                <span className={styles.uploadHint}>JPG, PNG · 최대 10 MB</span>
+                <span className={styles.uploadText}>정면 사진을 선택하세요 (최대 {MAX_PHOTOS}장)</span>
+                <span className={styles.uploadHint}>JPG, PNG · 최대 10 MB · 여러 장 동시 선택 가능</span>
               </button>
             )}
           </div>
@@ -293,6 +319,7 @@ export default function FaceFindPage() {
             ref={selfieInputRef}
             type="file"
             accept="image/*"
+            multiple
             style={{ display: "none" }}
             onChange={handleSelfieInputChange}
             aria-label="셀피 파일 선택"
@@ -302,7 +329,7 @@ export default function FaceFindPage() {
             <button
               type="button"
               className={styles.btnPrimary}
-              disabled={!selfieFile || isLoading}
+              disabled={selfieFiles.length === 0 || isLoading}
               onClick={() => void handleRegister()}
             >
               얼굴 등록
