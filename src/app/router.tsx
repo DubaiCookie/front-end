@@ -15,6 +15,8 @@ import TicketOrderSuccessPage from '@/pages/ticket/TicketOrderSuccessPage';
 import TicketOrderFailPage from '@/pages/ticket/TicketOrderFailPage';
 import WaitingListPage from '@/pages/WaitingListPage';
 import ErrorPage from '@/pages/ErrorPage';
+import FaceFindPage from '@/pages/ai/FaceFindPage';
+import MissingPersonPage from '@/pages/ai/MissingPersonPage';
 
 export const router = createBrowserRouter([
   {
@@ -96,6 +98,18 @@ export const router = createBrowserRouter([
             <MyPage />
           </RequireAuth>
         ),
+      },
+      {
+        path: 'face-find',
+        element: (
+          <RequireAuth>
+            <FaceFindPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: 'missing-child',
+        element: <MissingPersonPage />,
       },
       {
         path: '*',

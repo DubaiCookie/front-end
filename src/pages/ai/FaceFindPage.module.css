@@ -1,0 +1,244 @@
+.pageRoot {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Step cards ────────────────────────────────────────────────── */
+.stepCard {
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(255, 107, 138, 0.08);
+}
+
+.stepLabel {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-semibold);
+  color: var(--PRIMARY-PINK);
+  margin-bottom: 10px;
+  letter-spacing: 0.3px;
+}
+
+/* ── Upload area ───────────────────────────────────────────────── */
+.uploadArea {
+  width: 100%;
+  min-height: 120px;
+  border: 2px dashed var(--BORDER-LIGHT);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 16px;
+}
+
+.uploadArea:hover,
+.uploadArea.dragOver {
+  border-color: var(--PRIMARY-PINK);
+  background: rgba(255, 107, 138, 0.04);
+}
+
+.uploadIcon {
+  font-size: 32px;
+  color: var(--SECONDARY-PINK);
+}
+
+.uploadText {
+  font-size: var(--font-size-sm);
+  color: var(--TEXT-SECONDARY);
+  text-align: center;
+}
+
+.uploadHint {
+  font-size: 12px;
+  color: var(--BORDER);
+}
+
+/* ── Preview image ─────────────────────────────────────────────── */
+.previewWrap {
+  position: relative;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.previewImg {
+  width: 100%;
+  display: block;
+  border-radius: 12px;
+  object-fit: contain;
+  max-height: 300px;
+}
+
+.previewClear {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Status & result ───────────────────────────────────────────── */
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--font-size-sm);
+  color: var(--TEXT-SECONDARY);
+  margin-top: 4px;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--GREEN);
+  flex-shrink: 0;
+}
+
+.statusDot.unregistered {
+  background: var(--GRAY);
+}
+
+.statusDot.error {
+  background: var(--RED);
+}
+
+.resultCard {
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(255, 107, 138, 0.08);
+}
+
+.resultLabel {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-semibold);
+  color: var(--PRIMARY-PINK);
+  margin-bottom: 10px;
+}
+
+.resultImg {
+  width: 100%;
+  display: block;
+  border-radius: 12px;
+  object-fit: contain;
+}
+
+.resultCaption {
+  margin-top: 10px;
+  font-size: var(--font-size-sm);
+  color: var(--TEXT-SECONDARY);
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* ── Hint box ──────────────────────────────────────────────────── */
+.hintBox {
+  background: rgba(255, 214, 223, 0.28);
+  border: 1px solid rgba(255, 107, 138, 0.2);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+.hintTitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-semibold);
+  color: var(--TEXT-PRIMARY);
+  margin-bottom: 6px;
+}
+
+.hintList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hintList li {
+  font-size: var(--font-size-sm);
+  color: var(--TEXT-SECONDARY);
+  padding-left: 14px;
+  position: relative;
+}
+
+.hintList li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--PRIMARY-PINK);
+}
+
+/* ── Action buttons ────────────────────────────────────────────── */
+.actionRow {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.btnPrimary {
+  flex: 1;
+  padding: 10px 16px;
+  background-color: var(--PRIMARY-PINK);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btnPrimary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btnSecondary {
+  flex: 1;
+  padding: 10px 16px;
+  background-color: transparent;
+  color: var(--PRIMARY-PINK);
+  border: 1.5px solid var(--PRIMARY-PINK);
+  border-radius: 10px;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btnSecondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.bottomSpacer {
+  height: 20px;
+}
