@@ -1,10 +1,10 @@
 import clsx from "clsx";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { IoSparkles, IoSend } from "react-icons/io5";
+import { IoChatbubbleEllipses, IoClose, IoSend, IoSparkles } from "react-icons/io5";
 import Modal from "@/components/common/modals/Modal";
 import { askChatbot } from "@/api/chatbot.api";
 import type { ChatMessage, RetrievedSource } from "@/types/chatbot";
-import styles from "./ChatbotPage.module.css";
+import styles from "./ChatbotWidget.module.css";
 
 type Bubble = ChatMessage & {
   id: string;
@@ -40,7 +40,8 @@ function categoryLabel(category: string): string {
   }
 }
 
-export default function ChatbotPage() {
+export default function ChatbotWidget() {
+  const [isOpen, setIsOpen] = useState(false);
   const [bubbles, setBubbles] = useState<Bubble[]>([GREETING]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -49,12 +50,20 @@ export default function ChatbotPage() {
 
   const listRef = useRef<HTMLDivElement>(null);
 
-  // 스크롤을 항상 가장 아래로
   useEffect(() => {
-    if (listRef.current) {
+    if (isOpen && listRef.current) {
       listRef.current.scrollTop = listRef.current.scrollHeight;
     }
-  }, [bubbles, isSending]);
+  }, [bubbles, isSending, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen]);
 
   const apiHistory = useMemo<ChatMessage[]>(
     () =>
@@ -142,34 +151,46 @@ export default function ChatbotPage() {
         onButtonClick={() => setErrorModal(null)}
       />
 
-      <div className={clsx("container", styles.pageRoot)}>
-        <div className={clsx("page-title")}>
-          <div className={clsx("glass", "title-icon-container")}>
-            <IoSparkles className={clsx("title-icon")} />
-          </div>
-          <span>AI Concierge</span>
-        </div>
+      {!isOpen && (
+        <button
+          type="button"
+          className={styles.fab}
+          aria-label="챗봇 열기"
+          onClick={() => setIsOpen(true)}
+        >
+          <IoChatbubbleEllipses className={styles.fabIcon} />
+        </button>
+      )}
 
-        <div className={styles.hintBox}>
-          <p className={styles.hintTitle}>RAG 기반 안내 챗봇</p>
-          <ul className={styles.hintList}>
-            <li>놀이기구 · 퍼레이드 · 이벤트 · 시설 이용 안내를 도와드려요.</li>
-            <li>실시간 운영 정보(대기 시간, 휴장 등)는 공식 앱 공지를 확인해 주세요.</li>
-            <li>답변은 등록된 안내 문서를 검색해 생성됩니다.</li>
-          </ul>
-        </div>
-
-        <div className={styles.chatCard}>
-          <div className={styles.chatHeader}>
-            <p className={styles.chatTitle}>WayThing 챗봇</p>
-            <button
-              type="button"
-              className={styles.resetBtn}
-              onClick={handleReset}
-              disabled={isSending || bubbles.length <= 1}
-            >
-              새 대화
-            </button>
+      {isOpen && (
+        <div
+          className={styles.panel}
+          role="dialog"
+          aria-label="WayThing 안내 챗봇"
+        >
+          <div className={styles.panelHeader}>
+            <div className={styles.headerTitle}>
+              <IoSparkles className={styles.headerIcon} />
+              <span>WayThing 챗봇</span>
+            </div>
+            <div className={styles.headerActions}>
+              <button
+                type="button"
+                className={styles.resetBtn}
+                onClick={handleReset}
+                disabled={isSending || bubbles.length <= 1}
+              >
+                새 대화
+              </button>
+              <button
+                type="button"
+                className={styles.closeBtn}
+                aria-label="챗봇 닫기"
+                onClick={() => setIsOpen(false)}
+              >
+                <IoClose />
+              </button>
+            </div>
           </div>
 
           <div className={styles.messageList} ref={listRef}>
@@ -253,9 +274,7 @@ export default function ChatbotPage() {
             </button>
           </form>
         </div>
-
-        <div className={styles.bottomSpacer} />
-      </div>
+      )}
     </>
   );
 }
