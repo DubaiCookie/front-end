@@ -8,6 +8,7 @@ import { IoNotifications } from "react-icons/io5";
 import { FiLogIn } from "react-icons/fi";
 import Modal from '@/components/common/modals/Modal';
 import { boardQueue } from '@/api/queue.api';
+import axios from 'axios';
 
 type BoardingModalMode = "confirm" | "success" | "failed" | null;
 
@@ -19,6 +20,7 @@ export default function Header() {
     const isLoggedIn = Boolean(nickname);
     const [boardingModalMode, setBoardingModalMode] = useState<BoardingModalMode>(null);
     const [isBoardingSubmitting, setIsBoardingSubmitting] = useState(false);
+    const [boardingErrorMessage, setBoardingErrorMessage] = useState("탑승 처리가 실패했습니다.");
 
     useEffect(() => {
         if (!queueAlert || queueAlert.status === "READY") {
@@ -53,6 +55,7 @@ export default function Header() {
         }
 
         if (!queueAlert?.attractionId || !userId) {
+            setBoardingErrorMessage("탑승 정보를 확인할 수 없습니다.");
             setBoardingModalMode("failed");
             return;
         }
@@ -64,10 +67,18 @@ export default function Header() {
                 attractionId: queueAlert.attractionId,
             });
             setQueueAlert(null);
-            window.location.reload();
+            setBoardingModalMode("success");
             return;
         } catch (error) {
             console.error(error);
+            const data = axios.isAxiosError(error)
+                ? error.response?.data as { code?: string; message?: string } | undefined
+                : undefined;
+            setBoardingErrorMessage(
+                data?.code === "QUEUE_ALREADY_COMPLETED"
+                    ? "이미 탑승했습니다."
+                    : data?.message || "탑승 처리가 실패했습니다.",
+            );
             setBoardingModalMode("failed");
         } finally {
             setIsBoardingSubmitting(false);
@@ -96,7 +107,7 @@ export default function Header() {
                         ? "탑승하시겠습니까?"
                         : boardingModalMode === "success"
                             ? "탑승이 완료되었습니다."
-                            : "탑승 처리가 실패했습니다."
+                            : boardingErrorMessage
                 }
                 buttonTitle="확인"
                 onClose={() => {
@@ -112,6 +123,7 @@ export default function Header() {
                     }
 
                     setBoardingModalMode(null);
+                    setBoardingErrorMessage("탑승 처리가 실패했습니다.");
                 }}
             />
             <header className={clsx(styles.root, 'container', 'flex-row')}>
