@@ -2,6 +2,8 @@
   display: flex;
   flex-direction: column;
   gap: 0;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* ── Step cards ────────────────────────────────────────────────── */
@@ -77,7 +79,7 @@
   display: block;
   border-radius: 12px;
   object-fit: contain;
-  max-height: 300px;
+  max-height: min(60svh, 360px);
 }
 
 .previewClear {
@@ -147,6 +149,7 @@
   display: block;
   border-radius: 12px;
   object-fit: contain;
+  max-height: min(70svh, 480px);
 }
 
 .resultCaption {
@@ -241,4 +244,56 @@
 
 .bottomSpacer {
   height: 20px;
+}
+
+/* ── Responsive: 좁은 폭 (≤ 360px) ──────────────────────────────── */
+@media (max-width: 360px) {
+  .stepCard,
+  .resultCard {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .uploadArea {
+    min-height: 100px;
+    padding: 12px;
+  }
+
+  .uploadIcon {
+    font-size: 28px;
+  }
+
+  .uploadText {
+    font-size: 13px;
+  }
+
+  .btnPrimary,
+  .btnSecondary {
+    padding: 9px 12px;
+    font-size: var(--font-size-sm);
+  }
+
+  .actionRow {
+    gap: 6px;
+  }
+}
+
+/* ── Responsive: 짧은 높이 (≤ 600px, 가로 모드 등) ─────────────── */
+@media (max-height: 600px) {
+  .uploadArea {
+    min-height: 90px;
+  }
+
+  .previewImg {
+    max-height: 50svh;
+  }
+
+  .resultImg {
+    max-height: 60svh;
+  }
+
+  .hintBox {
+    padding: 8px 12px;
+    margin-bottom: 12px;
+  }
 }
