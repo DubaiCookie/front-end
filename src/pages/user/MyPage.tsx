@@ -57,6 +57,11 @@ export default function MyPage() {
 
   const menuItems = [
     {
+      label: "내 탑승 사진",
+      onClick: () => navigate("/my-photos"),
+      disabled: isSubmitting,
+    },
+    {
       label: "결제 내역",
       onClick: () => openPreparingModal("결제 내역"),
       disabled: isSubmitting,

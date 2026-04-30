@@ -8,9 +8,26 @@ export interface AttractionImage {
   analysisStatus: "PENDING" | "COMPLETED" | "FAILED";
 }
 
+export interface MyPhotoCycle {
+  attractionCycleId: number;
+  attractionId: number;
+  attractionName: string;
+  rideDate: string;
+  cycleNumber: number;
+  photoCount: number;
+  thumbnailUrl: string | null;
+}
+
 export async function getMyAttractionImages(cycleId: number): Promise<AttractionImage[]> {
   const { data } = await http.get<AttractionImage[]>(
     `/attraction-server/attractions/cycles/${cycleId}/images/my`,
+  );
+  return data;
+}
+
+export async function getMyPhotoCycles(): Promise<MyPhotoCycle[]> {
+  const { data } = await http.get<MyPhotoCycle[]>(
+    "/attraction-server/attractions/my-photo-cycles",
   );
   return data;
 }
