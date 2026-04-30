@@ -62,6 +62,11 @@ export default function MyPage() {
       disabled: isSubmitting,
     },
     {
+      label: "얼굴 등록",
+      onClick: () => navigate("/face-find"),
+      disabled: isSubmitting,
+    },
+    {
       label: "결제 내역",
       onClick: () => openPreparingModal("결제 내역"),
       disabled: isSubmitting,
