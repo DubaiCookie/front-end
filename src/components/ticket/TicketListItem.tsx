@@ -3,6 +3,7 @@ import styles from "./Ticket.module.css"
 import type { UserTicket } from "@/types/ticket";
 import { formatDateTime } from "@/utils/functions.ts";
 import { useState, type MouseEvent } from "react";
+import { QRCodeSVG } from "qrcode.react";
 
 type TicketListItemProps = {
     ticket: UserTicket;
@@ -89,7 +90,13 @@ export default function TicketListItem({ ticket, onQrClick }: TicketListItemProp
                                     onQrClick(ticket);
                                 }}
                             >
-                                <img src="/ticket-qr.png" alt="티켓 QR" className={styles.qrImage} />
+                                <QRCodeSVG
+                                    value={ticket.ticketCode}
+                                    size={98}
+                                    bgColor="#ffffff"
+                                    fgColor="#1a202c"
+                                    style={{ borderRadius: 6, display: "block" }}
+                                />
                             </button>
                         </>
                     ) : (

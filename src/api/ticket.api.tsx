@@ -189,3 +189,7 @@ export async function getMyTicketList(): Promise<UserTicket[]> {
   const { data } = await http.get<MyIssuedTicketDto[]>("/tickets/issued/my");
   return data.map(mapMyIssuedTicket);
 }
+
+export async function enterTicket(ticketCode: string): Promise<void> {
+  await http.post("/tickets/issued/enter", { ticketCode });
+}
