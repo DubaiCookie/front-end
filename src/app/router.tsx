@@ -19,6 +19,7 @@ import ErrorPage from '@/pages/ErrorPage';
 import FaceFindPage from '@/pages/ai/FaceFindPage';
 import MissingPersonPage from '@/pages/ai/MissingPersonPage';
 import RidePhotosPage from '@/pages/attraction/RidePhotosPage';
+import MyPhotosPage from '@/pages/attraction/MyPhotosPage';
 
 export const router = createBrowserRouter([
   {
@@ -126,6 +127,14 @@ export const router = createBrowserRouter([
         element: (
           <RequireAuth>
             <RidePhotosPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: 'my-photos',
+        element: (
+          <RequireAuth>
+            <MyPhotosPage />
           </RequireAuth>
         ),
       },
