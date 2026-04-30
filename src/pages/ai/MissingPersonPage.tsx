@@ -253,16 +253,16 @@ export default function MissingPersonPage() {
       onConfirm: async () => {
         setConfirmModal(null);
         try {
-          setLoadingMsg("세션을 종료하는 중입니다...");
+          setLoadingMsg("미아 찾기를 종료하는 중입니다...");
           setIsLoading(true);
           await markSessionFound(session.session_id);
           stopPolling();
-          setInfoModal("세션이 종료되었습니다. 아이를 찾아서 다행입니다.");
+          setInfoModal("미아 찾기가 종료되었습니다");
           const updated = await getSessionStatus(session.session_id);
           setSummary(updated);
         } catch (err: unknown) {
           console.error(err);
-          setErrorModal("세션 종료 중 오류가 발생했습니다.");
+          setErrorModal("종료 중 오류가 발생했습니다.");
         } finally {
           setIsLoading(false);
         }

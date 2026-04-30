@@ -37,6 +37,7 @@ const loginFields: FieldSpec<'email' | 'password'>[] = [
 export default function LoginPage() {
     const navigate = useNavigate();
     const setAuthUser = useAuthStore((state) => state.setAuthUser);
+    const setAccessToken = useAuthStore((state) => state.setAccessToken);
     const setTodayActiveTicket = useAuthStore((state) => state.setTodayActiveTicket);
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [isInvalidCredentialsModalOpen, setIsInvalidCredentialsModalOpen] = useState(false);
@@ -49,6 +50,7 @@ export default function LoginPage() {
                 userId: response.userId,
                 nickname: response.nickname,
             });
+            setAccessToken(response.accessToken ?? null);
 
             try {
                 const ticketList = await getMyTicketList();

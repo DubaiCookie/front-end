@@ -4,10 +4,12 @@ import type { TicketKind } from '@/types/ticket';
 type AuthState = {
   userId: number | null;
   nickname: string | null;
+  accessToken: string | null;
   hasTodayActiveTicket: boolean;
   todayActiveTicketType: TicketKind | null;
   todayActiveIssuedTicketId: number | null;
   setAuthUser: (user: { userId: number; nickname: string }) => void;
+  setAccessToken: (accessToken: string | null) => void;
   setTodayActiveTicket: (payload: {
     hasTodayActiveTicket: boolean;
     todayActiveTicketType: TicketKind | null;
@@ -28,6 +30,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     return Number.isNaN(parsed) ? null : parsed;
   })(),
   nickname: localStorage.getItem('nickname'),
+  accessToken: localStorage.getItem('accessToken'),
   hasTodayActiveTicket: localStorage.getItem('hasTodayActiveTicket') === 'true',
   todayActiveTicketType: (localStorage.getItem('todayActiveTicketType') as TicketKind | null) ?? null,
   todayActiveIssuedTicketId: (() => {
@@ -43,6 +46,14 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.setItem('userId', String(userId));
     localStorage.setItem('nickname', safeNickname);
     set({ userId, nickname: safeNickname });
+  },
+  setAccessToken: (accessToken) => {
+    if (accessToken) {
+      localStorage.setItem('accessToken', accessToken);
+    } else {
+      localStorage.removeItem('accessToken');
+    }
+    set({ accessToken });
   },
   setTodayActiveTicket: ({ hasTodayActiveTicket, todayActiveTicketType, todayActiveIssuedTicketId }) => {
     localStorage.setItem('hasTodayActiveTicket', String(hasTodayActiveTicket));
@@ -61,12 +72,14 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: () => {
     localStorage.removeItem('userId');
     localStorage.removeItem('nickname');
+    localStorage.removeItem('accessToken');
     localStorage.removeItem('hasTodayActiveTicket');
     localStorage.removeItem('todayActiveTicketType');
     localStorage.removeItem('todayActiveIssuedTicketId');
     set({
       userId: null,
       nickname: null,
+      accessToken: null,
       hasTodayActiveTicket: false,
       todayActiveTicketType: null,
       todayActiveIssuedTicketId: null,

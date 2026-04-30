@@ -39,6 +39,15 @@ export interface User {
     nickname: string;
 }
 
+export interface LoginResponse extends User {
+    accessToken: string;
+}
+
+export interface RefreshResponse {
+    message: string;
+    accessToken: string;
+}
+
 export interface RidePhotoRequest {
     attractionImageId: number;
     imageUrl: string;
