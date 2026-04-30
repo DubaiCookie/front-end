@@ -1,0 +1,76 @@
+/* ── Ride photos section ─────────────────────────────────────────── */
+.photoSection {
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+.photoSectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.photoSectionIcon {
+  font-size: 20px;
+  color: var(--PRIMARY-PINK);
+}
+
+.photoSectionTitle {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-semibold);
+  color: var(--TEXT-PRIMARY);
+}
+
+.photoSectionMessage {
+  font-size: var(--font-size-sm);
+  color: var(--TEXT-SECONDARY);
+  padding: 16px 0;
+}
+
+.photoSectionError {
+  color: var(--RED);
+}
+
+/* ── Photo grid ──────────────────────────────────────────────────── */
+.photoGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.photoCard {
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(255, 107, 138, 0.08);
+}
+
+.photoImg {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  display: block;
+  background: #f0f0f0;
+}
+
+.photoMeta {
+  padding: 10px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.photoAttractionName {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-semibold);
+  color: var(--TEXT-PRIMARY);
+}
+
+.photoDate {
+  font-size: 12px;
+  color: var(--TEXT-SECONDARY);
+}

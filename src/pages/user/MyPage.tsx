@@ -1,13 +1,17 @@
 import clsx from "clsx";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { logout as logoutApi } from "@/api/auth.api";
 import { useAuthStore } from "@/stores/auth.store";
 import { useNavigate } from "react-router-dom";
 import MenuList from "@/components/common/lists/MenuList";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { FaUserCircle } from "react-icons/fa";
+import { MdPhotoCamera } from "react-icons/md";
 import Modal from "@/components/common/modals/Modal";
 import { unregisterStoredPushToken } from "@/lib/push-notification";
+import { getMyRidePhotos } from "@/api/ride-photo.api";
+import type { RidePhoto } from "@/types/user";
+import myPageStyles from "./MyPage.module.css";
 
 export default function MyPage() {
   const logoutStore = useAuthStore((state) => state.logout);
@@ -15,6 +19,22 @@ export default function MyPage() {
   const [isPreparingModalOpen, setIsPreparingModalOpen] = useState(false);
   const [selectedMenuLabel, setSelectedMenuLabel] = useState("");
   const navigate = useNavigate();
+
+  const [ridePhotos, setRidePhotos] = useState<RidePhoto[]>([]);
+  const [photosLoading, setPhotosLoading] = useState(true);
+  const [photosError, setPhotosError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setPhotosLoading(true);
+    setPhotosError(null);
+    getMyRidePhotos()
+      .then(setRidePhotos)
+      .catch((err: unknown) => {
+        console.error(err);
+        setPhotosError("탑승 사진을 불러오지 못했습니다.");
+      })
+      .finally(() => setPhotosLoading(false));
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -101,6 +121,55 @@ export default function MyPage() {
         <span>My Page</span>
       </div>
       <MenuList items={menuItems} />
+
+      {/* 탑승 사진 섹션 */}
+      <section className={myPageStyles.photoSection}>
+        <div className={myPageStyles.photoSectionHeader}>
+          <MdPhotoCamera className={myPageStyles.photoSectionIcon} />
+          <h2 className={myPageStyles.photoSectionTitle}>구매한 탑승 사진</h2>
+        </div>
+
+        {photosLoading && (
+          <p className={myPageStyles.photoSectionMessage}>불러오는 중...</p>
+        )}
+
+        {!photosLoading && photosError && (
+          <p className={clsx(myPageStyles.photoSectionMessage, myPageStyles.photoSectionError)}>
+            {photosError}
+          </p>
+        )}
+
+        {!photosLoading && !photosError && ridePhotos.length === 0 && (
+          <p className={myPageStyles.photoSectionMessage}>구매한 탑승 사진이 없습니다.</p>
+        )}
+
+        {!photosLoading && !photosError && ridePhotos.length > 0 && (
+          <div className={myPageStyles.photoGrid}>
+            {ridePhotos.map((photo) => (
+              <div key={photo.ridePhotoId} className={myPageStyles.photoCard}>
+                <img
+                  src={photo.imageUrl}
+                  alt={`${photo.attractionName} 탑승 사진`}
+                  className={myPageStyles.photoImg}
+                />
+                <div className={myPageStyles.photoMeta}>
+                  <span className={myPageStyles.photoAttractionName}>
+                    {photo.attractionName}
+                  </span>
+                  <span className={myPageStyles.photoDate}>
+                    {new Date(photo.rideDate).toLocaleDateString("ko-KR", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
       <LoadingSpinner isLoading={isSubmitting} message="로그아웃 처리 중입니다..." />
     </div>
   );

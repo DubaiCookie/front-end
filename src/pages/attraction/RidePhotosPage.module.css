@@ -1,0 +1,171 @@
+.pageRoot {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* ── Photo grid ──────────────────────────────────────────────────── */
+.photoGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* ── Photo card ──────────────────────────────────────────────────── */
+.photoCard {
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(255, 107, 138, 0.08);
+}
+
+.photoThumb {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  display: block;
+  background: #f0f0f0;
+}
+
+.photoThumbPlaceholder {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 214, 223, 0.18);
+  color: var(--SECONDARY-PINK);
+  font-size: 48px;
+}
+
+.photoInfo {
+  padding: 12px 16px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.photoPrice {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-semibold);
+  color: var(--TEXT-PRIMARY);
+}
+
+.photoPriceUnit {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-regular);
+  color: var(--TEXT-SECONDARY);
+  margin-left: 2px;
+}
+
+.photoBuyButton {
+  padding: 8px 18px;
+  background-color: var(--PRIMARY-PINK);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+
+.photoBuyButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ── Status badge ────────────────────────────────────────────────── */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: var(--font-medium);
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+.statusPending {
+  background: rgba(255, 200, 100, 0.2);
+  color: var(--ORANGE);
+}
+
+.statusFailed {
+  background: rgba(255, 104, 104, 0.12);
+  color: var(--RED);
+}
+
+/* ── Error / empty states ────────────────────────────────────────── */
+.errorCard {
+  background: rgba(255, 104, 104, 0.08);
+  border: 1px solid rgba(255, 104, 104, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  color: var(--RED);
+  font-size: var(--font-size-sm);
+  margin-top: 8px;
+}
+
+.emptyCard {
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  padding: 40px 16px;
+  text-align: center;
+  color: var(--TEXT-SECONDARY);
+  font-size: var(--font-size-sm);
+  box-shadow: 0 4px 16px rgba(255, 107, 138, 0.08);
+}
+
+.emptyIcon {
+  font-size: 40px;
+  color: var(--BORDER-LIGHT);
+  margin-bottom: 12px;
+}
+
+/* ── Info hint ───────────────────────────────────────────────────── */
+.hintBox {
+  background: rgba(255, 214, 223, 0.28);
+  border: 1px solid rgba(255, 107, 138, 0.2);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  font-size: var(--font-size-sm);
+  color: var(--TEXT-SECONDARY);
+  line-height: 1.6;
+}
+
+.hintTitle {
+  font-weight: var(--font-semibold);
+  color: var(--TEXT-PRIMARY);
+  margin-bottom: 4px;
+}
+
+.bottomSpacer {
+  height: 20px;
+}
+
+@media (max-width: 360px) {
+  .photoInfo {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .photoBuyButton {
+    width: 100%;
+    text-align: center;
+  }
+}
