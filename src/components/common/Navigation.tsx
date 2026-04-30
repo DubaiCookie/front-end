@@ -1,7 +1,7 @@
 import styles from './Navigation.module.css';
 import clsx from 'clsx';
 import { NavLink } from 'react-router-dom';
-import { MdAttractions } from "react-icons/md";
+import { MdAttractions, MdFaceRetouchingNatural, MdChildCare } from "react-icons/md";
 import { IoTicket, IoHourglass } from "react-icons/io5";
 import { FaUserCircle } from "react-icons/fa";
 
@@ -16,6 +16,12 @@ export default function Navigation() {
       </NavLink>
       <NavLink to="/waiting" className={({ isActive }) => clsx('flex-row', styles.navLink, isActive && styles.active)}>
         <IoHourglass className={clsx(styles.icon)} />
+      </NavLink>
+      <NavLink to="/face-find" className={({ isActive }) => clsx('flex-row', styles.navLink, isActive && styles.active)}>
+        <MdFaceRetouchingNatural className={clsx(styles.icon)} />
+      </NavLink>
+      <NavLink to="/missing-child" className={({ isActive }) => clsx('flex-row', styles.navLink, isActive && styles.active)}>
+        <MdChildCare className={clsx(styles.icon)} />
       </NavLink>
       <NavLink to="/mypage" className={({ isActive }) => clsx('flex-row', styles.navLink, isActive && styles.active)}>
         <FaUserCircle className={clsx(styles.icon)} />

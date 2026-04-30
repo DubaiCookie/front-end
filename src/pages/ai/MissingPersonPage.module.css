@@ -1,0 +1,390 @@
+.pageRoot {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Cards ──────────────────────────────────────────────────────── */
+.card {
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(255, 107, 138, 0.08);
+}
+
+.cardTitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-semibold);
+  color: var(--PRIMARY-PINK);
+  margin-bottom: 12px;
+}
+
+/* ── Form fields ────────────────────────────────────────────────── */
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.fieldRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fieldRowInline {
+  display: flex;
+  gap: 8px;
+}
+
+.fieldRowInline .fieldRow {
+  flex: 1;
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-medium);
+  color: var(--TEXT-PRIMARY);
+}
+
+.input {
+  width: 100%;
+  height: 40px;
+  padding: 8px 10px;
+  border: 1.5px solid var(--BORDER-LIGHT);
+  border-radius: 8px;
+  font-size: var(--font-size-base);
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--TEXT-PRIMARY);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  border-color: var(--SECONDARY-PINK);
+}
+
+.textarea {
+  width: 100%;
+  min-height: 90px;
+  padding: 10px;
+  border: 1.5px solid var(--BORDER-LIGHT);
+  border-radius: 8px;
+  font-size: var(--font-size-base);
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--TEXT-PRIMARY);
+  outline: none;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+  transition: border-color 0.2s;
+}
+
+.textarea:focus {
+  border-color: var(--SECONDARY-PINK);
+}
+
+.fieldError {
+  font-size: var(--font-size-sm);
+  color: var(--RED);
+}
+
+/* ── Hint box ───────────────────────────────────────────────────── */
+.hintBox {
+  background: rgba(255, 214, 223, 0.28);
+  border: 1px solid rgba(255, 107, 138, 0.2);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+.hintTitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-semibold);
+  color: var(--TEXT-PRIMARY);
+  margin-bottom: 6px;
+}
+
+.hintList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hintList li {
+  font-size: var(--font-size-sm);
+  color: var(--TEXT-SECONDARY);
+  padding-left: 14px;
+  position: relative;
+}
+
+.hintList li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--PRIMARY-PINK);
+}
+
+/* ── Action buttons ─────────────────────────────────────────────── */
+.btnPrimary {
+  width: 100%;
+  padding: 12px 16px;
+  background-color: var(--PRIMARY-PINK);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: opacity 0.15s;
+  margin-top: 4px;
+}
+
+.btnPrimary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btnSecondary {
+  flex: 1;
+  padding: 10px 12px;
+  background-color: transparent;
+  color: var(--PRIMARY-PINK);
+  border: 1.5px solid var(--PRIMARY-PINK);
+  border-radius: 10px;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btnSecondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btnDanger {
+  flex: 1;
+  padding: 10px 12px;
+  background-color: var(--RED);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btnDanger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ── Session status ─────────────────────────────────────────────── */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-semibold);
+}
+
+.statusDetecting {
+  background: rgba(255, 152, 0, 0.15);
+  color: var(--ORANGE);
+}
+
+.statusTracking {
+  background: rgba(51, 184, 122, 0.15);
+  color: var(--GREEN);
+}
+
+.statusFound {
+  background: rgba(61, 153, 237, 0.15);
+  color: var(--BLUE);
+}
+
+.statusExpired {
+  background: rgba(152, 152, 152, 0.15);
+  color: var(--GRAY);
+}
+
+.statusPulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* ── Clothing parsed tags ───────────────────────────────────────── */
+.clothingRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.clothingTag {
+  background: rgba(255, 107, 138, 0.1);
+  border: 1px solid rgba(255, 107, 138, 0.25);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: var(--font-size-sm);
+  color: var(--PRIMARY-PINK);
+  font-weight: var(--font-medium);
+}
+
+/* ── CCTV candidate list ────────────────────────────────────────── */
+.cctvList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cctvItem {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--BORDER-LIGHT);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.cctvHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.cctvId {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-semibold);
+  color: var(--TEXT-PRIMARY);
+}
+
+.cctvMatchBadge {
+  font-size: 12px;
+  background: rgba(255, 107, 138, 0.12);
+  color: var(--PRIMARY-PINK);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-weight: var(--font-semibold);
+}
+
+.detectionList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detectionItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 10px;
+  padding: 8px;
+  border: 1px solid var(--BORDER-LIGHT);
+}
+
+.thumbnail {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #eee;
+}
+
+.thumbnailPlaceholder {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  background: var(--THIRDARY-PINK);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 20px;
+}
+
+.detectionInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detectionScore {
+  font-size: var(--font-size-sm);
+  color: var(--TEXT-SECONDARY);
+}
+
+.childBadge {
+  display: inline-block;
+  background: rgba(255, 209, 80, 0.25);
+  color: #a07000;
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-size: 11px;
+  font-weight: var(--font-semibold);
+}
+
+.lockBtn {
+  padding: 6px 12px;
+  background-color: var(--PRIMARY-PINK);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.lockBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Empty / info states ────────────────────────────────────────── */
+.emptyDetection {
+  text-align: center;
+  color: var(--TEXT-SECONDARY);
+  font-size: var(--font-size-sm);
+  padding: 20px 0;
+}
+
+.sessionInfoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-sm);
+  color: var(--TEXT-SECONDARY);
+  margin-top: 6px;
+}
+
+.sessionActionRow {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.bottomSpacer {
+  height: 24px;
+}
