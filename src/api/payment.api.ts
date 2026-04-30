@@ -146,10 +146,7 @@ export type PhotoPaymentRequest = {
 };
 
 export async function preparePhotoPayment(payload: PhotoPaymentRequest) {
-  const { data } = await http.post("/payments/photo", {
-    ...payload,
-    accessToken: getAccessToken(),
-  });
+  const { data } = await http.post("/payments/photo", payload);
   return toPaymentResponse(data);
 }
 
