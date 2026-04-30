@@ -1,5 +1,10 @@
 import { http } from "@/api/http";
+import { useAuthStore } from "@/stores/auth.store";
 import type { TicketKind } from "@/types/ticket";
+
+function getAccessToken(): string {
+  return useAuthStore.getState().accessToken ?? "";
+}
 
 export type PreparePaymentRequest = {
   userId: number;
@@ -136,12 +141,18 @@ function toPaymentOrderResponse(input: unknown): PaymentOrderResponse {
 }
 
 export async function preparePayment(payload: PreparePaymentRequest) {
-  const { data } = await http.post("/payments", payload);
+  const { data } = await http.post("/payments", {
+    ...payload,
+    accessToken: getAccessToken(),
+  });
   return toPaymentResponse(data);
 }
 
 export async function confirmPayment(payload: ConfirmPaymentRequest) {
-  const { data } = await http.post("/payments/confirm", payload);
+  const { data } = await http.post("/payments/confirm", {
+    ...payload,
+    accessToken: getAccessToken(),
+  });
   return toPaymentResponse(data);
 }
 

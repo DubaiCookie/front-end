@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { env } from '@/utils/env';
+import { useAuthStore } from '@/stores/auth.store';
 
 export const http = axios.create({
   baseURL: env.API_BASE_URL,
@@ -92,7 +93,10 @@ http.interceptors.response.use(
     originalRequest._retry = true;
 
     try {
-      await refreshHttp.post("/user/refresh");
+      const { data } = await refreshHttp.post<{ accessToken?: string }>("/user/refresh");
+      if (data?.accessToken) {
+        useAuthStore.getState().setAccessToken(data.accessToken);
+      }
       return http(originalRequest);
     } catch (refreshError) {
       if (!hasNotifiedSessionExpired) {
