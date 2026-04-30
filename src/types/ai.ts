@@ -12,6 +12,12 @@ export type FaceUnregisterResponse = {
   deleted: boolean;
 };
 
+export type FaceStatusResponse = {
+  user_id: string;
+  registered: boolean;
+  total_photos: number;
+};
+
 // ── Missing person service ───────────────────────────────────────────────────
 
 export type SessionState = "detecting" | "tracking" | "found" | "expired";

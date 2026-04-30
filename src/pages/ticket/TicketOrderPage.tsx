@@ -140,7 +140,10 @@ export default function TicketOrderPage() {
       const backendOrderId = Number(prepared.orderId);
       const paymentId = Number(prepared.paymentId);
       const orderName = String(prepared.orderName ?? "").trim();
-      const tossOrderId = prepared.tossOrderId || `ORDER-${backendOrderId}-${Date.now()}`;
+      // 서버(pay-server)가 발급한 tossOrderId를 그대로 사용해야 한다.
+      // confirm 시 pay-server는 DB 에 저장된 tossOrderId 로 Toss 승인 API 를 호출하므로,
+      // 결제 요청 시 사용한 orderId 와 동일해야 Toss 가 거절하지 않는다.
+      const tossOrderId = String(prepared.tossOrderId ?? "").trim();
 
       if (!Number.isFinite(amount) || amount <= 0) {
         throw new Error(`유효하지 않은 결제 금액입니다. amount=${prepared.amount}`);

@@ -240,11 +240,17 @@ export default function ChatbotWidget() {
 
           <div className={styles.messageList} ref={listRef}>
             {bubbles.map((b, idx) => {
+              const answerText = b.content || "";
               const rideImages = b.sources
                 ? b.sources
                     .map((s) => ({ source: s, url: lookupRideImage(s) }))
                     .filter((x): x is { source: RetrievedSource; url: string } =>
                       x.url !== null,
+                    )
+                    // 답변 본문에 실제로 언급된 어트랙션의 사진만 노출.
+                    // LLM 이 인용하지 않은 약한 RAG hit 은 사진 없이 chip 으로만 표시.
+                    .filter(({ source }) =>
+                      answerText.includes(source.title),
                     )
                 : [];
               const isLastAssistant =
