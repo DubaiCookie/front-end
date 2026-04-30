@@ -2,7 +2,11 @@ import clsx from "clsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Button from "@/components/common/Button";
-import { confirmPayment, type PaymentResponse } from "@/api/payment.api";
+import {
+  confirmPayment,
+  getPaymentByOrderId,
+  type PaymentResponse,
+} from "@/api/payment.api";
 import styles from "./TicketOrderResultPage.module.css";
 import axios from "axios";
 
@@ -75,7 +79,17 @@ export default function TicketOrderSuccessPage() {
         sessionStorage.removeItem("pending-payment");
       } catch (error) {
         console.error(error);
-        if (axios.isAxiosError(error)) {
+        // confirm 호출이 실패하더라도 백엔드(Kafka)에서 이미 결제 완료 처리되었을 수 있다.
+        // - 토큰 만료로 401
+        // - 동일 paymentKey 로 중복 호출 시 409 (PAYMENT_ALREADY_COMPLETED)
+        // - 응답 직전에 네트워크 끊김
+        // 위와 같은 상황에서도 실제 결제는 성공한 경우가 많으므로,
+        // /payments/order/{orderId} 로 결제 상태를 한 번 더 조회해서 COMPLETED 면 성공 처리한다.
+        const fallback = await getPaymentByOrderId(backendOrderId).catch(() => null);
+        if (fallback && fallback.paymentStatus === "COMPLETED") {
+          setResult(fallback);
+          sessionStorage.removeItem("pending-payment");
+        } else if (axios.isAxiosError(error)) {
           const responseData = error.response?.data;
           if (typeof responseData === "string" && responseData.trim().length > 0) {
             setErrorMessage(`결제 승인 실패: ${responseData}`);
