@@ -18,6 +18,15 @@ export interface EnqueueResponse {
   estimatedCycleNumber: number;
 }
 
+export interface DeferResponse {
+  attractionId: number;
+  newPosition: number;
+  deferCount: number;
+  maxDeferCount: number;
+  deferredCycles: number;
+  estimatedMinutes: number;
+}
+
 export interface QueueStatusItem {
   attractionId: number;
   attractionName: string;

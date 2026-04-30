@@ -1,0 +1,78 @@
+.pageRoot {
+  position: relative;
+  min-height: calc(100vh - var(--header-height) - var(--navigation-height));
+}
+
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 12px;
+}
+
+.readButton {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 107, 138, 0.42);
+  color: var(--PRIMARY-PINK);
+  background: rgba(255, 255, 255, 0.9);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+}
+
+.list {
+  display: grid;
+  gap: 10px;
+}
+
+.item {
+  position: relative;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 8px 18px rgba(255, 107, 138, 0.1);
+}
+
+.itemUnread {
+  border-color: rgba(255, 107, 138, 0.38);
+}
+
+.itemHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.title {
+  color: var(--TEXT-PRIMARY);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-semibold);
+  line-height: 1.35;
+}
+
+.badge {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: var(--WHITE);
+  background: var(--PRIMARY-PINK);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-semibold);
+}
+
+.message {
+  color: var(--TEXT-PRIMARY);
+  font-size: var(--font-size-base);
+  line-height: 1.45;
+}
+
+.time {
+  display: block;
+  margin-top: 8px;
+  color: var(--TEXT-SECONDARY);
+  font-size: var(--font-size-sm);
+}

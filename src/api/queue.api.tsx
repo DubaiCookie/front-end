@@ -1,6 +1,7 @@
 import { http } from "@/api/http"
 import type {
   EnqueueResponse,
+  DeferResponse,
   QueueStatusResponse,
   RequestEnqueue,
   RequestQueueCancel,
@@ -39,7 +40,7 @@ export async function deferQueue(payload: RequestQueueCancel) {
     attractionId: payload.attractionId,
   };
 
-  const { data } = await http.post("/queue/attractions/defer", request);
+  const { data } = await http.post<DeferResponse>("/queue/attractions/defer", request);
   return data;
 }
 

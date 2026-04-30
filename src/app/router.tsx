@@ -14,6 +14,7 @@ import TicketOrderPage from '@/pages/ticket/TicketOrderPage';
 import TicketOrderSuccessPage from '@/pages/ticket/TicketOrderSuccessPage';
 import TicketOrderFailPage from '@/pages/ticket/TicketOrderFailPage';
 import WaitingListPage from '@/pages/WaitingListPage';
+import NotificationPage from '@/pages/NotificationPage';
 import ErrorPage from '@/pages/ErrorPage';
 import FaceFindPage from '@/pages/ai/FaceFindPage';
 import MissingPersonPage from '@/pages/ai/MissingPersonPage';
@@ -88,6 +89,14 @@ export const router = createBrowserRouter([
         element: (
           <RequireAuth>
             <WaitingListPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: 'notifications',
+        element: (
+          <RequireAuth>
+            <NotificationPage />
           </RequireAuth>
         ),
       },

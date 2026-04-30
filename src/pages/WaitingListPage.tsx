@@ -11,6 +11,9 @@ import { IoHourglass } from "react-icons/io5";
 import Modal from "@/components/common/modals/Modal";
 import { useQueueStore } from "@/stores/queue.store";
 
+const MAX_DEFER_COUNT = 3;
+const DEFER_CYCLES = 3;
+
 export default function WaitingListPage() {
   const userId = useAuthStore((state) => state.userId);
   const liveQueueItems = useQueueStore((state) => state.liveQueueItems);
@@ -145,7 +148,14 @@ export default function WaitingListPage() {
       <Modal
         isOpen={Boolean(selectedSnoozeItem)}
         title="탑승 미루기"
-        content={`${selectedSnoozeItem?.attractionName ?? ""} 탑승을 뒤로 미루시겠습니까?`}
+        content={
+          <div>
+            <p>{selectedSnoozeItem?.attractionName ?? ""} 줄서기를 {DEFER_CYCLES}회차 뒤로 미룰까요?</p>
+            <p className={styles.deferCountText}>
+              남은 횟수: {Math.max(MAX_DEFER_COUNT - (selectedSnoozeItem?.deferCount ?? 0), 0)}회
+            </p>
+          </div>
+        }
         buttonTitle="확인"
         onClose={() => {
           setSelectedSnoozeItem(null);

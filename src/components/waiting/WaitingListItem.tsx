@@ -12,6 +12,7 @@ type WaitingListItemProps = {
 export default function WaitingListItem({ item, onCancel, onSnooze, onBoard }: WaitingListItemProps) {
   const ticketTypeLabel = item.ticketType === "PREMIUM" ? "Premium" : "Basic";
   const isAvailable = item.status === "AVAILABLE";
+  const canSnooze = item.deferCount < 3;
 
   return (
     <article className={clsx(styles.item, isAvailable && styles.itemAvailable)}>
@@ -59,17 +60,19 @@ export default function WaitingListItem({ item, onCancel, onSnooze, onBoard }: W
         >
           취소
         </button>
+        {canSnooze ? (
+          <button
+            type="button"
+            className={styles.snoozeButton}
+            onClick={() => {
+              onSnooze?.(item);
+            }}
+          >
+            미루기
+          </button>
+        ) : null}
         {isAvailable ? (
           <>
-            <button
-              type="button"
-              className={styles.snoozeButton}
-              onClick={() => {
-                onSnooze?.(item);
-              }}
-            >
-              미루기
-            </button>
             <button
               type="button"
               className={styles.boardButton}
