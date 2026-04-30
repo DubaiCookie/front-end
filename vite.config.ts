@@ -70,6 +70,9 @@ export default defineConfig(({ mode }) => ({
       '/api': {
         target: 'https://skala3-cloud1-team3.cloud.skala-ai.com',
         changeOrigin: true,
+        headers: {
+          Origin: 'https://skala3-cloud1-team3.cloud.skala-ai.com',
+        },
       },
       '/ws/queue': {
         target: 'https://skala3-cloud1-team3.cloud.skala-ai.com',
