@@ -1,18 +1,21 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getAiWsBaseUrl } from "@/api/ai.api";
 import type {
-  CandidateFoundMessage,
-  MissingPersonClientMessage,
   MissingPersonServerMessage,
-  TrackingUpdateMessage,
 } from "@/types/missing-person-ws";
 import { MISSING_PERSON_WS_PATH } from "@/types/missing-person-ws";
 
+/** 후보 정보: lock/reject HTTP 호출 시 서버가 요구하는 식별자 묶음 */
 export type WsCandidate = {
-  candidateId: string;
+  cctvId: string;
+  trackId: number;
+  /** data URL 형태의 썸네일 (data:image/jpeg;base64,...) */
   photoUrl: string;
+  clothingMatchScore: number;
+  isChild: boolean;
 };
 
+/** 픽셀 단위 bbox (영상 원본 해상도 기준) — 렌더링 시 스케일 보정 필요 */
 export type WsBbox = [number, number, number, number];
 
 type UseMissingPersonWsOptions = {
@@ -20,15 +23,16 @@ type UseMissingPersonWsOptions = {
   enabled: boolean;
   sessionId: string | null;
   onCandidateFound: (candidate: WsCandidate) => void;
-  onTrackingUpdate: (candidateId: string, bbox: WsBbox) => void;
+  onTrackingUpdate: (trackId: number, bbox: WsBbox) => void;
 };
 
 /**
- * ai-server의 미아 탐지 WebSocket에 연결합니다.
+ * ai-server 의 미아 탐지 watcher WebSocket 에 연결합니다.
  *
- * - 서버로부터 candidate_found 이벤트를 받으면 onCandidateFound 콜백을 호출합니다.
- * - 서버로부터 tracking_update 이벤트를 받으면 onTrackingUpdate 콜백을 호출합니다.
- * - sendMessage를 통해 confirmed/rejected 메시지를 서버로 전송합니다.
+ * - candidate_found → onCandidateFound (보호자 확인 대기 동안 매 1초 재전송됨)
+ * - tracking_update → onTrackingUpdate
+ * - 사용자 응답(맞아요/아니요)은 WS 가 아니라 HTTP POST 로 보냅니다.
+ *   (lockCandidate / rejectCandidate in api/ai.api.ts)
  */
 export function useMissingPersonWs({
   enabled,
@@ -39,19 +43,13 @@ export function useMissingPersonWs({
   const wsRef = useRef<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
-  const sendMessage = useCallback((msg: MissingPersonClientMessage) => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify(msg));
-    }
-  }, []);
-
   useEffect(() => {
     if (!enabled || !sessionId) {
       return;
     }
 
     const base = getAiWsBaseUrl();
-    const url = `${base}${MISSING_PERSON_WS_PATH}/${sessionId}`;
+    const url = `${base}${MISSING_PERSON_WS_PATH}/${sessionId}/watch`;
 
     const ws = new WebSocket(url);
     wsRef.current = ws;
@@ -69,14 +67,22 @@ export function useMissingPersonWs({
       }
 
       if (parsed.type === "candidate_found") {
-        const msg = parsed as CandidateFoundMessage;
-        onCandidateFound({ candidateId: msg.candidateId, photoUrl: msg.photoUrl });
+        const photoUrl = parsed.thumbnail_b64
+          ? `data:image/jpeg;base64,${parsed.thumbnail_b64}`
+          : "";
+        onCandidateFound({
+          cctvId: parsed.cctv_id,
+          trackId: parsed.track_id,
+          photoUrl,
+          clothingMatchScore: parsed.clothing_match_score,
+          isChild: parsed.is_child,
+        });
         return;
       }
 
       if (parsed.type === "tracking_update") {
-        const msg = parsed as TrackingUpdateMessage;
-        onTrackingUpdate(msg.candidateId, msg.bbox);
+        const { x1, y1, x2, y2 } = parsed.bbox;
+        onTrackingUpdate(parsed.track_id, [x1, y1, x2 - x1, y2 - y1]);
       }
     });
 
@@ -85,7 +91,7 @@ export function useMissingPersonWs({
     });
 
     ws.addEventListener("error", () => {
-      // close event이 이어서 발생하므로 별도 처리하지 않습니다.
+      // close event 가 이어서 발생하므로 별도 처리하지 않습니다.
     });
 
     return () => {
@@ -93,9 +99,9 @@ export function useMissingPersonWs({
       wsRef.current = null;
       setIsConnected(false);
     };
-    // onCandidateFound / onTrackingUpdate 는 useCallback으로 안정화된 참조여야 합니다.
+    // onCandidateFound / onTrackingUpdate 는 useCallback 으로 안정화된 참조여야 합니다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, sessionId]);
 
-  return { isConnected, sendMessage };
+  return { isConnected };
 }
