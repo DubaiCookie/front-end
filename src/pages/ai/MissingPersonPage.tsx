@@ -113,6 +113,9 @@ export default function MissingPersonPage() {
     }
   }, []);
 
+  const isNotFound = (err: unknown): boolean =>
+    (err as { response?: { status?: number } })?.response?.status === 404;
+
   const startPolling = useCallback(
     (sessionId: string) => {
       stopPolling();
@@ -124,13 +127,16 @@ export default function MissingPersonPage() {
           if (data.state === "found" || data.state === "expired") {
             stopPolling();
           }
-        } catch {
-          // 세션이 없어졌을 경우 폴링 중단
+        } catch (err) {
           stopPolling();
+          // 서버에서 세션이 사라졌으면 (파드 재기동 등) 로컬 상태 정리
+          if (isNotFound(err)) {
+            resetSessionStore();
+          }
         }
       }, 2000);
     },
-    [setSummary, stopPolling],
+    [resetSessionStore, setSummary, stopPolling],
   );
 
   // 페이지 재진입 시: 만료되지 않은 세션이 보존되어 있으면 폴링 재개
@@ -240,6 +246,12 @@ export default function MissingPersonPage() {
       setInfoModal("선택한 인물 추적을 시작합니다.");
     } catch (err: unknown) {
       console.error(err);
+      if (isNotFound(err)) {
+        stopPolling();
+        resetSessionStore();
+        setErrorModal("세션이 만료되어 새로 신고해야 합니다.");
+        return;
+      }
       const detail =
         (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
       setErrorModal(detail ?? "추적 시작 중 오류가 발생했습니다.");
@@ -316,7 +328,14 @@ export default function MissingPersonPage() {
         try {
           setLoadingMsg("세션을 종료하는 중입니다...");
           setIsLoading(true);
-          await endSession(session.session_id);
+          try {
+            await endSession(session.session_id);
+          } catch (err) {
+            // 서버에 이미 세션이 없으면(파드 재기동 등) 정상 종료로 간주
+            if (!isNotFound(err)) {
+              throw err;
+            }
+          }
           stopPolling();
           resetSessionStore();
           setForm(EMPTY_FORM);
