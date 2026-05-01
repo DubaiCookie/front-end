@@ -6,6 +6,7 @@ import Modal from "@/components/common/modals/Modal";
 import {
   createMissingPersonSession,
   lockCandidate,
+  rejectCandidate,
   getSessionStatus,
   markSessionFound,
   requestStaff,
@@ -108,12 +109,17 @@ export default function MissingPersonPage() {
   const [videoPaused, setVideoPaused] = useState(false);
 
   const handleCandidateFound = useCallback((candidate: WsCandidate) => {
-    setPendingCandidate(candidate);
+    // 동일 trackId 가 매 폴링마다 재전송되므로, 같은 후보면 모달이 깜박이지 않도록 단순 set
+    setPendingCandidate((prev) =>
+      prev && prev.cctvId === candidate.cctvId && prev.trackId === candidate.trackId
+        ? prev
+        : candidate,
+    );
     setVideoPaused(true);
   }, []);
 
-  const handleTrackingUpdate = useCallback((candidateId: string, bbox: WsBbox) => {
-    setConfirmedCandidate((prev) => (prev?.candidateId === candidateId ? prev : prev));
+  const handleTrackingUpdate = useCallback((trackId: number, bbox: WsBbox) => {
+    setConfirmedCandidate((prev) => (prev?.trackId === trackId ? prev : prev));
     setTrackingBbox(bbox);
   }, []);
 
@@ -128,7 +134,7 @@ export default function MissingPersonPage() {
     session && summary && summary.state !== "found" && summary.state !== "expired";
 
   // WebSocket 연결 (세션이 활성 상태일 때만)
-  const { sendMessage } = useMissingPersonWs({
+  useMissingPersonWs({
     enabled: Boolean(isSessionActive),
     sessionId: session?.session_id ?? null,
     onCandidateFound: handleCandidateFound,
@@ -136,21 +142,37 @@ export default function MissingPersonPage() {
   });
 
   // ── Candidate 확인 / 거절 핸들러 ─────────────────────────────────
-  const handleConfirmCandidate = useCallback(() => {
-    if (!pendingCandidate) return;
-    sendMessage({ type: "candidate_confirmed", candidateId: pendingCandidate.candidateId });
-    setConfirmedCandidate(pendingCandidate);
-    setPendingCandidate(null);
-    // 영상 재개 + bounding box 오버레이 활성화
-    setVideoPaused(false);
-  }, [pendingCandidate, sendMessage]);
+  const handleConfirmCandidate = useCallback(async () => {
+    if (!pendingCandidate || !session) return;
+    const candidate = pendingCandidate;
+    try {
+      await lockCandidate(session.session_id, {
+        cctv_id: candidate.cctvId,
+        track_id: candidate.trackId,
+      });
+      setConfirmedCandidate(candidate);
+      setPendingCandidate(null);
+      setVideoPaused(false);
+    } catch (err) {
+      console.error(err);
+      const detail =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      setErrorModal(detail ?? "추적 시작 중 오류가 발생했습니다.");
+    }
+  }, [pendingCandidate, session]);
 
-  const handleRejectCandidate = useCallback(() => {
-    if (!pendingCandidate) return;
-    sendMessage({ type: "candidate_rejected", candidateId: pendingCandidate.candidateId });
+  const handleRejectCandidate = useCallback(async () => {
+    if (!pendingCandidate || !session) return;
     setPendingCandidate(null);
     setVideoPaused(false);
-  }, [pendingCandidate, sendMessage]);
+    try {
+      await rejectCandidate(session.session_id);
+    } catch (err) {
+      console.error(err);
+      // 거절 실패 시 사용자에게 에러를 강제 표시할 정도의 critical 은 아님
+      // 다음 candidate_found 폴링에서 자연스럽게 다시 모달이 뜸
+    }
+  }, [pendingCandidate, session]);
 
   const handleCloseConfirmedCard = useCallback(() => {
     setConfirmedCandidate(null);

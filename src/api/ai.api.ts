@@ -92,6 +92,11 @@ export async function lockCandidate(
   await aiHttp.post(`/missing-person/session/${sessionId}/lock`, body);
 }
 
+/** 보호자가 AI 후보를 거절 → 시나리오 일시정지 해제, 탐색 재개 */
+export async function rejectCandidate(sessionId: string): Promise<void> {
+  await aiHttp.post(`/missing-person/session/${sessionId}/reject`);
+}
+
 /** 현재 탐지 결과 폴링 */
 export async function getSessionStatus(
   sessionId: string,
