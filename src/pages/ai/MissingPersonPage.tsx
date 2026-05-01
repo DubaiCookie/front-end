@@ -11,9 +11,8 @@ import {
   requestStaff,
   endSession,
 } from "@/api/ai.api";
+import { useMissingPersonStore } from "@/stores/missing-person.store";
 import type {
-  SessionCreateResponse,
-  SessionSummary,
   ClothingQuery,
   PersonDetection,
   CCTVSummary,
@@ -97,9 +96,12 @@ export default function MissingPersonPage() {
     onConfirm: () => void;
   } | null>(null);
 
-  // Session state
-  const [session, setSession] = useState<SessionCreateResponse | null>(null);
-  const [summary, setSummary] = useState<SessionSummary | null>(null);
+  // Session state (zustand persisted to sessionStorage)
+  const session = useMissingPersonStore((s) => s.session);
+  const summary = useMissingPersonStore((s) => s.summary);
+  const setSession = useMissingPersonStore((s) => s.setSession);
+  const setSummary = useMissingPersonStore((s) => s.setSummary);
+  const resetSessionStore = useMissingPersonStore((s) => s.reset);
 
   // Polling
   const pollTimerRef = useRef<number | null>(null);
@@ -128,8 +130,39 @@ export default function MissingPersonPage() {
         }
       }, 2000);
     },
-    [stopPolling],
+    [setSummary, stopPolling],
   );
+
+  // 페이지 재진입 시: 만료되지 않은 세션이 보존되어 있으면 폴링 재개
+  useEffect(() => {
+    if (!session) {
+      return;
+    }
+    const expired =
+      summary?.state === "found" ||
+      summary?.state === "expired" ||
+      new Date(session.expires_at).getTime() < Date.now();
+    if (expired) {
+      return;
+    }
+    void (async () => {
+      try {
+        const data = await getSessionStatus(session.session_id);
+        setSummary(data);
+        if (data.state !== "found" && data.state !== "expired") {
+          startPolling(session.session_id);
+        }
+      } catch {
+        // 서버 측 세션이 사라졌으면 로컬 상태도 정리
+        resetSessionStore();
+      }
+    })();
+    return () => {
+      stopPolling();
+    };
+    // session.session_id 가 바뀔 때만 재실행 (마운트 시 1회 + 새 세션 생성 시)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.session_id]);
 
   useEffect(() => {
     return () => {
@@ -285,8 +318,7 @@ export default function MissingPersonPage() {
           setIsLoading(true);
           await endSession(session.session_id);
           stopPolling();
-          setSession(null);
-          setSummary(null);
+          resetSessionStore();
           setForm(EMPTY_FORM);
         } catch (err: unknown) {
           console.error(err);
@@ -540,8 +572,7 @@ export default function MissingPersonPage() {
                     type="button"
                     className={styles.btnPrimary}
                     onClick={() => {
-                      setSession(null);
-                      setSummary(null);
+                      resetSessionStore();
                       setForm(EMPTY_FORM);
                     }}
                   >
