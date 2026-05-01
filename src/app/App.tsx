@@ -8,6 +8,9 @@ import { subscribeUserQueueStatus } from '@/api/ws';
 import { useQueueStore } from '@/stores/queue.store';
 import type { QueueEventMessage, UserQueueSocketMessage, UserQueueStatusEvent } from '@/types/queue';
 import { syncPushTokenIfPermitted } from '@/lib/push-notification';
+import { getFirebaseMessaging } from '@/lib/firebase';
+import { onMessage } from 'firebase/messaging';
+import { SILENT_FOREGROUND_NOTIFICATION_TYPES } from '@/types/notification';
 
 function isUserQueueStatusEvent(payload: UserQueueSocketMessage): payload is UserQueueStatusEvent {
   return "queues" in payload;
@@ -42,6 +45,35 @@ export default function App() {
       window.removeEventListener(REQUEST_FAILED_EVENT, handleRequestFailed);
     };
   }, [logout]);
+
+  // FCM 포그라운드 메시지 핸들러:
+  // 사진 알림(RIDE_PHOTO_READY) 등 SILENT_FOREGROUND_NOTIFICATION_TYPES에 속하는 알림은
+  // 알림 센터에만 표시하고 포그라운드 팝업은 띄우지 않습니다.
+  useEffect(() => {
+    let unsubscribeFcm: (() => void) | null = null;
+
+    void (async () => {
+      const messaging = await getFirebaseMessaging();
+      if (!messaging) return;
+
+      unsubscribeFcm = onMessage(messaging, (payload) => {
+        const notificationType =
+          (payload.data?.type as string | undefined) ??
+          (payload.notification?.title ? "" : "");
+
+        // 사진 알림 타입은 팝업/토스트 없이 무시 (알림 센터에서만 확인 가능)
+        if (SILENT_FOREGROUND_NOTIFICATION_TYPES.has(notificationType)) {
+          return;
+        }
+
+        // 다른 알림 타입에 대한 포그라운드 처리가 필요하면 이 아래에 추가하세요.
+      });
+    })();
+
+    return () => {
+      unsubscribeFcm?.();
+    };
+  }, []);
 
   useEffect(() => {
     if (!userId) {

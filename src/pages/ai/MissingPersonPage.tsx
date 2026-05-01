@@ -17,6 +17,10 @@ import type {
   PersonDetection,
   CCTVSummary,
 } from "@/types/ai";
+import { useMissingPersonWs } from "@/hooks/useMissingPersonWs";
+import type { WsBbox, WsCandidate } from "@/hooks/useMissingPersonWs";
+import CandidateDetectionCard from "@/components/missing-person/CandidateDetectionCard";
+import VideoWithBbox from "@/components/missing-person/VideoWithBbox";
 import styles from "./MissingPersonPage.module.css";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -96,12 +100,62 @@ export default function MissingPersonPage() {
     onConfirm: () => void;
   } | null>(null);
 
+  // ── WebSocket: 후보 발견 / 추적 상태 ──────────────────────────────
+  const [pendingCandidate, setPendingCandidate] = useState<WsCandidate | null>(null);
+  const [confirmedCandidate, setConfirmedCandidate] = useState<WsCandidate | null>(null);
+  const [trackingBbox, setTrackingBbox] = useState<WsBbox | null>(null);
+  /** 영상이 일시정지 상태인지 여부 (후보 발견 시 true) */
+  const [videoPaused, setVideoPaused] = useState(false);
+
+  const handleCandidateFound = useCallback((candidate: WsCandidate) => {
+    setPendingCandidate(candidate);
+    setVideoPaused(true);
+  }, []);
+
+  const handleTrackingUpdate = useCallback((candidateId: string, bbox: WsBbox) => {
+    setConfirmedCandidate((prev) => (prev?.candidateId === candidateId ? prev : prev));
+    setTrackingBbox(bbox);
+  }, []);
+
   // Session state (zustand persisted to sessionStorage)
   const session = useMissingPersonStore((s) => s.session);
   const summary = useMissingPersonStore((s) => s.summary);
   const setSession = useMissingPersonStore((s) => s.setSession);
   const setSummary = useMissingPersonStore((s) => s.setSummary);
   const resetSessionStore = useMissingPersonStore((s) => s.reset);
+
+  const isSessionActive =
+    session && summary && summary.state !== "found" && summary.state !== "expired";
+
+  // WebSocket 연결 (세션이 활성 상태일 때만)
+  const { sendMessage } = useMissingPersonWs({
+    enabled: Boolean(isSessionActive),
+    sessionId: session?.session_id ?? null,
+    onCandidateFound: handleCandidateFound,
+    onTrackingUpdate: handleTrackingUpdate,
+  });
+
+  // ── Candidate 확인 / 거절 핸들러 ─────────────────────────────────
+  const handleConfirmCandidate = useCallback(() => {
+    if (!pendingCandidate) return;
+    sendMessage({ type: "candidate_confirmed", candidateId: pendingCandidate.candidateId });
+    setConfirmedCandidate(pendingCandidate);
+    setPendingCandidate(null);
+    // 영상 재개 + bounding box 오버레이 활성화
+    setVideoPaused(false);
+  }, [pendingCandidate, sendMessage]);
+
+  const handleRejectCandidate = useCallback(() => {
+    if (!pendingCandidate) return;
+    sendMessage({ type: "candidate_rejected", candidateId: pendingCandidate.candidateId });
+    setPendingCandidate(null);
+    setVideoPaused(false);
+  }, [pendingCandidate, sendMessage]);
+
+  const handleCloseConfirmedCard = useCallback(() => {
+    setConfirmedCandidate(null);
+    setTrackingBbox(null);
+  }, []);
 
   // Polling
   const pollTimerRef = useRef<number | null>(null);
@@ -349,14 +403,33 @@ export default function MissingPersonPage() {
     });
   };
 
-  const isSessionActive =
-    session && summary && summary.state !== "found" && summary.state !== "expired";
-
   // ── Render ────────────────────────────────────────────────────
 
   return (
     <>
       <LoadingSpinner isLoading={isLoading} message={loadingMsg} />
+
+      {/* ── 후보 발견 카드 (pending) ── */}
+      {pendingCandidate && (
+        <CandidateDetectionCard
+          photoUrl={pendingCandidate.photoUrl}
+          mode="pending"
+          onConfirm={handleConfirmCandidate}
+          onReject={handleRejectCandidate}
+          onClose={handleRejectCandidate}
+        />
+      )}
+
+      {/* ── 후보 확정 카드 (confirmed) ── */}
+      {!pendingCandidate && confirmedCandidate && (
+        <CandidateDetectionCard
+          photoUrl={confirmedCandidate.photoUrl}
+          mode="confirmed"
+          onConfirm={handleConfirmCandidate}
+          onReject={handleRejectCandidate}
+          onClose={handleCloseConfirmedCard}
+        />
+      )}
 
       <Modal
         isOpen={errorModal !== null}
@@ -511,6 +584,18 @@ export default function MissingPersonPage() {
         {/* ── 세션 진행 중 ── */}
         {session && (
           <>
+            {/* CCTV 영상 플레이어 + bounding box 오버레이 */}
+            {isSessionActive && (
+              <div className={styles.card}>
+                <p className={styles.cardTitle}>CCTV 실시간 영상</p>
+                <VideoWithBbox
+                  src={null}
+                  paused={videoPaused}
+                  bbox={confirmedCandidate ? trackingBbox : null}
+                />
+              </div>
+            )}
+
             {/* 세션 상태 헤더 */}
             <div className={styles.card}>
               <p className={styles.cardTitle}>탐지 세션</p>

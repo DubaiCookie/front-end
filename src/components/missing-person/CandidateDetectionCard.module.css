@@ -1,0 +1,163 @@
+/* ── Overlay (fullscreen dim) ───────────────────────────────────────────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20, 20, 20, 0.52);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  padding: 16px;
+}
+
+/* ── Card ───────────────────────────────────────────────────────────────── */
+.card {
+  position: relative;
+  width: min(92vw, 360px);
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 20px;
+  padding: 20px 18px 18px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.26);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pulseDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--PRIMARY-PINK);
+  flex-shrink: 0;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+.title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-bold);
+  color: var(--TEXT-PRIMARY);
+}
+
+.subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--TEXT-SECONDARY);
+  line-height: 1.4;
+}
+
+/* ── Photo ──────────────────────────────────────────────────────────────── */
+.photoWrap {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--THIRDARY-PINK);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photoPlaceholder {
+  font-size: 48px;
+  color: var(--SECONDARY-PINK);
+}
+
+/* ── Action buttons ─────────────────────────────────────────────────────── */
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btnConfirm {
+  flex: 1;
+  padding: 12px 10px;
+  background-color: var(--PRIMARY-PINK);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btnConfirm:hover {
+  opacity: 0.88;
+}
+
+.btnReject {
+  flex: 1;
+  padding: 12px 10px;
+  background-color: transparent;
+  color: var(--TEXT-SECONDARY);
+  border: 1.5px solid var(--BORDER-LIGHT);
+  border-radius: 12px;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btnReject:hover {
+  border-color: var(--BORDER);
+}
+
+/* ── Location banner (confirmed 상태) ───────────────────────────────────── */
+.locationBanner {
+  background: rgba(51, 184, 122, 0.12);
+  border: 1px solid rgba(51, 184, 122, 0.3);
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.locationLabel {
+  font-size: var(--font-size-sm);
+  color: var(--TEXT-SECONDARY);
+}
+
+.locationValue {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-semibold);
+  color: var(--GREEN);
+}
+
+.closeBtn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.07);
+  color: var(--TEXT-SECONDARY);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

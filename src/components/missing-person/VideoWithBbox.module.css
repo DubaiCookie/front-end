@@ -1,0 +1,42 @@
+/* ── Wrapper ─────────────────────────────────────────────────────────────── */
+.wrapper {
+  position: relative;
+  width: 100%;
+  background: #111;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+}
+
+/* ── Video element ───────────────────────────────────────────────────────── */
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* ── Bounding box SVG overlay ────────────────────────────────────────────── */
+.bboxOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* ── Placeholder (영상 없음) ─────────────────────────────────────────────── */
+.placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: var(--font-size-sm);
+}
+
+.placeholderIcon {
+  font-size: 36px;
+  opacity: 0.4;
+}
