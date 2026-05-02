@@ -1,49 +1,163 @@
 import clsx from "clsx";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { MdPhotoCamera } from "react-icons/md";
+import { MdCheckCircle, MdPhotoCamera } from "react-icons/md";
+import { useAuthStore } from "@/stores/auth.store";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
-import { getMyPhotoCycles, type MyPhotoCycle } from "@/api/attraction-image.api";
+import Modal from "@/components/common/modals/Modal";
+import {
+  getMyPurchasedPhotos,
+  getMyUserPhotos,
+  type PurchasedPhoto,
+  type UserPhotoItem,
+} from "@/api/attraction-image.api";
+import { preparePhotoPayment, cancelPaymentOrder } from "@/api/payment.api";
+import { env } from "@/utils/env";
 import styles from "./MyPhotosPage.module.css";
 
 export default function MyPhotosPage() {
-  const navigate = useNavigate();
+  const nickname = useAuthStore((state) => state.nickname);
 
-  const [cycles, setCycles] = useState<MyPhotoCycle[]>([]);
+  const [photos, setPhotos] = useState<UserPhotoItem[]>([]);
+  const [purchasedIds, setPurchasedIds] = useState<Set<number>>(new Set());
+  const [purchasedMap, setPurchasedMap] = useState<Map<number, PurchasedPhoto>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
+  const [loadingMsg, setLoadingMsg] = useState("불러오는 중입니다...");
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [errorModal, setErrorModal] = useState<string | null>(null);
+  const [isPaying, setIsPaying] = useState(false);
 
   useEffect(() => {
-    getMyPhotoCycles()
-      .then(setCycles)
+    Promise.all([getMyUserPhotos(), getMyPurchasedPhotos()])
+      .then(([items, purchased]) => {
+        setPhotos(items);
+        setPurchasedIds(new Set(purchased.map((p) => p.attractionImageId)));
+        setPurchasedMap(new Map(purchased.map((p) => [p.attractionImageId, p])));
+      })
       .catch((err: unknown) => {
         console.error(err);
-        setFetchError("탑승 회차 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
+        setFetchError("탑승 사진 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
       })
       .finally(() => setIsLoading(false));
   }, []);
 
-  const formatRideDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString("ko-KR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+  const loadTossScript = async () => {
+    if (window.TossPayments) return window.TossPayments;
+
+    await new Promise<void>((resolve, reject) => {
+      const existing = document.querySelector<HTMLScriptElement>('script[data-toss-sdk="true"]');
+      if (existing) {
+        existing.addEventListener("load", () => resolve(), { once: true });
+        existing.addEventListener("error", () => reject(new Error("Toss SDK 로드에 실패했습니다.")), { once: true });
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://js.tosspayments.com/v1/payment";
+      script.async = true;
+      script.dataset.tossSdk = "true";
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("Toss SDK 로드에 실패했습니다."));
+      document.body.appendChild(script);
     });
 
-  const handleCardClick = (cycleId: number) => {
-    navigate(`/ride-photos/${cycleId}`);
+    if (!window.TossPayments) throw new Error("Toss SDK 초기화에 실패했습니다.");
+    return window.TossPayments;
   };
 
-  const handleCardKeyDown = (e: React.KeyboardEvent, cycleId: number) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      handleCardClick(cycleId);
+  const handleBuyClick = async (photo: UserPhotoItem) => {
+    const tossClientKey = env.TOSS_CLIENT_KEY;
+    if (!tossClientKey) {
+      setErrorModal("VITE_TOSS_CLIENT_KEY 설정이 필요합니다.");
+      return;
     }
+
+    try {
+      setLoadingMsg("결제를 준비하는 중입니다...");
+      setIsPaying(true);
+
+      const prepared = await preparePhotoPayment({
+        attractionImageId: photo.attractionImageId,
+        orderName: "탑승 사진",
+        amount: photo.price,
+      });
+
+      const amount = Number(prepared.amount);
+      const backendOrderId = Number(prepared.orderId);
+      const paymentId = Number(prepared.paymentId);
+      const orderName = String(prepared.orderName ?? "").trim();
+      const tossOrderId = String(prepared.tossOrderId ?? "").trim();
+
+      if (!Number.isFinite(amount) || amount <= 0) {
+        throw new Error(`유효하지 않은 결제 금액입니다. amount=${prepared.amount}`);
+      }
+      if (!Number.isFinite(backendOrderId) || backendOrderId <= 0) {
+        throw new Error(`유효하지 않은 주문 번호입니다. orderId=${prepared.orderId}`);
+      }
+      if (!orderName) throw new Error("유효하지 않은 주문명입니다.");
+      if (!/^[A-Za-z0-9_-]{6,64}$/.test(tossOrderId)) {
+        throw new Error(`토스 주문번호 형식이 올바르지 않습니다. tossOrderId=${tossOrderId}`);
+      }
+
+      const TossPayments = await loadTossScript();
+      const tossPayments = TossPayments(tossClientKey);
+      const baseUrl = env.APP_BASE_URL || window.location.origin;
+      const successUrl = `${baseUrl}/ticket/order/success?backendOrderId=${backendOrderId}`;
+      const failUrl = `${baseUrl}/ticket/order/fail?backendOrderId=${backendOrderId}`;
+
+      sessionStorage.setItem(
+        "pending-payment",
+        JSON.stringify({ paymentId, orderId: backendOrderId, amount, tossOrderId }),
+      );
+
+      try {
+        await tossPayments.requestPayment("CARD", {
+          amount,
+          orderId: tossOrderId,
+          orderName,
+          successUrl,
+          failUrl,
+          customerName: nickname ?? undefined,
+          windowTarget: "iframe",
+          card: { flowMode: "DEFAULT" },
+        });
+      } catch (paymentWindowError) {
+        await cancelPaymentOrder(backendOrderId).catch((cancelError: unknown) => {
+          console.warn("결제 준비 주문 취소에 실패했습니다.", cancelError);
+        });
+        sessionStorage.removeItem("pending-payment");
+        throw paymentWindowError;
+      }
+    } catch (error) {
+      console.error(error);
+      setErrorModal(
+        error instanceof Error && error.message
+          ? error.message
+          : "결제 준비 중 오류가 발생했습니다.",
+      );
+    } finally {
+      setIsPaying(false);
+    }
+  };
+
+  const renderStatusBadge = (status: UserPhotoItem["analysisStatus"]) => {
+    if (status === "COMPLETED") return null;
+    if (status === "PENDING") {
+      return <span className={clsx(styles.statusBadge, styles.statusPending)}>분석 중</span>;
+    }
+    return <span className={clsx(styles.statusBadge, styles.statusFailed)}>분석 실패</span>;
   };
 
   return (
     <>
-      <LoadingSpinner isLoading={isLoading} message="불러오는 중입니다..." />
+      <LoadingSpinner isLoading={isLoading || isPaying} message={loadingMsg} />
+
+      <Modal
+        isOpen={errorModal !== null}
+        title="오류"
+        content={errorModal ?? ""}
+        buttonTitle="확인"
+        onClose={() => setErrorModal(null)}
+        onButtonClick={() => setErrorModal(null)}
+      />
 
       <div className={clsx("container", styles.pageRoot)}>
         <div className={clsx("page-title")}>
@@ -53,13 +167,18 @@ export default function MyPhotosPage() {
           <span>My Ride Photos</span>
         </div>
 
+        <div className={styles.hintBox}>
+          <p className={styles.hintTitle}>탑승 사진 구매 안내</p>
+          <p>구매한 사진은 마이페이지 &gt; 구매한 탑승 사진에서 원본으로 확인할 수 있습니다.</p>
+        </div>
+
         {fetchError && (
           <div className={styles.errorCard} role="alert">
             {fetchError}
           </div>
         )}
 
-        {!isLoading && !fetchError && cycles.length === 0 && (
+        {!isLoading && !fetchError && photos.length === 0 && (
           <div className={styles.emptyCard}>
             <div className={styles.emptyIcon}>
               <MdPhotoCamera />
@@ -71,49 +190,67 @@ export default function MyPhotosPage() {
           </div>
         )}
 
-        {!isLoading && !fetchError && cycles.length > 0 && (
-          <div className={styles.cycleGrid}>
-            {cycles.map((cycle) => (
-              <div
-                key={cycle.attractionCycleId}
-                className={styles.cycleCard}
-                role="button"
-                tabIndex={0}
-                aria-label={`${cycle.attractionName} ${cycle.cycleNumber}회차 사진 보기`}
-                onClick={() => handleCardClick(cycle.attractionCycleId)}
-                onKeyDown={(e) => handleCardKeyDown(e, cycle.attractionCycleId)}
-              >
-                {cycle.thumbnailUrl ? (
-                  <img
-                    src={cycle.thumbnailUrl}
-                    alt={`${cycle.attractionName} ${cycle.cycleNumber}회차 썸네일`}
-                    className={styles.thumb}
-                  />
-                ) : (
-                  <div
-                    className={styles.thumbPlaceholder}
-                    aria-label="썸네일 없음"
-                  >
-                    <MdPhotoCamera />
-                  </div>
-                )}
+        {photos.length > 0 && (
+          <div className={styles.photoGrid}>
+            {photos.map((photo) => {
+              const isPurchased = purchasedIds.has(photo.attractionImageId);
+              const purchasedPhoto = purchasedMap.get(photo.attractionImageId);
+              const isReady = photo.analysisStatus === "COMPLETED";
+              const displaySrc = isPurchased
+                ? (purchasedPhoto?.imageUrl ?? photo.thumbnailUrl)
+                : photo.thumbnailUrl;
 
-                <div className={styles.cardBody}>
-                  <div className={styles.cardMeta}>
-                    <span className={styles.attractionName}>
-                      {cycle.attractionName}
-                    </span>
-                    <span className={styles.rideDateCycle}>
-                      {formatRideDate(cycle.rideDate)} · {cycle.cycleNumber}회차
-                    </span>
+              return (
+                <div key={photo.attractionImageId} className={styles.photoCard}>
+                  <div className={styles.photoPreviewWrapper}>
+                    {displaySrc ? (
+                      <img src={displaySrc} alt="탑승 사진" className={styles.photoThumb} />
+                    ) : (
+                      <div className={styles.photoThumbPlaceholder} aria-label="사진 준비 중">
+                        <MdPhotoCamera />
+                      </div>
+                    )}
+                    {!isPurchased && displaySrc && (
+                      <div className={styles.photoPreviewOverlay}>미리보기</div>
+                    )}
+                    {isPurchased && (
+                      <div className={styles.photoPurchasedBadge}>
+                        <MdCheckCircle />
+                        구매 완료
+                      </div>
+                    )}
                   </div>
 
-                  <span className={styles.photoBadge}>
-                    사진 {cycle.photoCount}장
-                  </span>
+                  <div className={styles.photoInfo}>
+                    <div className={styles.photoInfoLeft}>
+                      {photo.attractionName && (
+                        <span className={styles.attractionName}>{photo.attractionName}</span>
+                      )}
+                      <div className={styles.photoPriceRow}>
+                        <span className={styles.photoPrice}>
+                          {photo.price.toLocaleString()}
+                          <span className={styles.photoPriceUnit}>원</span>
+                        </span>
+                        {renderStatusBadge(photo.analysisStatus)}
+                      </div>
+                    </div>
+                    {isPurchased ? (
+                      <span className={styles.photoPurchasedLabel}>구매 완료</span>
+                    ) : (
+                      <button
+                        type="button"
+                        className={styles.photoBuyButton}
+                        disabled={!isReady || isPaying}
+                        onClick={() => { void handleBuyClick(photo); }}
+                        aria-label={`${photo.price.toLocaleString()}원 사진 구매하기`}
+                      >
+                        {isPaying ? "처리 중..." : "구매하기"}
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

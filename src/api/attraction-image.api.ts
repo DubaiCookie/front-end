@@ -1,34 +1,30 @@
 import { http } from "@/api/http";
 
+export type AnalysisStatus = "PENDING" | "COMPLETED" | "FAILED";
+
 export interface AttractionImage {
   attractionImageId: number;
-  imageUrl: string;
+  imageUrl: string | null;
   thumbnailUrl: string | null;
   price: number;
-  analysisStatus: "PENDING" | "COMPLETED" | "FAILED";
+  analysisStatus: AnalysisStatus;
 }
 
-export interface MyPhotoCycle {
-  attractionCycleId: number;
-  attractionId: number;
-  attractionName: string;
-  rideDate: string;
-  cycleNumber: number;
-  photoCount: number;
+export interface UserPhotoItem {
+  attractionImageId: number;
   thumbnailUrl: string | null;
+  price: number;
+  attractionName: string | null;
+  matchedAt: string | null;
+  analysisStatus: AnalysisStatus;
 }
 
-export async function getMyAttractionImages(cycleId: number): Promise<AttractionImage[]> {
-  const { data } = await http.get<AttractionImage[]>(
-    `/attractions/cycles/${cycleId}/images/my`,
-  );
-  return data;
-}
-
-export async function getMyPhotoCycles(): Promise<MyPhotoCycle[]> {
-  const { data } = await http.get<MyPhotoCycle[]>(
-    "/attractions/my-photo-cycles",
-  );
+/**
+ * 사용자 매칭 사진 flat 리스트.
+ * 회차(cycle) 그룹 없이 본인 얼굴이 매칭된 모든 단체사진을 반환한다.
+ */
+export async function getMyUserPhotos(): Promise<UserPhotoItem[]> {
+  const { data } = await http.get<UserPhotoItem[]>("/attractions/users/me/photos");
   return data;
 }
 

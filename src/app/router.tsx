@@ -18,7 +18,6 @@ import NotificationPage from '@/pages/NotificationPage';
 import ErrorPage from '@/pages/ErrorPage';
 import FaceFindPage from '@/pages/ai/FaceFindPage';
 import MissingPersonPage from '@/pages/ai/MissingPersonPage';
-import RidePhotosPage from '@/pages/attraction/RidePhotosPage';
 import MyPhotosPage from '@/pages/attraction/MyPhotosPage';
 
 export const router = createBrowserRouter([
@@ -121,14 +120,6 @@ export const router = createBrowserRouter([
       {
         path: 'missing-child',
         element: <MissingPersonPage />,
-      },
-      {
-        path: 'ride-photos/:cycleId',
-        element: (
-          <RequireAuth>
-            <RidePhotosPage />
-          </RequireAuth>
-        ),
       },
       {
         path: 'my-photos',
