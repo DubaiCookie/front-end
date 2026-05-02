@@ -169,6 +169,15 @@ export default function MissingPersonPage() {
     }
   }, [pendingCandidate, session]);
 
+  // 확정 카드는 잠깐만 보이고 자동으로 닫혀, 보호자가 영상 위 bbox 로 객체 위치를 추적할 수 있도록 함.
+  useEffect(() => {
+    if (!confirmedCandidate) return;
+    const t = window.setTimeout(() => {
+      setConfirmedCandidate((prev) => (prev === confirmedCandidate ? null : prev));
+    }, 2500);
+    return () => window.clearTimeout(t);
+  }, [confirmedCandidate]);
+
   const handleRejectCandidate = useCallback(async () => {
     if (!pendingCandidate || !session) return;
     setPendingCandidate(null);
@@ -620,7 +629,7 @@ export default function MissingPersonPage() {
                 <p className={styles.cardTitle}>CCTV 실시간 영상</p>
                 <VideoWithBbox
                   src={frameUrl}
-                  bbox={confirmedCandidate ? trackingBbox : null}
+                  bbox={summary?.state === "tracking" ? trackingBbox : null}
                 />
               </div>
             )}

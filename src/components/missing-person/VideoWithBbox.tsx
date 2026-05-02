@@ -39,6 +39,24 @@ export default function VideoWithBbox({
       return null;
     }
     const [x, y, w, h] = bbox;
+    const stroke = Math.max(6, naturalWidth / 120);
+    // L자 코너 마커 길이: bbox 크기의 25% 또는 최소 60px
+    const cornerLen = Math.max(60, Math.min(w, h) * 0.25);
+    const labelH = Math.max(28, naturalWidth / 50);
+    const labelW = Math.max(160, naturalWidth / 8);
+    const fontSize = Math.max(20, naturalWidth / 60);
+
+    const corner = (x1: number, y1: number, x2a: number, y2a: number, x2b: number, y2b: number) => (
+      <polyline
+        points={`${x2a},${y2a} ${x1},${y1} ${x2b},${y2b}`}
+        fill="none"
+        stroke="var(--PRIMARY-PINK)"
+        strokeWidth={stroke * 1.2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    );
+
     return (
       <svg
         className={styles.bboxOverlay}
@@ -46,32 +64,48 @@ export default function VideoWithBbox({
         preserveAspectRatio="xMidYMid meet"
         aria-hidden="true"
       >
+        {/* 본 박스: 반투명 핑크 fill + 두꺼운 stroke 로 위치 가시성 강화 */}
         <rect
           x={x}
           y={y}
           width={w}
           height={h}
-          fill="none"
+          fill="rgba(255, 107, 138, 0.18)"
           stroke="var(--PRIMARY-PINK)"
-          strokeWidth={Math.max(3, naturalWidth / 200)}
+          strokeWidth={stroke}
           strokeLinecap="round"
           strokeLinejoin="round"
-        />
+        >
+          <animate
+            attributeName="stroke-opacity"
+            values="1;0.45;1"
+            dur="1.4s"
+            repeatCount="indefinite"
+          />
+        </rect>
+
+        {/* 4개 코너에 L자 마커 — 박스 가장자리에서 더 도드라지게 보이도록 */}
+        {corner(x, y, x + cornerLen, y, x, y + cornerLen)}
+        {corner(x + w, y, x + w - cornerLen, y, x + w, y + cornerLen)}
+        {corner(x, y + h, x + cornerLen, y + h, x, y + h - cornerLen)}
+        {corner(x + w, y + h, x + w - cornerLen, y + h, x + w, y + h - cornerLen)}
+
+        {/* 라벨 */}
         <rect
           x={x}
-          y={y - 28}
-          width={120}
-          height={24}
-          rx={4}
+          y={Math.max(0, y - labelH - 4)}
+          width={labelW}
+          height={labelH}
+          rx={6}
           fill="var(--PRIMARY-PINK)"
         />
         <text
-          x={x + 6}
-          y={y - 10}
+          x={x + 10}
+          y={Math.max(0, y - labelH - 4) + labelH * 0.7}
           fill="#fff"
-          fontSize={Math.max(16, naturalWidth / 80)}
+          fontSize={fontSize}
           fontFamily="Pretendard, sans-serif"
-          fontWeight="600"
+          fontWeight="700"
         >
           추적 중
         </text>
