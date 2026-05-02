@@ -5,8 +5,6 @@ import LoadingSpinner from "@/components/common/LoadingSpinner";
 import Modal from "@/components/common/modals/Modal";
 import {
   createMissingPersonSession,
-  lockCandidate,
-  rejectCandidate,
   getSessionStatus,
   markSessionFound,
   requestStaff,
@@ -18,12 +16,9 @@ import type {
   PersonDetection,
   CCTVSummary,
 } from "@/types/ai";
-import { useMissingPersonWs } from "@/hooks/useMissingPersonWs";
-import { useMissingPersonScenarioFeed } from "@/hooks/useMissingPersonScenarioFeed";
-import type { WsBbox, WsCandidate } from "@/hooks/useMissingPersonWs";
-import CandidateDetectionCard from "@/components/missing-person/CandidateDetectionCard";
+import AnalysisProgress from "@/components/missing-person/AnalysisProgress";
+import BestCandidateCard from "@/components/missing-person/BestCandidateCard";
 import CandidateHistoryModal from "@/components/missing-person/CandidateHistoryModal";
-import VideoWithBbox from "@/components/missing-person/VideoWithBbox";
 import styles from "./MissingPersonPage.module.css";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -68,16 +63,6 @@ function buildClothingTags(c: ClothingQuery): string[] {
   return tags;
 }
 
-function stateLabel(state: string) {
-  switch (state) {
-    case "detecting": return "탐지 중";
-    case "tracking": return "추적 중";
-    case "found": return "발견 완료";
-    case "expired": return "만료";
-    default: return state;
-  }
-}
-
 function stateBadgeClass(state: string) {
   switch (state) {
     case "detecting": return styles.statusDetecting;
@@ -103,31 +88,11 @@ export default function MissingPersonPage() {
     onConfirm: () => void;
   } | null>(null);
 
-  // ── WebSocket: 후보 발견 / 추적 상태 ──────────────────────────────
-  // auto-pause 흐름은 폐기됐지만 (서버측에서 더 이상 candidate_found 를 push 하지 않음)
-  // 구 클라이언트 호환을 위해 핸들러는 유지. UX 는 후보 카드 → 기록 보기 모달로 전환.
-  const [pendingCandidate, setPendingCandidate] = useState<WsCandidate | null>(null);
-  const [confirmedCandidate, setConfirmedCandidate] = useState<WsCandidate | null>(null);
-  const [trackingBbox, setTrackingBbox] = useState<WsBbox | null>(null);
-  /** 영상이 일시정지 상태인지 여부 (후보 발견 시 true) */
-  const [videoPaused, setVideoPaused] = useState(false);
+  // ── batch 분석 UX state ──────────────────────────────────────────
   /** "기록 보기" 클릭 시 표시할 후보 (시각·위치 타임라인 모달) */
   const [historyDetection, setHistoryDetection] = useState<PersonDetection | null>(null);
-
-  const handleCandidateFound = useCallback((candidate: WsCandidate) => {
-    // 동일 trackId 가 매 폴링마다 재전송되므로, 같은 후보면 모달이 깜박이지 않도록 단순 set
-    setPendingCandidate((prev) =>
-      prev && prev.cctvId === candidate.cctvId && prev.trackId === candidate.trackId
-        ? prev
-        : candidate,
-    );
-    setVideoPaused(true);
-  }, []);
-
-  const handleTrackingUpdate = useCallback((trackId: number, bbox: WsBbox) => {
-    setConfirmedCandidate((prev) => (prev?.trackId === trackId ? prev : prev));
-    setTrackingBbox(bbox);
-  }, []);
+  /** top-1 후보를 거절하고 전체 후보 리스트를 보겠다는 사용자 의사 */
+  const [rejectedTop, setRejectedTop] = useState(false);
 
   // Session state (zustand persisted to sessionStorage)
   const session = useMissingPersonStore((s) => s.session);
@@ -139,67 +104,13 @@ export default function MissingPersonPage() {
   const isSessionActive =
     session && summary && summary.state !== "found" && summary.state !== "expired";
 
-  // WebSocket 연결 (세션이 활성 상태일 때만)
-  useMissingPersonWs({
-    enabled: Boolean(isSessionActive),
-    sessionId: session?.session_id ?? null,
-    onCandidateFound: handleCandidateFound,
-    onTrackingUpdate: handleTrackingUpdate,
-  });
-
-  // CCTV 실시간 영상 프레임 스트림 (별도 WS: /scenario-feed)
-  const { frameUrl } = useMissingPersonScenarioFeed({
-    enabled: Boolean(isSessionActive),
-    sessionId: session?.session_id ?? null,
-    paused: videoPaused,
-  });
-
-  // ── Candidate 확인 / 거절 핸들러 ─────────────────────────────────
-  const handleConfirmCandidate = useCallback(async () => {
-    if (!pendingCandidate || !session) return;
-    const candidate = pendingCandidate;
-    try {
-      await lockCandidate(session.session_id, {
-        cctv_id: candidate.cctvId,
-        track_id: candidate.trackId,
-      });
-      setConfirmedCandidate(candidate);
-      setPendingCandidate(null);
-      setVideoPaused(false);
-    } catch (err) {
-      console.error(err);
-      const detail =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setErrorModal(detail ?? "추적 시작 중 오류가 발생했습니다.");
-    }
-  }, [pendingCandidate, session]);
-
-  // 확정 카드는 잠깐만 보이고 자동으로 닫혀, 보호자가 영상 위 bbox 로 객체 위치를 추적할 수 있도록 함.
-  useEffect(() => {
-    if (!confirmedCandidate) return;
-    const t = window.setTimeout(() => {
-      setConfirmedCandidate((prev) => (prev === confirmedCandidate ? null : prev));
-    }, 2500);
-    return () => window.clearTimeout(t);
-  }, [confirmedCandidate]);
-
-  const handleRejectCandidate = useCallback(async () => {
-    if (!pendingCandidate || !session) return;
-    setPendingCandidate(null);
-    setVideoPaused(false);
-    try {
-      await rejectCandidate(session.session_id);
-    } catch (err) {
-      console.error(err);
-      // 거절 실패 시 사용자에게 에러를 강제 표시할 정도의 critical 은 아님
-      // 다음 candidate_found 폴링에서 자연스럽게 다시 모달이 뜸
-    }
-  }, [pendingCandidate, session]);
-
-  const handleCloseConfirmedCard = useCallback(() => {
-    setConfirmedCandidate(null);
-    setTrackingBbox(null);
-  }, []);
+  // 모든 CCTV 의 후보 detection 을 합쳐 best_score 내림차순 정렬한 평탄화 리스트.
+  // 첫 원소가 top-1 후보, 거절 시 전체를 리스트로 표시.
+  const allDetections: PersonDetection[] = (summary?.cctv_summaries ?? [])
+    .flatMap((c) => c.detections)
+    .sort((a, b) => b.clothing_match_score - a.clothing_match_score);
+  const bestDetection = allDetections[0] ?? null;
+  const analyzing = Boolean(session) && summary?.scenario_finished !== true;
 
   // Polling
   const pollTimerRef = useRef<number | null>(null);
@@ -221,8 +132,13 @@ export default function MissingPersonPage() {
         try {
           const data = await getSessionStatus(sessionId);
           setSummary(data);
-          // 세션 종료 상태이면 폴링 중단
-          if (data.state === "found" || data.state === "expired") {
+          // 세션 종료(found/expired) 또는 batch 분석 완료 시 폴링 중단.
+          // 분석 완료 후엔 결과가 더 이상 변하지 않아 폴링 의미 없음.
+          if (
+            data.state === "found" ||
+            data.state === "expired" ||
+            data.scenario_finished === true
+          ) {
             stopPolling();
           }
         } catch (err) {
@@ -253,7 +169,11 @@ export default function MissingPersonPage() {
       try {
         const data = await getSessionStatus(session.session_id);
         setSummary(data);
-        if (data.state !== "found" && data.state !== "expired") {
+        if (
+          data.state !== "found" &&
+          data.state !== "expired" &&
+          data.scenario_finished !== true
+        ) {
           startPolling(session.session_id);
         }
       } catch {
@@ -273,6 +193,12 @@ export default function MissingPersonPage() {
       stopPolling();
     };
   }, [stopPolling]);
+
+  // 세션이 바뀌면 rejected/history state 초기화
+  useEffect(() => {
+    setRejectedTop(false);
+    setHistoryDetection(null);
+  }, [session?.session_id]);
 
   // ── Form helpers ──────────────────────────────────────────────
 
@@ -430,28 +356,6 @@ export default function MissingPersonPage() {
     <>
       <LoadingSpinner isLoading={isLoading} message={loadingMsg} />
 
-      {/* ── 후보 발견 카드 (pending) ── */}
-      {pendingCandidate && (
-        <CandidateDetectionCard
-          photoUrl={pendingCandidate.photoUrl}
-          mode="pending"
-          onConfirm={handleConfirmCandidate}
-          onReject={handleRejectCandidate}
-          onClose={handleRejectCandidate}
-        />
-      )}
-
-      {/* ── 후보 확정 카드 (confirmed) ── */}
-      {!pendingCandidate && confirmedCandidate && (
-        <CandidateDetectionCard
-          photoUrl={confirmedCandidate.photoUrl}
-          mode="confirmed"
-          onConfirm={handleConfirmCandidate}
-          onReject={handleRejectCandidate}
-          onClose={handleCloseConfirmedCard}
-        />
-      )}
-
       {/* ── 후보 이동 기록 모달 (시각·위치 타임라인) ── */}
       {historyDetection && (
         <CandidateHistoryModal
@@ -499,9 +403,9 @@ export default function MissingPersonPage() {
             <div className={styles.hintBox}>
               <p className={styles.hintTitle}>AI 미아 찾기 서비스</p>
               <ul className={styles.hintList}>
-                <li>아이의 인상착의를 자연어로 입력하면 AI가 분석합니다.</li>
-                <li>CCTV 영상에서 조건에 맞는 후보를 실시간으로 탐지합니다.</li>
-                <li>후보를 선택하면 해당 인물을 지속 추적합니다.</li>
+                <li>아이의 인상착의를 입력하면 AI 가 최근 3분간의 CCTV 영상을 분석합니다.</li>
+                <li>가장 유사한 인물의 사진을 보여드려요.</li>
+                <li>맞다면 해당 인물의 시각·위치 동선을 확인할 수 있어요.</li>
               </ul>
             </div>
 
@@ -613,32 +517,29 @@ export default function MissingPersonPage() {
         {/* ── 세션 진행 중 ── */}
         {session && (
           <>
-            {/* CCTV 영상 플레이어 + bounding box 오버레이 */}
-            {isSessionActive && (
-              <div className={styles.card}>
-                <p className={styles.cardTitle}>CCTV 실시간 영상</p>
-                <VideoWithBbox
-                  src={frameUrl}
-                  bbox={summary?.state === "tracking" ? trackingBbox : null}
-                />
-              </div>
-            )}
-
             {/* 세션 상태 헤더 */}
             <div className={styles.card}>
-              <p className={styles.cardTitle}>탐지 세션</p>
+              <p className={styles.cardTitle}>미아 찾기 세션</p>
 
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span
                   className={clsx(
                     styles.statusBadge,
-                    summary ? stateBadgeClass(summary.state) : styles.statusDetecting,
+                    analyzing
+                      ? styles.statusDetecting
+                      : summary
+                        ? stateBadgeClass(summary.state === "detecting" ? "tracking" : summary.state)
+                        : styles.statusDetecting,
                   )}
                 >
-                  {(summary?.state === "detecting" || summary?.state === "tracking") && (
-                    <span className={styles.statusPulse} />
-                  )}
-                  {summary ? stateLabel(summary.state) : "연결 중..."}
+                  {analyzing && <span className={styles.statusPulse} />}
+                  {analyzing
+                    ? "분석 중"
+                    : summary?.state === "found"
+                      ? "발견 완료"
+                      : summary?.state === "expired"
+                        ? "만료"
+                        : "분석 완료"}
                 </span>
                 <span style={{ fontSize: "12px", color: "var(--TEXT-SECONDARY)" }}>
                   {new Date(session.expires_at).toLocaleTimeString("ko-KR", {
@@ -662,10 +563,8 @@ export default function MissingPersonPage() {
 
               <div className={styles.sessionInfoRow}>
                 <span>세션 ID: {session.session_id.slice(0, 8)}...</span>
-                {summary && (
-                  <span>
-                    탐지 {summary.total_matches}명 / 아동 {summary.total_child_matches}명
-                  </span>
+                {summary && !analyzing && (
+                  <span>탐지 {summary.total_matches}명</span>
                 )}
               </div>
 
@@ -714,20 +613,42 @@ export default function MissingPersonPage() {
               </div>
             </div>
 
-            {/* CCTV 탐지 결과 */}
-            {summary && (
+            {/* batch 분석 진행도 (분석 중일 때) */}
+            {analyzing && (
+              <AnalysisProgress
+                progress={summary?.analysis_progress ?? 0}
+                processedFrames={summary?.processed_frames}
+                totalFrames={summary?.total_frames}
+              />
+            )}
+
+            {/* 분석 완료: top-1 후보 카드 (거절 전) */}
+            {!analyzing && bestDetection && !rejectedTop && (
+              <BestCandidateCard
+                detection={bestDetection}
+                onConfirm={() => setHistoryDetection(bestDetection)}
+                onReject={() => setRejectedTop(true)}
+              />
+            )}
+
+            {/* 분석 완료: 매칭 0건 */}
+            {!analyzing && !bestDetection && summary && (
+              <div className={styles.card}>
+                <p className={styles.cardTitle}>분석 결과</p>
+                <p className={styles.emptyDetection}>
+                  영상에서 인상착의와 일치하는 인물을 찾지 못했습니다.
+                </p>
+              </div>
+            )}
+
+            {/* 거절 후: 전체 후보 리스트 */}
+            {!analyzing && rejectedTop && summary && (
               <div className={styles.card}>
                 <p className={styles.cardTitle}>
-                  CCTV 탐지 결과
-                  {summary.total_matches > 0 && ` (${summary.total_matches}명)`}
+                  전체 후보 {summary.total_matches > 0 && `(${summary.total_matches}명)`}
                 </p>
-
                 {summary.cctv_summaries.length === 0 || summary.total_matches === 0 ? (
-                  <p className={styles.emptyDetection}>
-                    {summary.state === "detecting"
-                      ? "CCTV 영상을 분석하는 중입니다..."
-                      : "탐지된 후보가 없습니다."}
-                  </p>
+                  <p className={styles.emptyDetection}>탐지된 후보가 없습니다.</p>
                 ) : (
                   <div className={styles.cctvList}>
                     {summary.cctv_summaries
@@ -737,9 +658,7 @@ export default function MissingPersonPage() {
                           <div className={styles.cctvHeader}>
                             <span className={styles.cctvId}>CCTV {cctv.cctv_id}</span>
                             <span className={styles.cctvMatchBadge}>
-                              {cctv.child_matches > 0
-                                ? `아동 ${cctv.child_matches}명`
-                                : `${cctv.total_matches}명`}
+                              {cctv.total_matches}명
                             </span>
                           </div>
                           <div className={styles.detectionList}>
@@ -771,7 +690,7 @@ export default function MissingPersonPage() {
                                   type="button"
                                   className={styles.lockBtn}
                                   onClick={() => setHistoryDetection(det)}
-                                  aria-label={`CCTV ${cctv.cctv_id} 후보 ${det.track_id} 이동 기록 보기`}
+                                  aria-label={`후보 ${det.track_id} 이동 기록 보기`}
                                 >
                                   기록 보기
                                 </button>

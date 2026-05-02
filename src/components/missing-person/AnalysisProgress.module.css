@@ -1,0 +1,79 @@
+.card {
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  padding: 20px 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(255, 107, 138, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--SECONDARY-PINK);
+  border-top-color: transparent;
+  animation: spin 0.9s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-bold);
+  color: var(--TEXT-PRIMARY);
+}
+
+.barTrack {
+  width: 100%;
+  height: 10px;
+  background: rgba(255, 107, 138, 0.12);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--PRIMARY-PINK) 0%, #ff8a4a 100%);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-variant-numeric: tabular-nums;
+}
+
+.percent {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-bold);
+  color: var(--PRIMARY-PINK);
+}
+
+.counter {
+  font-size: var(--font-size-sm);
+  color: var(--TEXT-SECONDARY);
+}
+
+.subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--TEXT-SECONDARY);
+  line-height: 1.4;
+  margin: 0;
+}

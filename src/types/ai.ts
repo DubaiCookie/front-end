@@ -93,6 +93,11 @@ export type SessionSummary = {
   total_child_matches: number;
   locked_cctv_id: string | null;
   locked_track_id: number | null;
+  // batch 분석 진행도
+  scenario_finished?: boolean;
+  analysis_progress?: number;     // 0.0 ~ 1.0
+  processed_frames?: number;
+  total_frames?: number;
 };
 
 export type LockCandidateRequest = {
