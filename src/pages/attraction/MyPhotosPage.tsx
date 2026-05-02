@@ -29,7 +29,9 @@ export default function MyPhotosPage() {
   useEffect(() => {
     Promise.all([getMyUserPhotos(), getMyPurchasedPhotos()])
       .then(([items, purchased]) => {
-        setPhotos(items);
+        // FAILED 상태는 분석이 불가능했음을 의미하므로 사용자에게 노출하지 않는다.
+        // (이전 회귀로 DB에 남아 있을 수 있는 잔존 FAILED 행에 대한 방어)
+        setPhotos(items.filter((p) => p.analysisStatus !== "FAILED"));
         setPurchasedIds(new Set(purchased.map((p) => p.attractionImageId)));
         setPurchasedMap(new Map(purchased.map((p) => [p.attractionImageId, p])));
       })
