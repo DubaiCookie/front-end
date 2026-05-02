@@ -1,16 +1,16 @@
-import { useEffect, useRef } from "react";
 import type { WsBbox } from "@/hooks/useMissingPersonWs";
 import styles from "./VideoWithBbox.module.css";
 
 type Props = {
-  /** HLS / mp4 URL 등 video src. null이면 placeholder 표시 */
+  /**
+   * 표시할 프레임 URL. ai-server 의 scenario-feed WebSocket 에서 받은 JPEG Blob 의 ObjectURL
+   * 또는 일반 이미지 URL. null 이면 placeholder 를 표시합니다.
+   */
   src: string | null;
-  /** 재생/일시정지 제어 */
-  paused: boolean;
   /**
    * 추적 중인 후보의 bounding box.
-   * [x, y, w, h] — 영상 원본 해상도(naturalVideoWidth × naturalVideoHeight) 기준 픽셀값.
-   * null이면 box를 그리지 않습니다.
+   * [x, y, w, h] — 영상 원본 해상도(naturalWidth × naturalHeight) 기준 픽셀값.
+   * null 이면 box 를 그리지 않습니다.
    */
   bbox: WsBbox | null;
   /** 영상 원본 너비 (bbox 스케일링에 사용) */
@@ -20,52 +20,20 @@ type Props = {
 };
 
 /**
- * CCTV 영상 플레이어 + bounding box SVG 오버레이 컴포넌트.
+ * CCTV 영상 플레이어 + bounding box SVG 오버레이.
  *
- * paused prop이 true가 되면 영상을 일시정지하고, false가 되면 재생합니다.
- * bbox가 있으면 SVG로 붉은 테두리 박스를 그립니다.
+ * ai-server 가 frame 단위 JPEG 스트림을 WebSocket 으로 푸시하는 구조라,
+ * `<video>` 가 아니라 `<img>` 로 매 프레임을 갱신해 표시합니다.
+ *
+ * 일시정지(후보 발견 모달 중)는 frame URL 을 갱신하지 않는 방식으로
+ * `useMissingPersonScenarioFeed` 훅 내부에서 처리됩니다.
  */
 export default function VideoWithBbox({
   src,
-  paused,
   bbox,
   naturalWidth = 1920,
   naturalHeight = 1080,
 }: Props) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  // paused prop 변화에 따라 play/pause 동기화
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) {
-      return;
-    }
-
-    if (paused) {
-      video.pause();
-    } else {
-      video.play().catch(() => {
-        // autoplay 정책에 의해 거부되는 경우 무시
-      });
-    }
-  }, [paused]);
-
-  // src 변경 시 재생 상태 유지
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !src) {
-      return;
-    }
-    if (!paused) {
-      video.play().catch(() => {});
-    }
-  }, [src, paused]);
-
-  /**
-   * bbox [x, y, w, h]를 SVG viewBox 좌표로 변환합니다.
-   * SVG viewBox를 영상 원본 해상도와 동일하게 설정하면
-   * CSS object-fit: contain 이 적용되더라도 박스가 정확한 위치에 그려집니다.
-   */
   const renderBbox = () => {
     if (!bbox) {
       return null;
@@ -115,14 +83,11 @@ export default function VideoWithBbox({
     <div className={styles.wrapper}>
       {src ? (
         <>
-          <video
-            ref={videoRef}
+          <img
             className={styles.video}
             src={src}
-            muted
-            playsInline
-            loop
-            aria-label="CCTV 영상"
+            alt="CCTV 실시간 영상"
+            draggable={false}
           />
           {renderBbox()}
         </>

@@ -19,6 +19,7 @@ import type {
   CCTVSummary,
 } from "@/types/ai";
 import { useMissingPersonWs } from "@/hooks/useMissingPersonWs";
+import { useMissingPersonScenarioFeed } from "@/hooks/useMissingPersonScenarioFeed";
 import type { WsBbox, WsCandidate } from "@/hooks/useMissingPersonWs";
 import CandidateDetectionCard from "@/components/missing-person/CandidateDetectionCard";
 import VideoWithBbox from "@/components/missing-person/VideoWithBbox";
@@ -139,6 +140,13 @@ export default function MissingPersonPage() {
     sessionId: session?.session_id ?? null,
     onCandidateFound: handleCandidateFound,
     onTrackingUpdate: handleTrackingUpdate,
+  });
+
+  // CCTV 실시간 영상 프레임 스트림 (별도 WS: /scenario-feed)
+  const { frameUrl } = useMissingPersonScenarioFeed({
+    enabled: Boolean(isSessionActive),
+    sessionId: session?.session_id ?? null,
+    paused: videoPaused,
   });
 
   // ── Candidate 확인 / 거절 핸들러 ─────────────────────────────────
@@ -611,8 +619,7 @@ export default function MissingPersonPage() {
               <div className={styles.card}>
                 <p className={styles.cardTitle}>CCTV 실시간 영상</p>
                 <VideoWithBbox
-                  src={null}
-                  paused={videoPaused}
+                  src={frameUrl}
                   bbox={confirmedCandidate ? trackingBbox : null}
                 />
               </div>
