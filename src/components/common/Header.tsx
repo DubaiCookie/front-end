@@ -21,6 +21,8 @@ export default function Header() {
     const [boardingModalMode, setBoardingModalMode] = useState<BoardingModalMode>(null);
     const [isBoardingSubmitting, setIsBoardingSubmitting] = useState(false);
     const [boardingErrorMessage, setBoardingErrorMessage] = useState("탑승 처리가 실패했습니다.");
+    // 알림 클릭 시 alert를 즉시 닫지만 boarding confirm 흐름에서 attractionId가 필요하므로 별도 보존.
+    const [pendingBoardingAttractionId, setPendingBoardingAttractionId] = useState<number | null>(null);
 
     useEffect(() => {
         if (!queueAlert || queueAlert.status === "READY") {
@@ -41,12 +43,15 @@ export default function Header() {
             return;
         }
 
-        if (queueAlert.status !== "READY") {
-            setQueueAlert(null);
-            return;
-        }
+        // 어떤 상태든 클릭하면 알림창을 닫는다. READY인 경우엔 동시에 탑승 confirm 모달을 띄움.
+        const wasReady = queueAlert.status === "READY";
+        const attractionId = queueAlert.attractionId ?? null;
+        setQueueAlert(null);
 
-        setBoardingModalMode("confirm");
+        if (wasReady) {
+            setPendingBoardingAttractionId(attractionId);
+            setBoardingModalMode("confirm");
+        }
     };
 
     const handleConfirmBoarding = async () => {
@@ -54,7 +59,7 @@ export default function Header() {
             return;
         }
 
-        if (!queueAlert?.attractionId || !userId) {
+        if (!pendingBoardingAttractionId || !userId) {
             setBoardingErrorMessage("탑승 정보를 확인할 수 없습니다.");
             setBoardingModalMode("failed");
             return;
@@ -64,9 +69,8 @@ export default function Header() {
             setIsBoardingSubmitting(true);
             await boardQueue({
                 userId,
-                attractionId: queueAlert.attractionId,
+                attractionId: pendingBoardingAttractionId,
             });
-            setQueueAlert(null);
             setBoardingModalMode("success");
             return;
         } catch (error) {
@@ -115,6 +119,7 @@ export default function Header() {
                         return;
                     }
                     setBoardingModalMode(null);
+                    setPendingBoardingAttractionId(null);
                 }}
                 onButtonClick={() => {
                     if (boardingModalMode === "confirm") {
@@ -123,6 +128,7 @@ export default function Header() {
                     }
 
                     setBoardingModalMode(null);
+                    setPendingBoardingAttractionId(null);
                     setBoardingErrorMessage("탑승 처리가 실패했습니다.");
                 }}
             />
