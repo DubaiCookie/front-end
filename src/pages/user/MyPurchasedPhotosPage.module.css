@@ -1,0 +1,155 @@
+.pageRoot {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.hintBox {
+  background: rgba(255, 214, 223, 0.28);
+  border: 1px solid rgba(255, 107, 138, 0.2);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  font-size: var(--font-size-sm);
+  color: var(--TEXT-SECONDARY);
+  line-height: 1.6;
+}
+
+.hintTitle {
+  font-weight: var(--font-semibold);
+  color: var(--TEXT-PRIMARY);
+  margin-bottom: 4px;
+}
+
+.errorCard {
+  background: rgba(255, 104, 104, 0.08);
+  border: 1px solid rgba(255, 104, 104, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  color: var(--RED);
+  font-size: var(--font-size-sm);
+  margin-top: 8px;
+}
+
+.emptyCard {
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  padding: 40px 16px;
+  text-align: center;
+  color: var(--TEXT-SECONDARY);
+  font-size: var(--font-size-sm);
+  box-shadow: 0 4px 16px rgba(255, 107, 138, 0.08);
+  line-height: 1.7;
+}
+
+.emptyIcon {
+  font-size: 40px;
+  color: var(--BORDER-LIGHT);
+  margin-bottom: 12px;
+}
+
+.emptyDesc {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--BORDER);
+}
+
+/* ── Photo grid ──────────────────────────────────────────────────── */
+.photoGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.photoCard {
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(255, 107, 138, 0.08);
+}
+
+.photoPreviewWrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.photoImg {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  display: block;
+  background: #f0f0f0;
+  cursor: zoom-in;
+}
+
+.photoPurchasedBadge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(52, 199, 89, 0.9);
+  color: #fff;
+  font-size: 12px;
+  font-weight: var(--font-semibold);
+  padding: 4px 10px;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.photoMeta {
+  padding: 12px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.attractionName {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-semibold);
+  color: var(--TEXT-PRIMARY);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.photoDate {
+  font-size: 12px;
+  color: var(--TEXT-SECONDARY);
+}
+
+.bottomSpacer {
+  height: 20px;
+}
+
+/* ── Lightbox (원본 보기) ────────────────────────────────────────── */
+.lightboxBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+  cursor: zoom-out;
+}
+
+.lightboxImg {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}

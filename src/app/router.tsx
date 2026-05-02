@@ -7,6 +7,7 @@ import PreventAuth from '@/components/common/PreventAuth';
 import SignupPage from '@/pages/user/SignupPage';
 import LoginPage from '@/pages/user/LoginPage';
 import MyPage from '@/pages/user/MyPage';
+import MyPurchasedPhotosPage from '@/pages/user/MyPurchasedPhotosPage';
 import AttractionListPage from '@/pages/attraction/AttractionListPage';
 import AttractionDetailPage from '@/pages/attraction/AttractionDetailPage';
 import TicketListPage from '@/pages/ticket/TicketListPage';
@@ -126,6 +127,14 @@ export const router = createBrowserRouter([
         element: (
           <RequireAuth>
             <MyPhotosPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: 'mypage/purchased-photos',
+        element: (
+          <RequireAuth>
+            <MyPurchasedPhotosPage />
           </RequireAuth>
         ),
       },
