@@ -22,6 +22,7 @@ import { useMissingPersonWs } from "@/hooks/useMissingPersonWs";
 import { useMissingPersonScenarioFeed } from "@/hooks/useMissingPersonScenarioFeed";
 import type { WsBbox, WsCandidate } from "@/hooks/useMissingPersonWs";
 import CandidateDetectionCard from "@/components/missing-person/CandidateDetectionCard";
+import CandidateHistoryModal from "@/components/missing-person/CandidateHistoryModal";
 import VideoWithBbox from "@/components/missing-person/VideoWithBbox";
 import styles from "./MissingPersonPage.module.css";
 
@@ -103,11 +104,15 @@ export default function MissingPersonPage() {
   } | null>(null);
 
   // ── WebSocket: 후보 발견 / 추적 상태 ──────────────────────────────
+  // auto-pause 흐름은 폐기됐지만 (서버측에서 더 이상 candidate_found 를 push 하지 않음)
+  // 구 클라이언트 호환을 위해 핸들러는 유지. UX 는 후보 카드 → 기록 보기 모달로 전환.
   const [pendingCandidate, setPendingCandidate] = useState<WsCandidate | null>(null);
   const [confirmedCandidate, setConfirmedCandidate] = useState<WsCandidate | null>(null);
   const [trackingBbox, setTrackingBbox] = useState<WsBbox | null>(null);
   /** 영상이 일시정지 상태인지 여부 (후보 발견 시 true) */
   const [videoPaused, setVideoPaused] = useState(false);
+  /** "기록 보기" 클릭 시 표시할 후보 (시각·위치 타임라인 모달) */
+  const [historyDetection, setHistoryDetection] = useState<PersonDetection | null>(null);
 
   const handleCandidateFound = useCallback((candidate: WsCandidate) => {
     // 동일 trackId 가 매 폴링마다 재전송되므로, 같은 후보면 모달이 깜박이지 않도록 단순 set
@@ -327,31 +332,8 @@ export default function MissingPersonPage() {
     }
   };
 
-  const handleLock = async (cctvId: string, trackId: number) => {
-    if (!session) {
-      return;
-    }
-
-    try {
-      setLoadingMsg("추적을 시작하는 중입니다...");
-      setIsLoading(true);
-      await lockCandidate(session.session_id, { cctv_id: cctvId, track_id: trackId });
-      setInfoModal("선택한 인물 추적을 시작합니다.");
-    } catch (err: unknown) {
-      console.error(err);
-      if (isNotFound(err)) {
-        stopPolling();
-        resetSessionStore();
-        setErrorModal("세션이 만료되어 새로 신고해야 합니다.");
-        return;
-      }
-      const detail =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setErrorModal(detail ?? "추적 시작 중 오류가 발생했습니다.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // 기존 'lock-on 추적' 흐름은 후보 카드 → 기록 보기 모달로 대체됨.
+  // lockCandidate / handleLock 핸들러는 더 이상 UI 에서 호출되지 않아 제거.
 
   const handleRequestStaff = () => {
     if (!session) {
@@ -467,6 +449,14 @@ export default function MissingPersonPage() {
           onConfirm={handleConfirmCandidate}
           onReject={handleRejectCandidate}
           onClose={handleCloseConfirmedCard}
+        />
+      )}
+
+      {/* ── 후보 이동 기록 모달 (시각·위치 타임라인) ── */}
+      {historyDetection && (
+        <CandidateHistoryModal
+          detection={historyDetection}
+          onClose={() => setHistoryDetection(null)}
         />
       )}
 
@@ -777,33 +767,14 @@ export default function MissingPersonPage() {
                                     <span className={styles.childBadge}>아동 추정</span>
                                   )}
                                 </div>
-                                {summary.state === "detecting" && (
-                                  <button
-                                    type="button"
-                                    className={styles.lockBtn}
-                                    disabled={isLoading}
-                                    onClick={() =>
-                                      void handleLock(cctv.cctv_id, det.track_id)
-                                    }
-                                    aria-label={`CCTV ${cctv.cctv_id} 후보 ${det.track_id} 추적 시작`}
-                                  >
-                                    추적
-                                  </button>
-                                )}
-                                {summary.state === "tracking" &&
-                                  summary.locked_cctv_id === cctv.cctv_id &&
-                                  summary.locked_track_id === det.track_id && (
-                                    <span
-                                      style={{
-                                        fontSize: "11px",
-                                        color: "var(--GREEN)",
-                                        fontWeight: "var(--font-semibold)",
-                                        flexShrink: 0,
-                                      }}
-                                    >
-                                      추적 중
-                                    </span>
-                                  )}
+                                <button
+                                  type="button"
+                                  className={styles.lockBtn}
+                                  onClick={() => setHistoryDetection(det)}
+                                  aria-label={`CCTV ${cctv.cctv_id} 후보 ${det.track_id} 이동 기록 보기`}
+                                >
+                                  기록 보기
+                                </button>
                               </div>
                             ))}
                           </div>

@@ -55,13 +55,25 @@ export type SessionCreateResponse = {
   parsed_clothing: ClothingQuery;
 };
 
-export type PersonDetection = {
+export type Sighting = {
+  timestamp: string;
+  cctv_id: string;
+  location: string;
   bbox: { x1: number; y1: number; x2: number; y2: number };
+  clothing_match_score: number;
+};
+
+export type PersonDetection = {
+  bbox: { x1: number; y1: number; x2: number; y2: number } | null;
   confidence: number;
   clothing_match_score: number;
   is_child: boolean;
   track_id: number;
   thumbnail_b64: string | null;
+  first_seen?: string;
+  last_seen?: string;
+  sighting_count?: number;
+  sightings?: Sighting[];
 };
 
 export type CCTVSummary = {
