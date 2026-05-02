@@ -12,6 +12,7 @@ export interface AttractionImage {
 
 export interface UserPhotoItem {
   attractionImageId: number;
+  imageUrl: string | null;
   thumbnailUrl: string | null;
   price: number;
   attractionName: string | null;

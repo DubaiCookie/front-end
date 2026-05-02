@@ -199,8 +199,8 @@ export default function MyPhotosPage() {
               const purchasedPhoto = purchasedMap.get(photo.attractionImageId);
               const isReady = photo.analysisStatus === "COMPLETED";
               const displaySrc = isPurchased
-                ? (purchasedPhoto?.imageUrl ?? photo.thumbnailUrl)
-                : photo.thumbnailUrl;
+                ? (purchasedPhoto?.imageUrl ?? photo.imageUrl ?? photo.thumbnailUrl)
+                : (photo.thumbnailUrl ?? photo.imageUrl);
 
               return (
                 <div key={photo.attractionImageId} className={styles.photoCard}>
