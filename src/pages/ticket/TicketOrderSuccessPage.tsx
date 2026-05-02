@@ -34,6 +34,7 @@ export default function TicketOrderSuccessPage() {
   const queryTossOrderId = searchParams.get("orderId");
   const queryAmount = searchParams.get("amount");
   const queryBackendOrderId = searchParams.get("backendOrderId");
+  const isPhotoOrder = searchParams.get("type") === "photo";
 
   const pendingPayment = useMemo(() => {
     const raw = sessionStorage.getItem("pending-payment");
@@ -114,17 +115,26 @@ export default function TicketOrderSuccessPage() {
     void runConfirm();
   }, [pendingPayment, queryAmount, queryBackendOrderId, queryPaymentKey, queryTossOrderId]);
 
+  const successDescription = result
+    ? isPhotoOrder
+      ? `${result.orderName} 구매가 완료되었습니다. 마이페이지 > 구매한 탑승 사진에서 원본을 확인할 수 있습니다.`
+      : `${result.orderName} 결제가 처리되었습니다.`
+    : "";
+
+  const ctaPath = isPhotoOrder ? "/mypage/purchased-photos" : "/ticket";
+  const ctaLabel = isPhotoOrder ? "구매한 사진 보기" : "내 티켓으로 이동";
+
   return (
     <div className={clsx("container", styles.pageRoot)}>
       <h1 className={styles.title}>결제 {isConfirming ? "승인 중" : result ? "완료" : "실패"}</h1>
       <p className={styles.description}>
         {isConfirming && "결제 승인 요청을 처리하고 있습니다."}
-        {!isConfirming && result && `${result.orderName} 결제가 처리되었습니다.`}
+        {!isConfirming && result && successDescription}
         {!isConfirming && !result && errorMessage}
       </p>
       <div className={styles.actions}>
-        <Link to="/ticket">
-          <Button title="내 티켓으로 이동" />
+        <Link to={ctaPath}>
+          <Button title={ctaLabel} />
         </Link>
       </div>
     </div>

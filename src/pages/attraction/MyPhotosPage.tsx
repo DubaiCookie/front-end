@@ -102,8 +102,8 @@ export default function MyPhotosPage() {
       const TossPayments = await loadTossScript();
       const tossPayments = TossPayments(tossClientKey);
       const baseUrl = env.APP_BASE_URL || window.location.origin;
-      const successUrl = `${baseUrl}/ticket/order/success?backendOrderId=${backendOrderId}`;
-      const failUrl = `${baseUrl}/ticket/order/fail?backendOrderId=${backendOrderId}`;
+      const successUrl = `${baseUrl}/ticket/order/success?backendOrderId=${backendOrderId}&type=photo`;
+      const failUrl = `${baseUrl}/ticket/order/fail?backendOrderId=${backendOrderId}&type=photo`;
 
       sessionStorage.setItem(
         "pending-payment",
