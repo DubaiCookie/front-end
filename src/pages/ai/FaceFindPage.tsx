@@ -122,7 +122,7 @@ export default function FaceFindPage() {
           <div className={clsx("glass", "title-icon-container")}>
             <MdFaceRetouchingNatural className={clsx("title-icon")} />
           </div>
-          <span>얼굴 등록</span>
+          <span>Face Register</span>
         </div>
         <div className={styles.stepCard}>
           <p className={styles.stepLabel}>로그인이 필요한 서비스입니다</p>
@@ -160,7 +160,7 @@ export default function FaceFindPage() {
           <div className={clsx("glass", "title-icon-container")}>
             <MdFaceRetouchingNatural className={clsx("title-icon")} />
           </div>
-          <span>얼굴 등록</span>
+          <span>Face Register</span>
         </div>
 
         <div className={styles.hintBox}>
