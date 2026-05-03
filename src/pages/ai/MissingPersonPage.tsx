@@ -812,21 +812,6 @@ export default function MissingPersonPage() {
                 />
               </div>
 
-              <div className={styles.videoMeta}>
-                <span className={styles.videoMetaText}>
-                  {`세션 ${session.session_id.slice(0, 8)} · 만료 ${new Date(
-                    session.expires_at,
-                  ).toLocaleTimeString("ko-KR", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}`}
-                </span>
-                {summary && (
-                  <span className={styles.videoMetaText}>
-                    탐지 {summary.total_matches}명
-                  </span>
-                )}
-              </div>
             </div>
           )}
         </div>
