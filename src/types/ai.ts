@@ -71,8 +71,6 @@ export type PersonDetection = {
 
 export type CCTVSummary = {
   cctv_id: string;
-  total_matches: number;
-  child_matches: number;
   detections: PersonDetection[];
   last_updated: string;
 };
@@ -82,8 +80,6 @@ export type SessionSummary = {
   state: SessionState;
   timestamp: string;
   cctv_summaries: CCTVSummary[];
-  total_matches: number;
-  total_child_matches: number;
   locked_cctv_id: string | null;
   locked_track_id: number | null;
   // batch 분석 진행도

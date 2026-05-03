@@ -58,8 +58,6 @@ export interface CandidatesMessage {
   session_id: string;
   state: string;
   cctv_summaries: unknown[];
-  total_matches: number;
-  total_child_matches: number;
   locked_cctv_id: string | null;
   locked_track_id: number | null;
   timestamp: string;

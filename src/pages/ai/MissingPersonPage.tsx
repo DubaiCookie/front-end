@@ -676,9 +676,7 @@ export default function MissingPersonPage() {
                   summary &&
                   summary.cctv_summaries.some((c) => c.detections.length > 0) && (
                     <div className={styles.card}>
-                      <p className={styles.cardTitle}>
-                        후보 {summary.total_matches}명
-                      </p>
+                      <p className={styles.cardTitle}>후보</p>
                       <div className={styles.detectionList}>
                         {summary.cctv_summaries
                           .flatMap((c) =>
