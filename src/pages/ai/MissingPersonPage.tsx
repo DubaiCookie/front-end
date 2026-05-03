@@ -28,20 +28,10 @@ import styles from "./MissingPersonPage.module.css";
 
 type FormValues = {
   description: string;
-  name: string;
-  phone: string;
-  relationship: string;
-  child_name: string;
-  child_age: string;
 };
 
 const EMPTY_FORM: FormValues = {
   description: "",
-  name: "",
-  phone: "",
-  relationship: "",
-  child_name: "",
-  child_age: "",
 };
 
 function buildClothingTags(c: ClothingQuery): string[] {
@@ -230,15 +220,6 @@ export default function MissingPersonPage() {
     if (!form.description.trim()) {
       errors.description = "아이의 인상착의를 입력해 주세요.";
     }
-    if (!form.name.trim()) {
-      errors.name = "신고자 이름을 입력해 주세요.";
-    }
-    if (!form.phone.trim()) {
-      errors.phone = "연락처를 입력해 주세요.";
-    }
-    if (!form.relationship.trim()) {
-      errors.relationship = "관계를 입력해 주세요.";
-    }
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -253,13 +234,6 @@ export default function MissingPersonPage() {
       setIsLoading(true);
       const res = await createMissingPersonSession({
         description: form.description,
-        requester: {
-          name: form.name,
-          phone: form.phone,
-          relationship: form.relationship,
-          child_name: form.child_name || null,
-          child_age: form.child_age ? Number(form.child_age) : null,
-        },
       });
       setSession(res);
       setSummary(null);
@@ -511,78 +485,6 @@ export default function MissingPersonPage() {
                   {formErrors.description && (
                     <span className={styles.fieldError}>{formErrors.description}</span>
                   )}
-                </div>
-
-                <div className={styles.card}>
-                  <p className={styles.cardTitle}>신고자 정보</p>
-                  <div className={styles.fieldGroup}>
-                    <div className={styles.fieldRowInline}>
-                      <div className={styles.fieldRow}>
-                        <label className={styles.label}>이름 *</label>
-                        <input
-                          type="text"
-                          className={styles.input}
-                          placeholder="홍길동"
-                          value={form.name}
-                          onChange={(e) => updateField("name", e.target.value)}
-                        />
-                        {formErrors.name && (
-                          <span className={styles.fieldError}>{formErrors.name}</span>
-                        )}
-                      </div>
-                      <div className={styles.fieldRow}>
-                        <label className={styles.label}>관계 *</label>
-                        <input
-                          type="text"
-                          className={styles.input}
-                          placeholder="부모"
-                          value={form.relationship}
-                          onChange={(e) => updateField("relationship", e.target.value)}
-                        />
-                        {formErrors.relationship && (
-                          <span className={styles.fieldError}>{formErrors.relationship}</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className={styles.fieldRow}>
-                      <label className={styles.label}>연락처 *</label>
-                      <input
-                        type="tel"
-                        className={styles.input}
-                        placeholder="010-0000-0000"
-                        value={form.phone}
-                        onChange={(e) => updateField("phone", e.target.value)}
-                      />
-                      {formErrors.phone && (
-                        <span className={styles.fieldError}>{formErrors.phone}</span>
-                      )}
-                    </div>
-                    <div className={styles.fieldRowInline}>
-                      <div className={styles.fieldRow}>
-                        <label className={styles.label}>아이 이름</label>
-                        <input
-                          type="text"
-                          className={styles.input}
-                          placeholder="(선택)"
-                          value={form.child_name}
-                          onChange={(e) => updateField("child_name", e.target.value)}
-                        />
-                      </div>
-                      <div className={styles.fieldRow}>
-                        <label className={styles.label}>나이</label>
-                        <input
-                          type="number"
-                          className={styles.input}
-                          placeholder="(선택)"
-                          min={1}
-                          max={20}
-                          value={form.child_age}
-                          onChange={(e) => updateField("child_age", e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
                   <button
                     type="button"
                     className={styles.btnPrimary}

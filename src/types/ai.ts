@@ -33,18 +33,8 @@ export type ClothingQuery = {
   additional_description: string | null;
 };
 
-export type RequesterInfo = {
-  name: string;
-  phone: string;
-  relationship: string;
-  child_name?: string | null;
-  child_age?: number | null;
-  police_report_number?: string | null;
-};
-
 export type SessionCreateRequest = {
   description: string;
-  requester: RequesterInfo;
 };
 
 export type SessionCreateResponse = {
