@@ -76,6 +76,16 @@ export default function MissingPersonPage() {
   const [lockedTrackId, setLockedTrackId] = useState<number | null>(null);
   const [actionInFlight, setActionInFlight] = useState(false);
 
+  // 직원 요청 입력 폼
+  const [staffFormOpen, setStaffFormOpen] = useState(false);
+  const [staffForm, setStaffForm] = useState({
+    child_name: "",
+    child_age: "",
+    origin: "",
+    guardian_name: "",
+  });
+  const [staffFormErrors, setStaffFormErrors] = useState<Record<string, string>>({});
+
   const session = useMissingPersonStore((s) => s.session);
   const summary = useMissingPersonStore((s) => s.summary);
   const setSession = useMissingPersonStore((s) => s.setSession);
@@ -313,26 +323,48 @@ export default function MissingPersonPage() {
     if (!session) {
       return;
     }
-    setConfirmModal({
-      title: "직원 도움 요청",
-      content: "현장 직원에게 미아 수색 요청을 보내시겠습니까?",
-      onConfirm: async () => {
-        setConfirmModal(null);
-        try {
-          setLoadingMsg("직원에게 요청 중입니다...");
-          setIsLoading(true);
-          await requestStaff(session.session_id);
-          setInfoModal("직원에게 요청이 전송되었습니다.");
-        } catch (err: unknown) {
-          console.error(err);
-          const detail =
-            (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-          setErrorModal(detail ?? "직원 요청 중 오류가 발생했습니다.");
-        } finally {
-          setIsLoading(false);
-        }
-      },
-    });
+    setStaffFormErrors({});
+    setStaffFormOpen(true);
+  };
+
+  const updateStaffField = (field: keyof typeof staffForm, value: string) => {
+    setStaffForm((prev) => ({ ...prev, [field]: value }));
+    setStaffFormErrors((prev) => ({ ...prev, [field]: "" }));
+  };
+
+  const handleSubmitStaffRequest = async () => {
+    if (!session) {
+      return;
+    }
+    const errors: Record<string, string> = {};
+    if (!staffForm.child_name.trim()) errors.child_name = "아이 이름을 입력해 주세요.";
+    if (!staffForm.child_age.trim()) errors.child_age = "아이 나이를 입력해 주세요.";
+    if (!staffForm.origin.trim()) errors.origin = "출신지를 입력해 주세요.";
+    if (!staffForm.guardian_name.trim()) errors.guardian_name = "보호자 이름을 입력해 주세요.";
+    if (Object.keys(errors).length > 0) {
+      setStaffFormErrors(errors);
+      return;
+    }
+    try {
+      setLoadingMsg("직원에게 요청 중입니다...");
+      setIsLoading(true);
+      await requestStaff(session.session_id, {
+        child_name: staffForm.child_name,
+        child_age: Number(staffForm.child_age),
+        origin: staffForm.origin,
+        guardian_name: staffForm.guardian_name,
+      });
+      setStaffFormOpen(false);
+      setStaffForm({ child_name: "", child_age: "", origin: "", guardian_name: "" });
+      setInfoModal("직원에게 요청이 전송되었습니다.");
+    } catch (err: unknown) {
+      console.error(err);
+      const detail =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      setErrorModal(detail ?? "직원 요청 중 오류가 발생했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleFound = () => {
@@ -449,6 +481,102 @@ export default function MissingPersonPage() {
         onClose={() => setConfirmModal(null)}
         onButtonClick={() => confirmModal?.onConfirm()}
       />
+
+      {staffFormOpen && (
+        <div
+          className={styles.staffOverlay}
+          onClick={() => setStaffFormOpen(false)}
+        >
+          <div
+            className={styles.staffModal}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className={styles.staffTitle}>직원 도움 요청</p>
+            <p className={styles.staffSubtitle}>
+              현장 직원에게 미아 정보를 전달합니다.
+            </p>
+
+            <div className={styles.fieldGroup}>
+              <div className={styles.fieldRowInline}>
+                <div className={styles.fieldRow}>
+                  <label className={styles.label}>아이 이름 *</label>
+                  <input
+                    type="text"
+                    className={styles.input}
+                    placeholder="홍길동"
+                    value={staffForm.child_name}
+                    onChange={(e) => updateStaffField("child_name", e.target.value)}
+                  />
+                  {staffFormErrors.child_name && (
+                    <span className={styles.fieldError}>{staffFormErrors.child_name}</span>
+                  )}
+                </div>
+                <div className={styles.fieldRow}>
+                  <label className={styles.label}>나이 *</label>
+                  <input
+                    type="number"
+                    className={styles.input}
+                    placeholder="7"
+                    min={1}
+                    max={20}
+                    value={staffForm.child_age}
+                    onChange={(e) => updateStaffField("child_age", e.target.value)}
+                  />
+                  {staffFormErrors.child_age && (
+                    <span className={styles.fieldError}>{staffFormErrors.child_age}</span>
+                  )}
+                </div>
+              </div>
+              <div className={styles.fieldRow}>
+                <label className={styles.label}>출신지 *</label>
+                <input
+                  type="text"
+                  className={styles.input}
+                  placeholder="예: 서울시 강남구"
+                  value={staffForm.origin}
+                  onChange={(e) => updateStaffField("origin", e.target.value)}
+                />
+                {staffFormErrors.origin && (
+                  <span className={styles.fieldError}>{staffFormErrors.origin}</span>
+                )}
+              </div>
+              <div className={styles.fieldRow}>
+                <label className={styles.label}>보호자 이름 *</label>
+                <input
+                  type="text"
+                  className={styles.input}
+                  placeholder="홍보호"
+                  value={staffForm.guardian_name}
+                  onChange={(e) => updateStaffField("guardian_name", e.target.value)}
+                />
+                {staffFormErrors.guardian_name && (
+                  <span className={styles.fieldError}>{staffFormErrors.guardian_name}</span>
+                )}
+              </div>
+            </div>
+
+            <div className={styles.sessionActionRow}>
+              <button
+                type="button"
+                className={styles.btnSecondary}
+                disabled={isLoading}
+                onClick={() => setStaffFormOpen(false)}
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                className={styles.btnPrimary}
+                disabled={isLoading}
+                onClick={() => void handleSubmitStaffRequest()}
+                style={{ flex: 1, marginTop: 0 }}
+              >
+                요청 보내기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className={clsx("container", styles.pageRoot)}>
         <div className={clsx("page-title")}>

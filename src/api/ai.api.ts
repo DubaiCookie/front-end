@@ -112,13 +112,25 @@ export async function markSessionFound(sessionId: string): Promise<void> {
   await aiHttp.post(`/missing-person/session/${sessionId}/found`);
 }
 
-/** 직원 도움 요청 */
+export type StaffRequestPayload = {
+  child_name?: string | null;
+  child_age?: number | null;
+  origin?: string | null;
+  guardian_name?: string | null;
+  message?: string | null;
+};
+
+/** 직원 도움 요청 — 아이 정보(이름/나이/출신지/보호자 이름) 포함 */
 export async function requestStaff(
   sessionId: string,
-  message?: string,
+  payload: StaffRequestPayload = {},
 ): Promise<void> {
   await aiHttp.post(`/missing-person/session/${sessionId}/request-staff`, {
-    message: message ?? null,
+    child_name: payload.child_name ?? null,
+    child_age: payload.child_age ?? null,
+    origin: payload.origin ?? null,
+    guardian_name: payload.guardian_name ?? null,
+    message: payload.message ?? null,
   });
 }
 

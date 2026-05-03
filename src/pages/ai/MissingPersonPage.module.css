@@ -539,3 +539,40 @@
 .bottomSpacer {
   height: 24px;
 }
+
+/* ── 직원 요청 입력 모달 ─────────────────────────────────────────── */
+.staffOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+  backdrop-filter: blur(2px);
+}
+
+.staffModal {
+  background: #fff;
+  border-radius: 18px;
+  padding: 22px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.staffTitle {
+  font-size: 18px;
+  font-weight: var(--font-semibold);
+  color: var(--PRIMARY-PINK);
+}
+
+.staffSubtitle {
+  font-size: var(--font-size-sm);
+  color: var(--TEXT-SECONDARY);
+  margin-bottom: 4px;
+}
