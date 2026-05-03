@@ -3,12 +3,11 @@
   flex-direction: column;
 }
 
-/* ── Two-column layout (좌: 영상 / 우: 단계 사이드바) ─────────────── */
+/* ── Single-column layout (위: 단계 사이드바 / 아래: CCTV 영상) ───── */
 .layout {
-  display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 16px;
-  align-items: start;
 }
 
 .videoColumn {
@@ -109,18 +108,7 @@
 }
 
 /* ── 모바일 반응형 ────────────────────────────────────────────────── */
-@media (max-width: 768px) {
-  .layout {
-    grid-template-columns: 1fr;
-  }
-  .videoColumn {
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    background: var(--BG, #fff);
-    padding-bottom: 6px;
-  }
-}
+/* 단일 컬럼 레이아웃이라 별도 미디어 쿼리 불필요 */
 
 /* ── Cards ──────────────────────────────────────────────────────── */
 .card {

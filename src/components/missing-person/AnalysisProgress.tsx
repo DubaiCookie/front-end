@@ -21,7 +21,7 @@ export default function AnalysisProgress({
     <div className={styles.card}>
       <div className={styles.header}>
         <span className={styles.spinner} aria-hidden="true" />
-        <span className={styles.title}>최근 3분 영상을 분석 중입니다</span>
+        <span className={styles.title}>실시간 영상을 분석 중입니다</span>
       </div>
       <div
         className={styles.barTrack}

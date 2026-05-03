@@ -422,6 +422,12 @@ export default function MissingPersonPage() {
     ? Math.max(0, Math.round((Date.now() - trackingUpdatedAt.getTime()) / 1000))
     : null;
 
+  // 분석이 끝났는데(>=100%) 후보가 한 명도 없는 상태
+  const analysisEmpty =
+    sidebarStage === "detecting" &&
+    analysisProgress >= 1 &&
+    !pendingCandidate;
+
   return (
     <>
       <LoadingSpinner isLoading={isLoading} message={loadingMsg} />
@@ -460,56 +466,14 @@ export default function MissingPersonPage() {
         </div>
 
         <div className={styles.layout}>
-          {/* ── 좌측: CCTV 영상 ── */}
-          <div className={styles.videoColumn}>
-            <div className={styles.videoFrame}>
-              <VideoWithBbox
-                src={session ? frameUrl : null}
-                bbox={isTracking ? trackingBbox : null}
-              />
-              {session && (
-                <LocationBadge
-                  location={FOUND_LOCATION_TEXT}
-                  active={isTracking}
-                />
-              )}
-            </div>
-
-            {session && isSessionActive && (
-              <AnalysisProgress
-                progress={analysisProgress}
-                processedFrames={summary?.processed_frames}
-                totalFrames={summary?.total_frames}
-              />
-            )}
-
-            <div className={styles.videoMeta}>
-              <span className={styles.videoMetaText}>
-                {session
-                  ? `세션 ${session.session_id.slice(0, 8)} · 만료 ${new Date(
-                      session.expires_at,
-                    ).toLocaleTimeString("ko-KR", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}`
-                  : "신고를 시작하면 CCTV 영상이 표시됩니다."}
-              </span>
-              {summary && (
-                <span className={styles.videoMetaText}>
-                  탐지 {summary.total_matches}명
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* ── 우측: 단계 사이드바 ── */}
+          {/* ── 상단: 단계 사이드바 ── */}
           <div className={styles.sidebarColumn}>
             {sidebarStage === "form" && (
               <>
                 <div className={styles.hintBox}>
                   <p className={styles.hintTitle}>AI 미아 찾기</p>
                   <ul className={styles.hintList}>
-                    <li>아이의 인상착의를 입력하면 좌측 CCTV 영상에서 분석합니다.</li>
+                    <li>아이의 인상착의를 입력하면 CCTV 영상에서 실시간 분석합니다.</li>
                     <li>일치하는 인물을 발견하면 사진을 보여드려요.</li>
                     <li>맞다면 영상에서 위치를 박스로 표시해 드립니다.</li>
                   </ul>
@@ -627,7 +591,9 @@ export default function MissingPersonPage() {
                   <p className={styles.sidebarSubtle} style={{ marginTop: 10 }}>
                     {pendingCandidate
                       ? "아래 인물이 맞는지 확인해 주세요."
-                      : "CCTV 영상에서 일치하는 인물을 찾고 있어요..."}
+                      : analysisEmpty
+                        ? "분석이 완료되었지만 일치하는 인물을 찾지 못했어요. 직원 도움을 요청하시거나 종료해 주세요."
+                        : "CCTV 영상에서 일치하는 인물을 찾고 있어요..."}
                   </p>
                 </div>
 
@@ -763,6 +729,46 @@ export default function MissingPersonPage() {
               </div>
             )}
           </div>
+
+          {/* ── 하단: CCTV 영상 (폼 제출 후에만 표시) ── */}
+          {session && (
+            <div className={styles.videoColumn}>
+              <div className={styles.videoFrame}>
+                <VideoWithBbox
+                  src={frameUrl}
+                  bbox={isTracking ? trackingBbox : null}
+                />
+                <LocationBadge
+                  location={FOUND_LOCATION_TEXT}
+                  active={isTracking}
+                />
+              </div>
+
+              {isSessionActive && (
+                <AnalysisProgress
+                  progress={analysisProgress}
+                  processedFrames={summary?.processed_frames}
+                  totalFrames={summary?.total_frames}
+                />
+              )}
+
+              <div className={styles.videoMeta}>
+                <span className={styles.videoMetaText}>
+                  {`세션 ${session.session_id.slice(0, 8)} · 만료 ${new Date(
+                    session.expires_at,
+                  ).toLocaleTimeString("ko-KR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}`}
+                </span>
+                {summary && (
+                  <span className={styles.videoMetaText}>
+                    탐지 {summary.total_matches}명
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className={styles.bottomSpacer} />
