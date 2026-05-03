@@ -5,23 +5,27 @@ import LoadingSpinner from "@/components/common/LoadingSpinner";
 import Modal from "@/components/common/modals/Modal";
 import {
   createMissingPersonSession,
-  getSessionStatus,
-  markSessionFound,
-  requestStaff,
   endSession,
+  getSessionStatus,
+  lockCandidate,
+  markSessionFound,
+  rejectCandidate,
+  requestStaff,
 } from "@/api/ai.api";
 import { useMissingPersonStore } from "@/stores/missing-person.store";
-import type {
-  ClothingQuery,
-  PersonDetection,
-  CCTVSummary,
-} from "@/types/ai";
+import type { ClothingQuery } from "@/types/ai";
 import AnalysisProgress from "@/components/missing-person/AnalysisProgress";
 import BestCandidateCard from "@/components/missing-person/BestCandidateCard";
-import CandidateHistoryModal from "@/components/missing-person/CandidateHistoryModal";
+import LocationBadge from "@/components/missing-person/LocationBadge";
+import VideoWithBbox from "@/components/missing-person/VideoWithBbox";
+import { useMissingPersonScenarioFeed } from "@/hooks/useMissingPersonScenarioFeed";
+import {
+  useMissingPersonWs,
+  type WsBbox,
+  type WsCandidate,
+} from "@/hooks/useMissingPersonWs";
+import { FOUND_LOCATION_TEXT } from "@/types/missing-person-ws";
 import styles from "./MissingPersonPage.module.css";
-
-// ── Types ────────────────────────────────────────────────────────────────────
 
 type FormValues = {
   description: string;
@@ -40,8 +44,6 @@ const EMPTY_FORM: FormValues = {
   child_name: "",
   child_age: "",
 };
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
 
 function buildClothingTags(c: ClothingQuery): string[] {
   const tags: string[] = [];
@@ -63,16 +65,9 @@ function buildClothingTags(c: ClothingQuery): string[] {
   return tags;
 }
 
-function stateBadgeClass(state: string) {
-  switch (state) {
-    case "detecting": return styles.statusDetecting;
-    case "tracking": return styles.statusTracking;
-    case "found": return styles.statusFound;
-    default: return styles.statusExpired;
-  }
+function isNotFound(err: unknown): boolean {
+  return (err as { response?: { status?: number } })?.response?.status === 404;
 }
-
-// ── Component ────────────────────────────────────────────────────────────────
 
 export default function MissingPersonPage() {
   const [form, setForm] = useState<FormValues>(EMPTY_FORM);
@@ -88,42 +83,35 @@ export default function MissingPersonPage() {
     onConfirm: () => void;
   } | null>(null);
 
-  // ── batch 분석 UX state ──────────────────────────────────────────
-  /** "기록 보기" 클릭 시 표시할 후보 (시각·위치 타임라인 모달) */
-  const [historyDetection, setHistoryDetection] = useState<PersonDetection | null>(null);
-  /** top-1 후보를 거절하고 전체 후보 리스트를 보겠다는 사용자 의사 */
-  const [rejectedTop, setRejectedTop] = useState(false);
+  // 실시간 WS 상태
+  const [pendingCandidate, setPendingCandidate] = useState<WsCandidate | null>(null);
+  const [trackingBbox, setTrackingBbox] = useState<WsBbox | null>(null);
+  const [trackingUpdatedAt, setTrackingUpdatedAt] = useState<Date | null>(null);
+  const [lockedTrackId, setLockedTrackId] = useState<number | null>(null);
+  const [actionInFlight, setActionInFlight] = useState(false);
 
-  // Session state (zustand persisted to sessionStorage)
   const session = useMissingPersonStore((s) => s.session);
   const summary = useMissingPersonStore((s) => s.summary);
   const setSession = useMissingPersonStore((s) => s.setSession);
   const setSummary = useMissingPersonStore((s) => s.setSummary);
   const resetSessionStore = useMissingPersonStore((s) => s.reset);
 
+  const sessionState = summary?.state ?? session?.status ?? null;
   const isSessionActive =
-    session && summary && summary.state !== "found" && summary.state !== "expired";
+    Boolean(session) && sessionState !== "found" && sessionState !== "expired";
+  const isTracking = sessionState === "tracking";
 
-  // 모든 CCTV 의 후보 detection 을 합쳐 best_score 내림차순 정렬한 평탄화 리스트.
-  // 첫 원소가 top-1 후보, 거절 시 전체를 리스트로 표시.
-  const allDetections: PersonDetection[] = (summary?.cctv_summaries ?? [])
-    .flatMap((c) => c.detections)
-    .sort((a, b) => b.clothing_match_score - a.clothing_match_score);
-  const bestDetection = allDetections[0] ?? null;
-  const analyzing = Boolean(session) && summary?.scenario_finished !== true;
+  // 후보 카드가 떠 있는 동안 영상 프레임 갱신 일시정지 — 사용자가 인물을 충분히 살피도록
+  const scenarioPaused = pendingCandidate !== null && !isTracking;
 
-  // Polling
+  // 폴링 (세션 상태/진행도 동기화)
   const pollTimerRef = useRef<number | null>(null);
-
   const stopPolling = useCallback(() => {
     if (pollTimerRef.current !== null) {
       window.clearInterval(pollTimerRef.current);
       pollTimerRef.current = null;
     }
   }, []);
-
-  const isNotFound = (err: unknown): boolean =>
-    (err as { response?: { status?: number } })?.response?.status === 404;
 
   const startPolling = useCallback(
     (sessionId: string) => {
@@ -132,18 +120,14 @@ export default function MissingPersonPage() {
         try {
           const data = await getSessionStatus(sessionId);
           setSummary(data);
-          // 세션 종료(found/expired) 또는 batch 분석 완료 시 폴링 중단.
-          // 분석 완료 후엔 결과가 더 이상 변하지 않아 폴링 의미 없음.
-          if (
-            data.state === "found" ||
-            data.state === "expired" ||
-            data.scenario_finished === true
-          ) {
+          if (data.locked_track_id !== null && data.locked_track_id !== undefined) {
+            setLockedTrackId(data.locked_track_id);
+          }
+          if (data.state === "found" || data.state === "expired") {
             stopPolling();
           }
         } catch (err) {
           stopPolling();
-          // 서버에서 세션이 사라졌으면 (파드 재기동 등) 로컬 상태 정리
           if (isNotFound(err)) {
             resetSessionStore();
           }
@@ -153,7 +137,7 @@ export default function MissingPersonPage() {
     [resetSessionStore, setSummary, stopPolling],
   );
 
-  // 페이지 재진입 시: 만료되지 않은 세션이 보존되어 있으면 폴링 재개
+  // 페이지 재진입: 세션 살아있으면 폴링 재개
   useEffect(() => {
     if (!session) {
       return;
@@ -169,22 +153,19 @@ export default function MissingPersonPage() {
       try {
         const data = await getSessionStatus(session.session_id);
         setSummary(data);
-        if (
-          data.state !== "found" &&
-          data.state !== "expired" &&
-          data.scenario_finished !== true
-        ) {
+        if (data.locked_track_id !== null && data.locked_track_id !== undefined) {
+          setLockedTrackId(data.locked_track_id);
+        }
+        if (data.state !== "found" && data.state !== "expired") {
           startPolling(session.session_id);
         }
       } catch {
-        // 서버 측 세션이 사라졌으면 로컬 상태도 정리
         resetSessionStore();
       }
     })();
     return () => {
       stopPolling();
     };
-    // session.session_id 가 바뀔 때만 재실행 (마운트 시 1회 + 새 세션 생성 시)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.session_id]);
 
@@ -194,14 +175,52 @@ export default function MissingPersonPage() {
     };
   }, [stopPolling]);
 
-  // 세션이 바뀌면 rejected/history state 초기화
+  // 세션 바뀌면 실시간 상태 초기화
   useEffect(() => {
-    setRejectedTop(false);
-    setHistoryDetection(null);
+    setPendingCandidate(null);
+    setTrackingBbox(null);
+    setTrackingUpdatedAt(null);
+    setLockedTrackId(null);
   }, [session?.session_id]);
 
-  // ── Form helpers ──────────────────────────────────────────────
+  // ── 실시간 영상 + WS ─────────────────────────────────────────────
+  const { frameUrl } = useMissingPersonScenarioFeed({
+    enabled: Boolean(session) && isSessionActive,
+    sessionId: session?.session_id ?? null,
+    paused: scenarioPaused,
+  });
 
+  const handleCandidateFound = useCallback(
+    (cand: WsCandidate) => {
+      // 이미 추적 중이면 새 후보 카드를 띄우지 않음
+      if (isTracking) {
+        return;
+      }
+      setPendingCandidate(cand);
+    },
+    [isTracking],
+  );
+
+  const handleTrackingUpdate = useCallback(
+    (trackId: number, bbox: WsBbox) => {
+      // 락 걸린 트랙이거나, 아직 lockedTrackId 미수신이면 일단 표시
+      if (lockedTrackId !== null && trackId !== lockedTrackId) {
+        return;
+      }
+      setTrackingBbox(bbox);
+      setTrackingUpdatedAt(new Date());
+    },
+    [lockedTrackId],
+  );
+
+  useMissingPersonWs({
+    enabled: Boolean(session) && isSessionActive,
+    sessionId: session?.session_id ?? null,
+    onCandidateFound: handleCandidateFound,
+    onTrackingUpdate: handleTrackingUpdate,
+  });
+
+  // ── Form helpers ─────────────────────────────────────────────────
   const updateField = (field: keyof FormValues, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     setFormErrors((prev) => ({ ...prev, [field]: undefined }));
@@ -219,19 +238,17 @@ export default function MissingPersonPage() {
       errors.phone = "연락처를 입력해 주세요.";
     }
     if (!form.relationship.trim()) {
-      errors.relationship = "관계를 입력해 주세요. (예: 부모, 조부모)";
+      errors.relationship = "관계를 입력해 주세요.";
     }
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  // ── Session actions ───────────────────────────────────────────
-
+  // ── Session actions ──────────────────────────────────────────────
   const handleStartSession = async () => {
     if (!validateForm()) {
       return;
     }
-
     try {
       setLoadingMsg("미아 탐지 세션을 시작하는 중입니다...");
       setIsLoading(true);
@@ -258,14 +275,50 @@ export default function MissingPersonPage() {
     }
   };
 
-  // 기존 'lock-on 추적' 흐름은 후보 카드 → 기록 보기 모달로 대체됨.
-  // lockCandidate / handleLock 핸들러는 더 이상 UI 에서 호출되지 않아 제거.
+  const handleConfirmCandidate = async () => {
+    if (!session || !pendingCandidate) {
+      return;
+    }
+    try {
+      setActionInFlight(true);
+      await lockCandidate(session.session_id, {
+        cctv_id: pendingCandidate.cctvId,
+        track_id: pendingCandidate.trackId,
+      });
+      setLockedTrackId(pendingCandidate.trackId);
+      setPendingCandidate(null);
+    } catch (err: unknown) {
+      console.error(err);
+      const detail =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      setErrorModal(detail ?? "추적 시작 중 오류가 발생했습니다.");
+    } finally {
+      setActionInFlight(false);
+    }
+  };
+
+  const handleRejectCandidate = async () => {
+    if (!session || !pendingCandidate) {
+      return;
+    }
+    try {
+      setActionInFlight(true);
+      await rejectCandidate(session.session_id);
+      setPendingCandidate(null);
+    } catch (err: unknown) {
+      console.error(err);
+      const detail =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      setErrorModal(detail ?? "후보 거부 중 오류가 발생했습니다.");
+    } finally {
+      setActionInFlight(false);
+    }
+  };
 
   const handleRequestStaff = () => {
     if (!session) {
       return;
     }
-
     setConfirmModal({
       title: "직원 도움 요청",
       content: "현장 직원에게 미아 수색 요청을 보내시겠습니까?",
@@ -292,7 +345,6 @@ export default function MissingPersonPage() {
     if (!session) {
       return;
     }
-
     setConfirmModal({
       title: "아이를 찾았나요?",
       content: "아이와 직접 만났다면 이 버튼을 눌러 세션을 종료합니다.",
@@ -303,9 +355,9 @@ export default function MissingPersonPage() {
           setIsLoading(true);
           await markSessionFound(session.session_id);
           stopPolling();
-          setInfoModal("미아 찾기가 종료되었습니다");
           const updated = await getSessionStatus(session.session_id);
           setSummary(updated);
+          setInfoModal("미아 찾기가 종료되었습니다.");
         } catch (err: unknown) {
           console.error(err);
           setErrorModal("종료 중 오류가 발생했습니다.");
@@ -320,7 +372,6 @@ export default function MissingPersonPage() {
     if (!session) {
       return;
     }
-
     setConfirmModal({
       title: "탐지 종료",
       content: "진행 중인 미아 탐지 세션을 강제 종료하시겠습니까?",
@@ -332,7 +383,6 @@ export default function MissingPersonPage() {
           try {
             await endSession(session.session_id);
           } catch (err) {
-            // 서버에 이미 세션이 없으면(파드 재기동 등) 정상 종료로 간주
             if (!isNotFound(err)) {
               throw err;
             }
@@ -350,19 +400,31 @@ export default function MissingPersonPage() {
     });
   };
 
-  // ── Render ────────────────────────────────────────────────────
+  const handleNewSearch = () => {
+    resetSessionStore();
+    setForm(EMPTY_FORM);
+    setPendingCandidate(null);
+    setTrackingBbox(null);
+    setLockedTrackId(null);
+  };
+
+  // ── Render helpers ───────────────────────────────────────────────
+  const analysisProgress = summary?.analysis_progress ?? 0;
+  const sidebarStage: "form" | "detecting" | "tracking" | "ended" = !session
+    ? "form"
+    : sessionState === "found" || sessionState === "expired"
+      ? "ended"
+      : isTracking
+        ? "tracking"
+        : "detecting";
+
+  const trackingStaleSeconds = trackingUpdatedAt
+    ? Math.max(0, Math.round((Date.now() - trackingUpdatedAt.getTime()) / 1000))
+    : null;
 
   return (
     <>
       <LoadingSpinner isLoading={isLoading} message={loadingMsg} />
-
-      {/* ── 후보 이동 기록 모달 (시각·위치 타임라인) ── */}
-      {historyDetection && (
-        <CandidateHistoryModal
-          detection={historyDetection}
-          onClose={() => setHistoryDetection(null)}
-        />
-      )}
 
       <Modal
         isOpen={errorModal !== null}
@@ -397,27 +459,67 @@ export default function MissingPersonPage() {
           <span>Missing Child</span>
         </div>
 
-        {/* ── 진행 중인 세션 없음: 신고 폼 ── */}
-        {!session && (
-          <>
-            <div className={styles.hintBox}>
-              <p className={styles.hintTitle}>AI 미아 찾기 서비스</p>
-              <ul className={styles.hintList}>
-                <li>아이의 인상착의를 입력하면 AI 가 최근 3분간의 CCTV 영상을 분석합니다.</li>
-                <li>가장 유사한 인물의 사진을 보여드려요.</li>
-                <li>맞다면 해당 인물의 시각·위치 동선을 확인할 수 있어요.</li>
-              </ul>
+        <div className={styles.layout}>
+          {/* ── 좌측: CCTV 영상 ── */}
+          <div className={styles.videoColumn}>
+            <div className={styles.videoFrame}>
+              <VideoWithBbox
+                src={session ? frameUrl : null}
+                bbox={isTracking ? trackingBbox : null}
+              />
+              {session && (
+                <LocationBadge
+                  location={FOUND_LOCATION_TEXT}
+                  active={isTracking}
+                />
+              )}
             </div>
 
-            {/* 아이 인상착의 */}
-            <div className={styles.card}>
-              <p className={styles.cardTitle}>아이 인상착의</p>
-              <div className={styles.fieldGroup}>
-                <div className={styles.fieldRow}>
-                  <label className={styles.label}>인상착의 설명 *</label>
+            {session && isSessionActive && (
+              <AnalysisProgress
+                progress={analysisProgress}
+                processedFrames={summary?.processed_frames}
+                totalFrames={summary?.total_frames}
+              />
+            )}
+
+            <div className={styles.videoMeta}>
+              <span className={styles.videoMetaText}>
+                {session
+                  ? `세션 ${session.session_id.slice(0, 8)} · 만료 ${new Date(
+                      session.expires_at,
+                    ).toLocaleTimeString("ko-KR", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}`
+                  : "신고를 시작하면 CCTV 영상이 표시됩니다."}
+              </span>
+              {summary && (
+                <span className={styles.videoMetaText}>
+                  탐지 {summary.total_matches}명
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* ── 우측: 단계 사이드바 ── */}
+          <div className={styles.sidebarColumn}>
+            {sidebarStage === "form" && (
+              <>
+                <div className={styles.hintBox}>
+                  <p className={styles.hintTitle}>AI 미아 찾기</p>
+                  <ul className={styles.hintList}>
+                    <li>아이의 인상착의를 입력하면 좌측 CCTV 영상에서 분석합니다.</li>
+                    <li>일치하는 인물을 발견하면 사진을 보여드려요.</li>
+                    <li>맞다면 영상에서 위치를 박스로 표시해 드립니다.</li>
+                  </ul>
+                </div>
+
+                <div className={styles.card}>
+                  <p className={styles.cardTitle}>아이 인상착의 *</p>
                   <textarea
                     className={styles.textarea}
-                    placeholder="예: 13세 남자아이, 137cm, 흰색 티셔츠에 청바지, 파란 운동화"
+                    placeholder="예: 흰색 티셔츠, 청바지, 파란 운동화"
                     value={form.description}
                     onChange={(e) => updateField("description", e.target.value)}
                     rows={3}
@@ -426,152 +528,132 @@ export default function MissingPersonPage() {
                     <span className={styles.fieldError}>{formErrors.description}</span>
                   )}
                 </div>
-              </div>
-            </div>
 
-            {/* 신고자 정보 */}
-            <div className={styles.card}>
-              <p className={styles.cardTitle}>신고자 정보</p>
-              <div className={styles.fieldGroup}>
-                <div className={styles.fieldRowInline}>
-                  <div className={styles.fieldRow}>
-                    <label className={styles.label}>이름 *</label>
-                    <input
-                      type="text"
-                      className={styles.input}
-                      placeholder="홍길동"
-                      value={form.name}
-                      onChange={(e) => updateField("name", e.target.value)}
-                    />
-                    {formErrors.name && (
-                      <span className={styles.fieldError}>{formErrors.name}</span>
-                    )}
+                <div className={styles.card}>
+                  <p className={styles.cardTitle}>신고자 정보</p>
+                  <div className={styles.fieldGroup}>
+                    <div className={styles.fieldRowInline}>
+                      <div className={styles.fieldRow}>
+                        <label className={styles.label}>이름 *</label>
+                        <input
+                          type="text"
+                          className={styles.input}
+                          placeholder="홍길동"
+                          value={form.name}
+                          onChange={(e) => updateField("name", e.target.value)}
+                        />
+                        {formErrors.name && (
+                          <span className={styles.fieldError}>{formErrors.name}</span>
+                        )}
+                      </div>
+                      <div className={styles.fieldRow}>
+                        <label className={styles.label}>관계 *</label>
+                        <input
+                          type="text"
+                          className={styles.input}
+                          placeholder="부모"
+                          value={form.relationship}
+                          onChange={(e) => updateField("relationship", e.target.value)}
+                        />
+                        {formErrors.relationship && (
+                          <span className={styles.fieldError}>{formErrors.relationship}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className={styles.fieldRow}>
+                      <label className={styles.label}>연락처 *</label>
+                      <input
+                        type="tel"
+                        className={styles.input}
+                        placeholder="010-0000-0000"
+                        value={form.phone}
+                        onChange={(e) => updateField("phone", e.target.value)}
+                      />
+                      {formErrors.phone && (
+                        <span className={styles.fieldError}>{formErrors.phone}</span>
+                      )}
+                    </div>
+                    <div className={styles.fieldRowInline}>
+                      <div className={styles.fieldRow}>
+                        <label className={styles.label}>아이 이름</label>
+                        <input
+                          type="text"
+                          className={styles.input}
+                          placeholder="(선택)"
+                          value={form.child_name}
+                          onChange={(e) => updateField("child_name", e.target.value)}
+                        />
+                      </div>
+                      <div className={styles.fieldRow}>
+                        <label className={styles.label}>나이</label>
+                        <input
+                          type="number"
+                          className={styles.input}
+                          placeholder="(선택)"
+                          min={1}
+                          max={20}
+                          value={form.child_age}
+                          onChange={(e) => updateField("child_age", e.target.value)}
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div className={styles.fieldRow}>
-                    <label className={styles.label}>관계 *</label>
-                    <input
-                      type="text"
-                      className={styles.input}
-                      placeholder="부모"
-                      value={form.relationship}
-                      onChange={(e) => updateField("relationship", e.target.value)}
-                    />
-                    {formErrors.relationship && (
-                      <span className={styles.fieldError}>{formErrors.relationship}</span>
-                    )}
-                  </div>
+
+                  <button
+                    type="button"
+                    className={styles.btnPrimary}
+                    disabled={isLoading}
+                    onClick={() => void handleStartSession()}
+                  >
+                    탐색 시작
+                  </button>
+                </div>
+              </>
+            )}
+
+            {sidebarStage === "detecting" && session && (
+              <>
+                <div className={styles.card}>
+                  <p className={styles.cardTitle}>찾고 있어요</p>
+                  {session.parsed_clothing && (
+                    <div className={styles.clothingRow}>
+                      {buildClothingTags(session.parsed_clothing).map((tag) => (
+                        <span key={tag} className={styles.clothingTag}>
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <p className={styles.sidebarSubtle} style={{ marginTop: 10 }}>
+                    {pendingCandidate
+                      ? "아래 인물이 맞는지 확인해 주세요."
+                      : "CCTV 영상에서 일치하는 인물을 찾고 있어요..."}
+                  </p>
                 </div>
 
-                <div className={styles.fieldRow}>
-                  <label className={styles.label}>연락처 *</label>
-                  <input
-                    type="tel"
-                    className={styles.input}
-                    placeholder="010-0000-0000"
-                    value={form.phone}
-                    onChange={(e) => updateField("phone", e.target.value)}
+                {pendingCandidate && (
+                  <BestCandidateCard
+                    detection={{
+                      bbox: null,
+                      confidence: 0,
+                      clothing_match_score: pendingCandidate.clothingMatchScore,
+                      is_child: pendingCandidate.isChild,
+                      track_id: pendingCandidate.trackId,
+                      thumbnail_b64: pendingCandidate.photoUrl
+                        ? pendingCandidate.photoUrl.replace(
+                            /^data:image\/[^;]+;base64,/,
+                            "",
+                          )
+                        : null,
+                    }}
+                    onConfirm={() => void handleConfirmCandidate()}
+                    onReject={() => void handleRejectCandidate()}
+                    disabled={actionInFlight}
                   />
-                  {formErrors.phone && (
-                    <span className={styles.fieldError}>{formErrors.phone}</span>
-                  )}
-                </div>
-
-                <div className={styles.fieldRowInline}>
-                  <div className={styles.fieldRow}>
-                    <label className={styles.label}>아이 이름</label>
-                    <input
-                      type="text"
-                      className={styles.input}
-                      placeholder="(선택)"
-                      value={form.child_name}
-                      onChange={(e) => updateField("child_name", e.target.value)}
-                    />
-                  </div>
-                  <div className={styles.fieldRow}>
-                    <label className={styles.label}>나이</label>
-                    <input
-                      type="number"
-                      className={styles.input}
-                      placeholder="(선택)"
-                      min={1}
-                      max={20}
-                      value={form.child_age}
-                      onChange={(e) => updateField("child_age", e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                className={styles.btnPrimary}
-                disabled={isLoading}
-                onClick={() => void handleStartSession()}
-              >
-                미아 탐지 시작
-              </button>
-            </div>
-          </>
-        )}
-
-        {/* ── 세션 진행 중 ── */}
-        {session && (
-          <>
-            {/* 세션 상태 헤더 */}
-            <div className={styles.card}>
-              <p className={styles.cardTitle}>미아 찾기 세션</p>
-
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span
-                  className={clsx(
-                    styles.statusBadge,
-                    analyzing
-                      ? styles.statusDetecting
-                      : summary
-                        ? stateBadgeClass(summary.state === "detecting" ? "tracking" : summary.state)
-                        : styles.statusDetecting,
-                  )}
-                >
-                  {analyzing && <span className={styles.statusPulse} />}
-                  {analyzing
-                    ? "분석 중"
-                    : summary?.state === "found"
-                      ? "발견 완료"
-                      : summary?.state === "expired"
-                        ? "만료"
-                        : "분석 완료"}
-                </span>
-                <span style={{ fontSize: "12px", color: "var(--TEXT-SECONDARY)" }}>
-                  {new Date(session.expires_at).toLocaleTimeString("ko-KR", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                  까지
-                </span>
-              </div>
-
-              {/* 파싱된 인상착의 태그 */}
-              {session.parsed_clothing && (
-                <div className={styles.clothingRow}>
-                  {buildClothingTags(session.parsed_clothing).map((tag) => (
-                    <span key={tag} className={styles.clothingTag}>
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              <div className={styles.sessionInfoRow}>
-                <span>세션 ID: {session.session_id.slice(0, 8)}...</span>
-                {summary && !analyzing && (
-                  <span>탐지 {summary.total_matches}명</span>
                 )}
-              </div>
 
-              {/* 세션 액션 버튼 */}
-              <div className={styles.sessionActionRow}>
-                {isSessionActive && (
-                  <>
+                <div className={styles.card}>
+                  <div className={styles.sessionActionRow}>
                     <button
                       type="button"
                       className={styles.btnSecondary}
@@ -582,11 +664,71 @@ export default function MissingPersonPage() {
                     </button>
                     <button
                       type="button"
-                      className={styles.btnSecondary}
+                      className={styles.btnDanger}
+                      disabled={isLoading}
+                      onClick={handleEndSession}
+                    >
+                      종료
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {sidebarStage === "tracking" && session && (
+              <>
+                <div className={styles.locationCard}>
+                  <span className={styles.locationLabel}>현재 위치</span>
+                  <span className={styles.locationValue}>
+                    📍 {FOUND_LOCATION_TEXT}
+                  </span>
+                  <div className={styles.locationMetaRow}>
+                    <span>
+                      {trackingStaleSeconds !== null
+                        ? `마지막 갱신 ${trackingStaleSeconds}초 전`
+                        : "위치 갱신 대기 중..."}
+                    </span>
+                    {lockedTrackId !== null && (
+                      <span>track #{lockedTrackId}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className={styles.card}>
+                  <p className={styles.cardTitle}>찾고 있던 아이</p>
+                  {session.parsed_clothing && (
+                    <div className={styles.clothingRow}>
+                      {buildClothingTags(session.parsed_clothing).map((tag) => (
+                        <span key={tag} className={styles.clothingTag}>
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles.card}>
+                  <div className={styles.sessionActionRow}>
+                    <button
+                      type="button"
+                      className={styles.btnPrimary}
                       disabled={isLoading}
                       onClick={handleFound}
                     >
                       아이 찾았어요
+                    </button>
+                  </div>
+                  <div
+                    className={styles.sessionActionRow}
+                    style={{ marginTop: 8 }}
+                  >
+                    <button
+                      type="button"
+                      className={styles.btnSecondary}
+                      disabled={isLoading}
+                      onClick={handleRequestStaff}
+                    >
+                      직원 요청
                     </button>
                     <button
                       type="button"
@@ -596,115 +738,32 @@ export default function MissingPersonPage() {
                     >
                       종료
                     </button>
-                  </>
-                )}
-                {!isSessionActive && (
-                  <button
-                    type="button"
-                    className={styles.btnPrimary}
-                    onClick={() => {
-                      resetSessionStore();
-                      setForm(EMPTY_FORM);
-                    }}
-                  >
-                    새 탐지 시작
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* batch 분석 진행도 (분석 중일 때) */}
-            {analyzing && (
-              <AnalysisProgress
-                progress={summary?.analysis_progress ?? 0}
-                processedFrames={summary?.processed_frames}
-                totalFrames={summary?.total_frames}
-              />
-            )}
-
-            {/* 분석 완료: top-1 후보 카드 (거절 전) */}
-            {!analyzing && bestDetection && !rejectedTop && (
-              <BestCandidateCard
-                detection={bestDetection}
-                onConfirm={() => setHistoryDetection(bestDetection)}
-                onReject={() => setRejectedTop(true)}
-              />
-            )}
-
-            {/* 분석 완료: 매칭 0건 */}
-            {!analyzing && !bestDetection && summary && (
-              <div className={styles.card}>
-                <p className={styles.cardTitle}>분석 결과</p>
-                <p className={styles.emptyDetection}>
-                  영상에서 인상착의와 일치하는 인물을 찾지 못했습니다.
-                </p>
-              </div>
-            )}
-
-            {/* 거절 후: 전체 후보 리스트 */}
-            {!analyzing && rejectedTop && summary && (
-              <div className={styles.card}>
-                <p className={styles.cardTitle}>
-                  전체 후보 {summary.total_matches > 0 && `(${summary.total_matches}명)`}
-                </p>
-                {summary.cctv_summaries.length === 0 || summary.total_matches === 0 ? (
-                  <p className={styles.emptyDetection}>탐지된 후보가 없습니다.</p>
-                ) : (
-                  <div className={styles.cctvList}>
-                    {summary.cctv_summaries
-                      .filter((cctv: CCTVSummary) => cctv.detections.length > 0)
-                      .map((cctv: CCTVSummary) => (
-                        <div key={cctv.cctv_id} className={styles.cctvItem}>
-                          <div className={styles.cctvHeader}>
-                            <span className={styles.cctvId}>CCTV {cctv.cctv_id}</span>
-                            <span className={styles.cctvMatchBadge}>
-                              {cctv.total_matches}명
-                            </span>
-                          </div>
-                          <div className={styles.detectionList}>
-                            {cctv.detections.map((det: PersonDetection) => (
-                              <div key={det.track_id} className={styles.detectionItem}>
-                                {det.thumbnail_b64 ? (
-                                  <img
-                                    src={`data:image/jpeg;base64,${det.thumbnail_b64}`}
-                                    alt={`후보 ${det.track_id}`}
-                                    className={styles.thumbnail}
-                                  />
-                                ) : (
-                                  <div
-                                    className={styles.thumbnailPlaceholder}
-                                    aria-hidden="true"
-                                  >
-                                    ?
-                                  </div>
-                                )}
-                                <div className={styles.detectionInfo}>
-                                  <span className={styles.detectionScore}>
-                                    일치도 {Math.round(det.clothing_match_score * 100)}%
-                                  </span>
-                                  {det.is_child && (
-                                    <span className={styles.childBadge}>아동 추정</span>
-                                  )}
-                                </div>
-                                <button
-                                  type="button"
-                                  className={styles.lockBtn}
-                                  onClick={() => setHistoryDetection(det)}
-                                  aria-label={`후보 ${det.track_id} 이동 기록 보기`}
-                                >
-                                  기록 보기
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
                   </div>
-                )}
+                </div>
+              </>
+            )}
+
+            {sidebarStage === "ended" && (
+              <div className={clsx(styles.card, styles.endedCard)}>
+                <p className={styles.endedTitle}>
+                  {sessionState === "found" ? "✅ 미아 발견 완료" : "세션이 만료되었습니다"}
+                </p>
+                <p className={styles.endedSub}>
+                  {sessionState === "found"
+                    ? "아이와 안전하게 만나셨길 바라요."
+                    : "필요하시면 새 신고를 시작해 주세요."}
+                </p>
+                <button
+                  type="button"
+                  className={styles.btnPrimary}
+                  onClick={handleNewSearch}
+                >
+                  새 신고 시작
+                </button>
               </div>
             )}
-          </>
-        )}
+          </div>
+        </div>
 
         <div className={styles.bottomSpacer} />
       </div>

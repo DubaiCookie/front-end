@@ -53,6 +53,9 @@ export type SessionCreateResponse = {
   message: string;
   expires_at: string;
   parsed_clothing: ClothingQuery;
+  cctv_feed_url: string;
+  watch_url: string;
+  broadcast_url: string;
 };
 
 export type Sighting = {

@@ -5,17 +5,23 @@ type Props = {
   detection: PersonDetection;
   onConfirm: () => void;
   onReject: () => void;
+  confirmLabel?: string;
+  rejectLabel?: string;
+  disabled?: boolean;
 };
 
 /**
- * batch 분석 완료 후 표시되는 최상위 후보 확정 카드.
- * - 맞아요 → 동선(시각·위치) 타임라인 모달 열림
- * - 아니에요 → 전체 후보 리스트로 전환
+ * 후보 인물 확인 카드. 호출자에 따라 다음 두 흐름 중 하나로 동작합니다.
+ * - 실시간 흐름: 맞아요 → lockCandidate API → 추적 시작
+ * - batch 흐름: 맞아요 → 동선 타임라인 모달
  */
 export default function BestCandidateCard({
   detection,
   onConfirm,
   onReject,
+  confirmLabel = "맞아요, 추적 시작",
+  rejectLabel = "아니에요",
+  disabled = false,
 }: Props) {
   const score = Math.round(detection.clothing_match_score * 100);
   return (
@@ -48,15 +54,17 @@ export default function BestCandidateCard({
           type="button"
           className={styles.btnConfirm}
           onClick={onConfirm}
+          disabled={disabled}
         >
-          맞아요, 동선 보기
+          {confirmLabel}
         </button>
         <button
           type="button"
           className={styles.btnReject}
           onClick={onReject}
+          disabled={disabled}
         >
-          아니에요, 다른 후보 보기
+          {rejectLabel}
         </button>
       </div>
     </div>

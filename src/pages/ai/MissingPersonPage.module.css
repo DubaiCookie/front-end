@@ -3,6 +3,125 @@
   flex-direction: column;
 }
 
+/* ── Two-column layout (좌: 영상 / 우: 단계 사이드바) ─────────────── */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.videoColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.videoFrame {
+  position: relative;
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+  background: #111;
+}
+
+.videoMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 4px;
+}
+
+.videoMetaText {
+  font-size: var(--font-size-sm);
+  color: var(--TEXT-SECONDARY);
+}
+
+.sidebarColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* 사이드바 카드 — 한 화면에 카드들이 자연스럽게 쌓이도록 margin 제거 */
+.sidebarColumn .card {
+  margin-bottom: 0;
+}
+
+.sidebarSubtle {
+  font-size: var(--font-size-sm);
+  color: var(--TEXT-SECONDARY);
+  line-height: 1.5;
+}
+
+/* ── 추적 중 위치 카드 ─────────────────────────────────────────────── */
+.locationCard {
+  background: linear-gradient(135deg, rgba(255, 107, 138, 0.12), rgba(255, 255, 255, 0.7));
+  border: 1px solid rgba(255, 107, 138, 0.35);
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.locationLabel {
+  font-size: 13px;
+  color: var(--TEXT-SECONDARY);
+  font-weight: var(--font-medium);
+}
+
+.locationValue {
+  font-size: 18px;
+  font-weight: var(--font-semibold);
+  color: var(--PRIMARY-PINK);
+}
+
+.locationMetaRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-sm);
+  color: var(--TEXT-SECONDARY);
+  margin-top: 4px;
+}
+
+/* ── 종료(found/expired) 카드 ─────────────────────────────────────── */
+.endedCard {
+  text-align: center;
+  padding: 24px 16px;
+}
+
+.endedTitle {
+  font-size: 18px;
+  font-weight: var(--font-semibold);
+  color: var(--PRIMARY-PINK);
+  margin-bottom: 8px;
+}
+
+.endedSub {
+  font-size: var(--font-size-sm);
+  color: var(--TEXT-SECONDARY);
+  margin-bottom: 16px;
+}
+
+/* ── 모바일 반응형 ────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .videoColumn {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--BG, #fff);
+    padding-bottom: 6px;
+  }
+}
+
 /* ── Cards ──────────────────────────────────────────────────────── */
 .card {
   background: rgba(255, 255, 255, 0.62);
