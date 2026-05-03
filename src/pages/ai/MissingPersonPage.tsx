@@ -654,7 +654,7 @@ export default function MissingPersonPage() {
                             (a, b) =>
                               b.det.clothing_match_score - a.det.clothing_match_score,
                           )
-                          .slice(0, 12)
+                          .slice(0, 5)
                           .map(({ cctv_id, det }: { cctv_id: string; det: PersonDetection }) => (
                             <div key={`${cctv_id}-${det.track_id}`} className={styles.detectionItem}>
                               {det.thumbnail_b64 ? (
@@ -784,11 +784,9 @@ export default function MissingPersonPage() {
                 <p className={styles.endedTitle}>
                   {sessionState === "found" ? "✅ 미아 발견 완료" : "세션이 만료되었습니다"}
                 </p>
-                <p className={styles.endedSub}>
-                  {sessionState === "found"
-                    ? "아이와 안전하게 만나셨길 바라요."
-                    : "필요하시면 새 신고를 시작해 주세요."}
-                </p>
+                {sessionState !== "found" && (
+                  <p className={styles.endedSub}>필요하시면 새 신고를 시작해 주세요.</p>
+                )}
                 <button
                   type="button"
                   className={styles.btnPrimary}
