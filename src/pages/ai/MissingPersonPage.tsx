@@ -13,8 +13,7 @@ import {
   requestStaff,
 } from "@/api/ai.api";
 import { useMissingPersonStore } from "@/stores/missing-person.store";
-import type { ClothingQuery } from "@/types/ai";
-import AnalysisProgress from "@/components/missing-person/AnalysisProgress";
+import type { ClothingQuery, PersonDetection } from "@/types/ai";
 import BestCandidateCard from "@/components/missing-person/BestCandidateCard";
 import LocationBadge from "@/components/missing-person/LocationBadge";
 import VideoWithBbox from "@/components/missing-person/VideoWithBbox";
@@ -287,6 +286,27 @@ export default function MissingPersonPage() {
       });
       setLockedTrackId(pendingCandidate.trackId);
       setPendingCandidate(null);
+    } catch (err: unknown) {
+      console.error(err);
+      const detail =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      setErrorModal(detail ?? "추적 시작 중 오류가 발생했습니다.");
+    } finally {
+      setActionInFlight(false);
+    }
+  };
+
+  const handleLockFromList = async (cctvId: string, trackId: number) => {
+    if (!session) {
+      return;
+    }
+    try {
+      setActionInFlight(true);
+      await lockCandidate(session.session_id, {
+        cctv_id: cctvId,
+        track_id: trackId,
+      });
+      setLockedTrackId(trackId);
     } catch (err: unknown) {
       console.error(err);
       const detail =
@@ -618,6 +638,56 @@ export default function MissingPersonPage() {
                   />
                 )}
 
+                {!pendingCandidate &&
+                  summary &&
+                  summary.cctv_summaries.some((c) => c.detections.length > 0) && (
+                    <div className={styles.card}>
+                      <p className={styles.cardTitle}>
+                        후보 {summary.total_matches}명
+                      </p>
+                      <div className={styles.detectionList}>
+                        {summary.cctv_summaries
+                          .flatMap((c) =>
+                            c.detections.map((d) => ({ cctv_id: c.cctv_id, det: d })),
+                          )
+                          .sort(
+                            (a, b) =>
+                              b.det.clothing_match_score - a.det.clothing_match_score,
+                          )
+                          .slice(0, 12)
+                          .map(({ cctv_id, det }: { cctv_id: string; det: PersonDetection }) => (
+                            <div key={`${cctv_id}-${det.track_id}`} className={styles.detectionItem}>
+                              {det.thumbnail_b64 ? (
+                                <img
+                                  src={`data:image/jpeg;base64,${det.thumbnail_b64}`}
+                                  alt={`후보 #${det.track_id}`}
+                                  className={styles.thumbnail}
+                                />
+                              ) : (
+                                <div className={styles.thumbnailPlaceholder}>?</div>
+                              )}
+                              <div className={styles.detectionInfo}>
+                                <span className={styles.detectionScore}>
+                                  유사도 {Math.round(det.clothing_match_score * 100)}%
+                                </span>
+                                {det.is_child && (
+                                  <span className={styles.childBadge}>아이</span>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                className={styles.lockBtn}
+                                disabled={actionInFlight}
+                                onClick={() => void handleLockFromList(cctv_id, det.track_id)}
+                              >
+                                이 아이예요
+                              </button>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
                 <div className={styles.card}>
                   <div className={styles.sessionActionRow}>
                     <button
@@ -743,14 +813,6 @@ export default function MissingPersonPage() {
                   active={isTracking}
                 />
               </div>
-
-              {isSessionActive && (
-                <AnalysisProgress
-                  progress={analysisProgress}
-                  processedFrames={summary?.processed_frames}
-                  totalFrames={summary?.total_frames}
-                />
-              )}
 
               <div className={styles.videoMeta}>
                 <span className={styles.videoMetaText}>
