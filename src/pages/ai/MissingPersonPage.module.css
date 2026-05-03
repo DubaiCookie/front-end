@@ -26,6 +26,41 @@
   background: #111;
 }
 
+/* ── CCTV 화면 전환 버튼 ─────────────────────────────────────────── */
+.cctvSwitcher {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cctvSwitchBtn {
+  flex: 1;
+  min-width: 70px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1.5px solid var(--BORDER-LIGHT);
+  border-radius: 10px;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-medium);
+  color: var(--TEXT-PRIMARY);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cctvSwitchBtn:hover {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.cctvSwitchBtnActive {
+  background-color: var(--PRIMARY-PINK);
+  border-color: var(--PRIMARY-PINK);
+  color: #fff;
+}
+
+.cctvSwitchBtnActive:hover {
+  background-color: var(--PRIMARY-PINK);
+}
+
 .videoMeta {
   display: flex;
   align-items: center;

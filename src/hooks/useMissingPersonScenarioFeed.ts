@@ -5,6 +5,8 @@ import { MISSING_PERSON_WS_PATH } from "@/types/missing-person-ws";
 type Options = {
   enabled: boolean;
   sessionId: string | null;
+  /** 보고 싶은 CCTV id (예: "scenario-cam-01"). 미지정 시 ai-server 가 메인 cam 으로 fallback. */
+  cctvId?: string | null;
   /** 후보 발견 모달이 떠 있는 동안 프레임 갱신을 멈춰 마지막 화면을 고정합니다. */
   paused: boolean;
 };
@@ -21,6 +23,7 @@ type Options = {
 export function useMissingPersonScenarioFeed({
   enabled,
   sessionId,
+  cctvId,
   paused,
 }: Options): { frameUrl: string | null; isConnected: boolean } {
   const [frameUrl, setFrameUrl] = useState<string | null>(null);
@@ -38,7 +41,8 @@ export function useMissingPersonScenarioFeed({
     }
 
     const base = getAiWsBaseUrl();
-    const url = `${base}${MISSING_PERSON_WS_PATH}/${sessionId}/scenario-feed`;
+    const query = cctvId ? `?cctv_id=${encodeURIComponent(cctvId)}` : "";
+    const url = `${base}${MISSING_PERSON_WS_PATH}/${sessionId}/scenario-feed${query}`;
 
     const ws = new WebSocket(url);
     ws.binaryType = "blob";
@@ -82,7 +86,7 @@ export function useMissingPersonScenarioFeed({
       setFrameUrl(null);
       setIsConnected(false);
     };
-  }, [enabled, sessionId]);
+  }, [enabled, sessionId, cctvId]);
 
   return { frameUrl, isConnected };
 }

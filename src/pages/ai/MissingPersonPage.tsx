@@ -15,7 +15,6 @@ import {
 import { useMissingPersonStore } from "@/stores/missing-person.store";
 import type { ClothingQuery, PersonDetection } from "@/types/ai";
 import BestCandidateCard from "@/components/missing-person/BestCandidateCard";
-import LocationBadge from "@/components/missing-person/LocationBadge";
 import VideoWithBbox from "@/components/missing-person/VideoWithBbox";
 import { useMissingPersonScenarioFeed } from "@/hooks/useMissingPersonScenarioFeed";
 import {
@@ -172,9 +171,12 @@ export default function MissingPersonPage() {
 
   // ── 실시간 영상 + WS ─────────────────────────────────────────────
   // 영상은 분석 단계(detecting)에서만 노출 — 추적 단계는 위치 카드로 대체
+  // 분석 단계에서 보고 있는 CCTV id (사용자가 버튼으로 전환)
+  const [activeCctvId, setActiveCctvId] = useState<string>("scenario-cam-01");
   const { frameUrl } = useMissingPersonScenarioFeed({
     enabled: Boolean(session) && isSessionActive && !isTracking,
     sessionId: session?.session_id ?? null,
+    cctvId: activeCctvId,
     paused: scenarioPaused,
   });
 
@@ -698,9 +700,28 @@ export default function MissingPersonPage() {
           {/* ── 하단: CCTV 영상 (분석 단계에서만 노출, 추적 단계는 위치 카드로 대체) ── */}
           {session && sidebarStage === "detecting" && (
             <div className={styles.videoColumn}>
+              <div className={styles.cctvSwitcher}>
+                {[
+                  { id: "scenario-cam-01", label: "2구역" },
+                  { id: "scenario-cam-02", label: "1구역" },
+                  { id: "scenario-cam-03", label: "3구역" },
+                  { id: "scenario-cam-04", label: "4구역" },
+                ].map((cam) => (
+                  <button
+                    key={cam.id}
+                    type="button"
+                    className={clsx(
+                      styles.cctvSwitchBtn,
+                      activeCctvId === cam.id && styles.cctvSwitchBtnActive,
+                    )}
+                    onClick={() => setActiveCctvId(cam.id)}
+                  >
+                    {cam.label}
+                  </button>
+                ))}
+              </div>
               <div className={styles.videoFrame}>
                 <VideoWithBbox src={frameUrl} bbox={null} />
-                <LocationBadge location={FOUND_LOCATION_TEXT} active={false} />
               </div>
             </div>
           )}
