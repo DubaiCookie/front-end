@@ -21,7 +21,6 @@ import {
   useMissingPersonWs,
   type WsCandidate,
 } from "@/hooks/useMissingPersonWs";
-import { FOUND_LOCATION_TEXT } from "@/types/missing-person-ws";
 import styles from "./MissingPersonPage.module.css";
 
 type FormValues = {
@@ -74,6 +73,7 @@ export default function MissingPersonPage() {
   const [pendingCandidate, setPendingCandidate] = useState<WsCandidate | null>(null);
   const [trackingUpdatedAt, setTrackingUpdatedAt] = useState<Date | null>(null);
   const [lockedTrackId, setLockedTrackId] = useState<number | null>(null);
+  const [currentLocation, setCurrentLocation] = useState<string | null>(null);
   const [actionInFlight, setActionInFlight] = useState(false);
 
   // 직원 요청 입력 폼
@@ -176,6 +176,7 @@ export default function MissingPersonPage() {
     setPendingCandidate(null);
     setTrackingUpdatedAt(null);
     setLockedTrackId(null);
+    setCurrentLocation(null);
   }, [session?.session_id]);
 
   // ── 실시간 영상 + WS ─────────────────────────────────────────────
@@ -201,13 +202,16 @@ export default function MissingPersonPage() {
   );
 
   const handleTrackingUpdate = useCallback(
-    (trackId: number) => {
+    (trackId: number, _bbox: unknown, location: string | null) => {
       // 추적 단계 UX 가 영상 박스 → 위치 텍스트로 바뀌어 bbox 자체는 사용 안 함.
-      // tracking_update 가 도착했다는 사실만 — 위치 갱신 시각 표시에 사용.
+      // tracking_update 가 도착했다는 사실 + 위치 텍스트만 사용.
       if (lockedTrackId !== null && trackId !== lockedTrackId) {
         return;
       }
       setTrackingUpdatedAt(new Date());
+      if (location) {
+        setCurrentLocation(location);
+      }
     },
     [lockedTrackId],
   );
@@ -431,6 +435,7 @@ export default function MissingPersonPage() {
     setForm(EMPTY_FORM);
     setPendingCandidate(null);
     setLockedTrackId(null);
+    setCurrentLocation(null);
   };
 
   // ── Render helpers ───────────────────────────────────────────────
@@ -745,7 +750,7 @@ export default function MissingPersonPage() {
                 <div className={styles.locationCard}>
                   <span className={styles.locationLabel}>아이의 현재 위치</span>
                   <span className={styles.locationValue}>
-                    📍 {FOUND_LOCATION_TEXT}
+                    📍 {currentLocation ?? "위치 확인 중..."}
                   </span>
                   <div className={styles.locationMetaRow}>
                     <span>

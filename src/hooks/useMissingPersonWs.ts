@@ -23,7 +23,7 @@ type UseMissingPersonWsOptions = {
   enabled: boolean;
   sessionId: string | null;
   onCandidateFound: (candidate: WsCandidate) => void;
-  onTrackingUpdate: (trackId: number, bbox: WsBbox) => void;
+  onTrackingUpdate: (trackId: number, bbox: WsBbox, location: string | null) => void;
 };
 
 /**
@@ -82,7 +82,11 @@ export function useMissingPersonWs({
 
       if (parsed.type === "tracking_update") {
         const { x1, y1, x2, y2 } = parsed.bbox;
-        onTrackingUpdate(parsed.track_id, [x1, y1, x2 - x1, y2 - y1]);
+        onTrackingUpdate(
+          parsed.track_id,
+          [x1, y1, x2 - x1, y2 - y1],
+          parsed.location ?? null,
+        );
       }
     });
 
