@@ -170,8 +170,8 @@ export default function MissingPersonPage() {
 
   // ── 실시간 영상 + WS ─────────────────────────────────────────────
   // 영상은 분석 단계(detecting)에서만 노출 — 추적 단계는 위치 카드로 대체
-  // 분석 단계에서 보고 있는 CCTV id (사용자가 버튼으로 전환)
-  const [activeCctvId, setActiveCctvId] = useState<string>("scenario-cam-01");
+  // 분석 단계에서 보고 있는 CCTV id (사용자가 버튼으로 전환) — 기본 1구역
+  const [activeCctvId, setActiveCctvId] = useState<string>("scenario-cam-02");
   const { frameUrl } = useMissingPersonScenarioFeed({
     enabled: Boolean(session) && isSessionActive && !isTracking,
     sessionId: session?.session_id ?? null,
@@ -701,8 +701,8 @@ export default function MissingPersonPage() {
             <div className={styles.videoColumn}>
               <div className={styles.cctvSwitcher}>
                 {[
-                  { id: "scenario-cam-01", label: "2구역" },
                   { id: "scenario-cam-02", label: "1구역" },
+                  { id: "scenario-cam-01", label: "2구역" },
                   { id: "scenario-cam-03", label: "3구역" },
                   { id: "scenario-cam-04", label: "4구역" },
                 ].map((cam) => (
