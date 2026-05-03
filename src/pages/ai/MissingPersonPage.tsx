@@ -19,7 +19,6 @@ import VideoWithBbox from "@/components/missing-person/VideoWithBbox";
 import { useMissingPersonScenarioFeed } from "@/hooks/useMissingPersonScenarioFeed";
 import {
   useMissingPersonWs,
-  type WsBbox,
   type WsCandidate,
 } from "@/hooks/useMissingPersonWs";
 import { FOUND_LOCATION_TEXT } from "@/types/missing-person-ws";
@@ -192,7 +191,7 @@ export default function MissingPersonPage() {
   );
 
   const handleTrackingUpdate = useCallback(
-    (trackId: number, _bbox: WsBbox) => {
+    (trackId: number) => {
       // 추적 단계 UX 가 영상 박스 → 위치 텍스트로 바뀌어 bbox 자체는 사용 안 함.
       // tracking_update 가 도착했다는 사실만 — 위치 갱신 시각 표시에 사용.
       if (lockedTrackId !== null && trackId !== lockedTrackId) {
