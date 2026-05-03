@@ -74,7 +74,6 @@ export default function MissingPersonPage() {
 
   // 실시간 WS 상태
   const [pendingCandidate, setPendingCandidate] = useState<WsCandidate | null>(null);
-  const [trackingBbox, setTrackingBbox] = useState<WsBbox | null>(null);
   const [trackingUpdatedAt, setTrackingUpdatedAt] = useState<Date | null>(null);
   const [lockedTrackId, setLockedTrackId] = useState<number | null>(null);
   const [actionInFlight, setActionInFlight] = useState(false);
@@ -167,14 +166,14 @@ export default function MissingPersonPage() {
   // 세션 바뀌면 실시간 상태 초기화
   useEffect(() => {
     setPendingCandidate(null);
-    setTrackingBbox(null);
     setTrackingUpdatedAt(null);
     setLockedTrackId(null);
   }, [session?.session_id]);
 
   // ── 실시간 영상 + WS ─────────────────────────────────────────────
+  // 영상은 분석 단계(detecting)에서만 노출 — 추적 단계는 위치 카드로 대체
   const { frameUrl } = useMissingPersonScenarioFeed({
-    enabled: Boolean(session) && isSessionActive,
+    enabled: Boolean(session) && isSessionActive && !isTracking,
     sessionId: session?.session_id ?? null,
     paused: scenarioPaused,
   });
@@ -191,12 +190,12 @@ export default function MissingPersonPage() {
   );
 
   const handleTrackingUpdate = useCallback(
-    (trackId: number, bbox: WsBbox) => {
-      // 락 걸린 트랙이거나, 아직 lockedTrackId 미수신이면 일단 표시
+    (trackId: number, _bbox: WsBbox) => {
+      // 추적 단계 UX 가 영상 박스 → 위치 텍스트로 바뀌어 bbox 자체는 사용 안 함.
+      // tracking_update 가 도착했다는 사실만 — 위치 갱신 시각 표시에 사용.
       if (lockedTrackId !== null && trackId !== lockedTrackId) {
         return;
       }
-      setTrackingBbox(bbox);
       setTrackingUpdatedAt(new Date());
     },
     [lockedTrackId],
@@ -398,7 +397,6 @@ export default function MissingPersonPage() {
     resetSessionStore();
     setForm(EMPTY_FORM);
     setPendingCandidate(null);
-    setTrackingBbox(null);
     setLockedTrackId(null);
   };
 
@@ -616,7 +614,7 @@ export default function MissingPersonPage() {
             {sidebarStage === "tracking" && session && (
               <>
                 <div className={styles.locationCard}>
-                  <span className={styles.locationLabel}>현재 위치</span>
+                  <span className={styles.locationLabel}>아이의 현재 위치</span>
                   <span className={styles.locationValue}>
                     📍 {FOUND_LOCATION_TEXT}
                   </span>
@@ -626,9 +624,6 @@ export default function MissingPersonPage() {
                         ? `마지막 갱신 ${trackingStaleSeconds}초 전`
                         : "위치 갱신 대기 중..."}
                     </span>
-                    {lockedTrackId !== null && (
-                      <span>track #{lockedTrackId}</span>
-                    )}
                   </div>
                 </div>
 
@@ -700,20 +695,13 @@ export default function MissingPersonPage() {
             )}
           </div>
 
-          {/* ── 하단: CCTV 영상 (폼 제출 후에만 표시) ── */}
-          {session && (
+          {/* ── 하단: CCTV 영상 (분석 단계에서만 노출, 추적 단계는 위치 카드로 대체) ── */}
+          {session && sidebarStage === "detecting" && (
             <div className={styles.videoColumn}>
               <div className={styles.videoFrame}>
-                <VideoWithBbox
-                  src={frameUrl}
-                  bbox={isTracking ? trackingBbox : null}
-                />
-                <LocationBadge
-                  location={FOUND_LOCATION_TEXT}
-                  active={isTracking}
-                />
+                <VideoWithBbox src={frameUrl} bbox={null} />
+                <LocationBadge location={FOUND_LOCATION_TEXT} active={false} />
               </div>
-
             </div>
           )}
         </div>

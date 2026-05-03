@@ -59,33 +59,42 @@
 
 /* ── 추적 중 위치 카드 ─────────────────────────────────────────────── */
 .locationCard {
-  background: linear-gradient(135deg, rgba(255, 107, 138, 0.12), rgba(255, 255, 255, 0.7));
-  border: 1px solid rgba(255, 107, 138, 0.35);
-  border-radius: 16px;
-  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(255, 107, 138, 0.18), rgba(255, 255, 255, 0.75));
+  border: 2px solid rgba(255, 107, 138, 0.5);
+  border-radius: 20px;
+  padding: 28px 24px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
+  text-align: center;
+  box-shadow: 0 8px 28px rgba(255, 107, 138, 0.18);
 }
 
 .locationLabel {
-  font-size: 13px;
+  font-size: 15px;
   color: var(--TEXT-SECONDARY);
   font-weight: var(--font-medium);
 }
 
 .locationValue {
-  font-size: 18px;
+  font-size: 32px;
   font-weight: var(--font-semibold);
   color: var(--PRIMARY-PINK);
+  letter-spacing: -0.02em;
+  animation: locationPulse 2s ease-in-out infinite;
+}
+
+@keyframes locationPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.75; }
 }
 
 .locationMetaRow {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   font-size: var(--font-size-sm);
   color: var(--TEXT-SECONDARY);
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 /* ── 종료(found/expired) 카드 ─────────────────────────────────────── */
